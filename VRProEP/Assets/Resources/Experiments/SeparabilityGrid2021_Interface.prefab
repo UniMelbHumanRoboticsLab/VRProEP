@@ -222,7 +222,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7057585951369286232}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c0ac216116098b9409adf6586c7559df, type: 3}
+  m_Script: {fileID: 11500000, guid: fead65ce0bb84004ea3c3e6a20ee0650, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   startEnable: 0
@@ -240,7 +240,7 @@ MonoBehaviour:
   trainingPerSession: 
   taskDataFormat: 
   ablebodiedDataFormat: loc,t,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand
-  gridManager: {fileID: 0}
+  gridManager: {fileID: 9140484503144454110}
   startShoulderAngle: -90
   startElbowAngle: 90
   startTolerance: 15
@@ -525,6 +525,18 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1642161262371378730}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &9140484503144454110 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7499521206575350260, guid: f9ec67302367e7b4bbb4fbde9ab2dbfa,
+    type: 3}
+  m_PrefabInstance: {fileID: 1642161262371378730}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1efa888245966f489c87e24e8ef9ba8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &8855506241384898312
 PrefabInstance:
   m_ObjectHideFlags: 0

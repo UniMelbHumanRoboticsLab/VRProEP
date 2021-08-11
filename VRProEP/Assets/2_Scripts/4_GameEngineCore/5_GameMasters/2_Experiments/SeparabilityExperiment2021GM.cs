@@ -85,9 +85,6 @@ public class SeparabilityExperiment2021GM : GameMaster
     #endregion
 
 
-    // Python tcp restuester
-    private PyTCPRequester pyRequester = new PyTCPRequester();
-
     // Delsys EMG background data collection
     private DelsysEMG delsysEMG = new DelsysEMG();
 
@@ -354,17 +351,13 @@ public class SeparabilityExperiment2021GM : GameMaster
 
         #endregion
 
-        #region  Initialize python tcp requester
-        pyRequester.Start();
-        pyRequester.newData(new float[] {1.1f,2.2f});
-        #endregion
 
         #region Initialize world positioning
 
         // Set the subject physiological data for grid 
-        //gridManager.ConfigUserData();
+        gridManager.ConfigUserData();
        
-        //gridManager.ConfigGridPositionFactors(gridCloseDistanceFactor, gridMidDistanceFactor, gridFarDistanceFactor, gridHeightFactor);
+        gridManager.ConfigGridPositionFactors(gridCloseDistanceFactor, gridMidDistanceFactor, gridFarDistanceFactor, gridHeightFactor);
 
         #endregion
 
@@ -873,7 +866,6 @@ public class SeparabilityExperiment2021GM : GameMaster
         // Continue with data logging.
         base.HandleTaskDataLogging();
     
-        // Add py requester here
 
         //HudManager.DisplayText(GameObject.Find("Bottle").transform.localEulerAngles.ToString());
     }
