@@ -89,7 +89,6 @@ namespace VRProEP.GameEngineCore
         {
             LoadAbleHand(userData.lefty, userData.handLength);
             LoadAbleForearm(userData.forearmLength, isNew);
-            LoadResidualLimb(avatarData.residualLimbType, AvatarType.Transhumeral);
         }
 
         /// <summary>
