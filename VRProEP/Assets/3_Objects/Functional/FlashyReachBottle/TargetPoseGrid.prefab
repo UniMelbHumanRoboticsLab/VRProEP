@@ -43,8 +43,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ba7b10720c8d0e489d852acf016632f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  reachBottlePrefab: {fileID: 0}
+  reachBottlePrefab: {fileID: 5402829214342902688, guid: 839fbc23337464a41924dcdf052e5fdf,
+    type: 3}
   reachBallPrefab: {fileID: 4745927119710796115, guid: eafc0d42657ecd144bd2e855582fc314,
     type: 3}
-  bottleInHand: {fileID: 0}
+  bottleInHand: {fileID: 5402829214342902688, guid: 3bed2d0015ddc484da5f5dfb2fe20aed,
+    type: 3}
   targetType: 1
+  shoulderCentreLoc: {fileID: 0}
+  upperArmPrefab: {fileID: 6024531839625552195, guid: 2d28d2451c577124ca856d5fba420e5d,
+    type: 3}
+  foreArmPrefab: {fileID: 7906934636392416395, guid: 55404dea5fe4b054b9d9a360142ea72f,
+    type: 3}
+  wristHandRPrefab: {fileID: 345488241995722796, guid: 95f5d18daafa9aa41aced9cb674d41e7,
+    type: 3}
+  wrisHandLPrefab: {fileID: 345488241995722796, guid: 5288c4ff420f36048a44561fbe71fdac,
+    type: 3}
+  foreArmLinePrefab: {fileID: 680951973858318924, guid: 95fbd810b14b6474abb13a92d695ee65,
+    type: 3}
+  upperArmLinePrefab: {fileID: 680951973858318924, guid: e5ac4a61348e8b046bcb0a9c3e380bf8,
+    type: 3}
+  handLinePrefab: {fileID: 680951973858318924, guid: 0626ff61b1a215446ac78d8aca8dbcbf,
+    type: 3}
+  debug: 0

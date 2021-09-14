@@ -45,7 +45,8 @@ public class TouchyBallManager : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // Check if touched by subject
-        if ( other.tag == "IndexFingerCollider")
+        //other.tag == "IndexFingerCollider" ||
+        if ( other.tag == "MiddleFingerCollider")
         {
             switch(ballState)
             {

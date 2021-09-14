@@ -6,6 +6,10 @@ using VRProEP.GameEngineCore;
 
 public class TargetPoseGridManager : MonoBehaviour
 {
+    public const string ADD_SFE_POSE = "ADD_SFE_POSE";
+    public const string ADD_EFE_POSE = "ADD_EFE_POSE";
+    public const string ADD_WPS_POSE = "ADD_WPS_POSE";
+
     // Config variables
     public enum TargetType { Bottle, Ball}
 
@@ -21,19 +25,67 @@ public class TargetPoseGridManager : MonoBehaviour
     [SerializeField]
     private TargetType targetType;
 
+    [Header("Physical Property")]
+    [SerializeField]
+    private Transform shoulderCentreLoc;
+    [SerializeField]
+    private Vector3 shoulderCentreOffset;
+
+
+    [Header("Limb Models")]
+    [SerializeField]
+    private GameObject upperArmPrefab;
+    [SerializeField]
+    private GameObject foreArmPrefab;
+    [SerializeField]
+    private GameObject wristHandRPrefab;
+    [SerializeField]
+    private GameObject wrisHandLPrefab;
+
+    [SerializeField]
+    private GameObject foreArmLinePrefab;
+    [SerializeField]
+    private GameObject upperArmLinePrefab;
+    [SerializeField]
+    private GameObject handLinePrefab;
+
+    [Header("Debug")]
+    [SerializeField]
+    private bool debug;
+
+    // Dispalying limb
+    private LineRenderer uaLine;
+    private LineRenderer faLine;
+    private LineRenderer handLine;
+    private GameObject upperarmGO;
+    private GameObject forearmGO;
+    private GameObject wristHandGO;
+
+    private static AvatarObjectData activeUpperarmData;
+    private static AvatarObjectData activeForearmData;
+    private static AvatarObjectData activeHandData;
+
 
     // Bottle list
     private List<ReachBottleManager> bottles = new List<ReachBottleManager>();// List of bottles
     private List<TouchyBallManager> balls = new List<TouchyBallManager>(); // List of balls
 
 
+    // Target pose list
+    
+    private List<float> qShoulderFlexionExtension = new List<float>();
+    private List<float> qElbowFlexionExtension = new List<float>();
+    private List<float> qWristPronationSupination = new List<float>();
+    
+
+    private List<float[]> qUpperLimb = new List<float[]>();
+
     // Postion of rotations of the bottles in the grid
-    private List<Vector3> targetPositions = new List<Vector3>();// List of the bottle postions
-    private List<Vector3> targetRotations = new List<Vector3>();// List of the bottle rotations
-    private float gridCloseDistanceFactor = 0.75f;
-    private float gridMidDistanceFactor = 1.0f;
-    private float gridFarDistanceFactor = 1.5f;
-    private float gridHeightFactor = 0.5f;
+    private List<Vector3> targetPositions = new List<Vector3>();// List of the target postions
+    private List<Vector3> elbowPositions = new List<Vector3>();// List of the elbow postions
+    private List<Vector3> wristPositions = new List<Vector3>();// List of the wrist postions
+    private List<Vector3> targetRotations = new List<Vector3>();// List of the target rotations
+    private List<float[]> targetPoseList = new List<float[]>();// List of the target poses
 
     // Signs
     private bool hasSelected = false; // Whether a bottle has been selected
@@ -42,12 +94,16 @@ public class TargetPoseGridManager : MonoBehaviour
 
     // Subject information
     private float subjectHeight;
-    private float subjectArmLength;
     private float subjectFALength;
     private float subjectUALength;
+    private float subjectHandLength;
+    private float subjectFAWidth;
+    private float subjectUAWidth;
+
     private float subjectTrunkLength2SA;
     private float subjectHeight2SA;
     private float subjectShoulderBreadth;
+    private bool subjectLefty;
     private float sagittalOffset;
 
     // Accessor
@@ -64,19 +120,6 @@ public class TargetPoseGridManager : MonoBehaviour
     public TargetType CurrentTargetType { get => targetType; set => targetType = value; }
 
 
-    /// <summary>
-    /// Config the grid paramenters
-    /// </summary>
-    /// <param >
-    /// <returns>
-    /// 
-    public void ConfigGridPositionFactors(float close, float mid, float far, float height)
-    {
-        gridCloseDistanceFactor = close;
-        gridMidDistanceFactor = mid;
-        gridFarDistanceFactor = far;
-        gridHeightFactor = height;
-    }
 
     /// <summary>
     /// Config user physiology data
@@ -84,42 +127,92 @@ public class TargetPoseGridManager : MonoBehaviour
     /// <param >
     /// <returns>
     /// 
-    public void ConfigUserData()
+    public void UpdateUserData()
     {
+        //
+        // Debug able
+        //
+        if (debug)
+            SaveSystem.LoadUserData("TB1995175");
+
+        //
+        // Read the user data
+        //
         subjectHeight = SaveSystem.ActiveUser.height;
-        subjectArmLength = SaveSystem.ActiveUser.upperArmLength + SaveSystem.ActiveUser.forearmLength + (SaveSystem.ActiveUser.handLength / 2);
-        subjectFALength = SaveSystem.ActiveUser.forearmLength + (SaveSystem.ActiveUser.handLength / 2);
+        subjectFALength = SaveSystem.ActiveUser.forearmLength;
         subjectUALength = SaveSystem.ActiveUser.upperArmLength;
-        subjectTrunkLength2SA = SaveSystem.ActiveUser.trunkLength2SA;
-        subjectHeight2SA = SaveSystem.ActiveUser.height2SA;
-        subjectShoulderBreadth = SaveSystem.ActiveUser.shoulderBreadth;
-        sagittalOffset = -subjectShoulderBreadth / 4.0f;
+        subjectFAWidth = SaveSystem.ActiveUser.forearmWidth;
+        subjectUAWidth = SaveSystem.ActiveUser.upperArmWidth;
+        subjectHandLength = SaveSystem.ActiveUser.handLength;
+        
+       
+        //Unused ones
+            subjectTrunkLength2SA = SaveSystem.ActiveUser.trunkLength2SA;
+            subjectHeight2SA = SaveSystem.ActiveUser.height2SA;
+            subjectShoulderBreadth = SaveSystem.ActiveUser.shoulderBreadth;
+            subjectLefty = SaveSystem.ActiveUser.lefty;
+
+        //shoulderCentreLoc.position = shoulderCentreLoc.position - shoulderCentreOffset;
+        shoulderCentreLoc.position = new Vector3(0, subjectHeight2SA, -subjectShoulderBreadth/2.0f);
+        
+        //sagittalOffset = -subjectShoulderBreadth / 4.0f;
     }
 
     void Start()
     {
+
+
+
         // Debug
-        /*
-        GenerateBottleLocations();
-        SpawnBottleGrid();
-        ResetBottleSelection();
-        */
+        if (debug)
+        {
+            UpdateUserData();
+            /*
+            AddJointPose("ADD_SFE_POSE", new float[4]{0,30,60,90});
+            AddJointPose("ADD_EFE_POSE", new float[4] { 0, 30, 60, 90 });
+            AddJointPose("ADD_WPS_POSE", new float[3] { 0, 70, -70});
+            */
+            //AddJointPose(new float[4] {30, 0, 45, -70});
+            //AddJointPose(new float[4] { 80, 0, 130, 0 });
+
+            //AddJointPose(new float[4] { 10, 0, 70, 0 });
+            //AddJointPose(new float[4] { 80, 0, 10, -70 });
+            AddJointPose(new float[4] { 40, 0, 30, 0 }); AddJointPose(new float[4] { 60, 0, 30, 0 }); AddJointPose(new float[4] { 80, 0, 30, 0 });
+            AddJointPose(new float[4] { 40, 0, 55, 0 }); AddJointPose(new float[4] { 60, 0, 55, 0 }); AddJointPose(new float[4] { 80, 0, 55, 0 });
+            AddJointPose(new float[4] { 40, 0, 80, 0 }); AddJointPose(new float[4] { 60, 0, 80, 0 }); AddJointPose(new float[4] { 80, 0, 80, 0 });
+            GenerateTargetLocations();
+            SpawnTargetGrid(); 
+
+        }
+
+        //InitialiseLimb();
+
     }
 
     void Update()
     {
         // Debug: Change selected bottle for debug
-        
+
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            selectedIndex = selectedIndex + 1;
-            if (selectedIndex > bottles.Count-1) selectedIndex = 0;
-            SelectTarget(selectedIndex);
-
+            UpdateUserData();
+            GenerateTargetLocations(); // Update the locations if there is any change in the offset
+            //ShowLimbPose(selectedIndex);
         }
-        
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            selectedIndex = selectedIndex + 1;
+            if (selectedIndex > balls.Count-1)
+                selectedIndex = 0;
+            UpdateUserData();
+            GenerateTargetLocations(); // Update the locations if there is any change in the offset
+            SelectTarget(selectedIndex);
+            //ShowLimbPose(selectedIndex);
+        }
+
+
         // Check if the selected bottle is reached or not
-         CheckReached();
+        CheckReached();
         //Debug.Log(selectedTouched);
 
     }
@@ -158,17 +251,136 @@ public class TargetPoseGridManager : MonoBehaviour
         //Debug.Log(this.bottles[selectedIndex].BottleState.ToString());
     }
 
-    #region public methods
+
     /// <summary>
-    /// Add the locations of the grid
+    /// Calculate the target locations based on target poses
     /// </summary>
     /// <param >
     /// <returns 
-    public void AddTargetLocation(Vector3 position)
+    private void GenerateTargetLocations()
+    {
+        float sign = 1.0f;
+        if (subjectLefty)
+        {
+            sign = -1.0f;
+        }
+        this.sagittalOffset = 0.00f * sign;
+
+        ClearTargetLocations();// Clear the target locations
+
+        Vector3 shoulderCentre = shoulderCentreLoc.position;
+        /*
+        foreach (float qSfe in qShoulderFlexionExtension)
+        {
+            foreach (float qEfe in qElbowFlexionExtension)
+            {
+                foreach (float qWps in qWristPronationSupination)
+                { 
+                    Vector3 target = new Vector3();
+                    Vector3 elbow = new Vector3();
+                    Vector3 wrist = new Vector3();
+
+                    elbow.x = shoulderCentre.x + subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe);
+                    elbow.y = shoulderCentre.y - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qSfe);
+                    elbow.z = shoulderCentre.z;
+                    AddElbowLocation(elbow);
+
+                    wrist.x = elbow.x + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
+                    wrist.y = elbow.y - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
+                    wrist.z = shoulderCentre.z;
+                    AddWristLocation(wrist);
+
+                    target.x = elbow.x + (subjectFALength + subjectHandLength) * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
+                    target.y = elbow.y - (subjectFALength + subjectHandLength) * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
+                    target.z = shoulderCentre.z + this.sagittalOffset;
+                    AddTargetLocation(target);
+
+                    targetPoseList.Add(new float[]{qSfe,qEfe,qWps});
+                }
+            }
+
+        }
+        */
+
+        foreach (float[] qUA in qUpperLimb)
+        {
+            float qSfe = qUA[0];
+            float qSaa = qUA[1];
+            float qEfe = qUA[2];
+            float qWps = qUA[3];
+
+            Vector3 target = new Vector3();
+            Vector3 elbow = new Vector3();
+            Vector3 wrist = new Vector3();
+
+            elbow.x = shoulderCentre.x + subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe);
+            elbow.y = shoulderCentre.y - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qSfe);
+            elbow.z = shoulderCentre.z;
+            AddElbowLocation(elbow);
+
+            wrist.x = elbow.x + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
+            wrist.y = elbow.y - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
+            wrist.z = shoulderCentre.z;
+            AddWristLocation(wrist);
+
+            target.x = elbow.x + (subjectFALength + subjectHandLength) * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
+            target.y = elbow.y - (subjectFALength + subjectHandLength) * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
+            target.z = shoulderCentre.z + this.sagittalOffset;
+            AddTargetLocation(target);
+
+            targetPoseList.Add(new float[] { qSfe, qEfe, qWps });
+        }
+
+    }
+
+    /// <summary>
+    /// Clear the list of locations
+    /// </summary>
+    /// <param >
+    /// <returns 
+    private void ClearTargetLocations()
+    {
+        targetPoseList.Clear();
+        targetPositions.Clear();
+        targetRotations.Clear();
+        elbowPositions.Clear();
+        wristPositions.Clear();
+    }
+
+    /// <summary>
+    /// Add the locations for the grid
+    /// </summary>
+    /// <param >
+    /// <returns 
+    private void AddTargetLocation(Vector3 position)
     {
         targetPositions.Add(position);
 
-        
+
+    }
+
+    /// <summary>
+    /// Add the locations of the elbow
+    /// </summary>
+    /// <param >
+    /// <returns 
+    private void AddElbowLocation(Vector3 position)
+    {
+        elbowPositions.Add(position);
+
+
+    }
+
+    /// <summary>
+    /// Add the locations of the wrist
+    /// </summary>
+    /// <param >
+    /// <returns 
+    private void AddWristLocation(Vector3 position)
+    {
+        wristPositions.Add(position);
+
+
     }
 
     /// <summary>
@@ -176,7 +388,7 @@ public class TargetPoseGridManager : MonoBehaviour
     /// </summary>
     /// <param >
     /// <returns 
-    public void AddTargetRotation(Vector3 rotation)
+    private void AddTargetRotation(Vector3 rotation)
     {
         targetRotations.Add(rotation);
 
@@ -184,153 +396,187 @@ public class TargetPoseGridManager : MonoBehaviour
     }
 
 
+    #region Methods for displaying the limb pose
     /// <summary>
-    /// Generate the locations of the bottle grid
+    /// Initialise virtual limb game objects
     /// </summary>
     /// <param >
     /// <returns 
-    /// 
-    # region Deprecated
-    public void GenerateTargetLocations()
+    private void InitialiseLimb()
     {
         //
-        // Constants
-        // 
-        float bottleheight = 0.2f;
-
+        // Left sign
         //
-        // Anchor Positions
-        //
-        Vector3 anchorTargetVeryClose = new Vector3(subjectArmLength * 0.5f, subjectHeight2SA - bottleheight / 2, sagittalOffset);
-        Vector3 anchorTargetClose = new Vector3(subjectArmLength * gridCloseDistanceFactor, subjectHeight2SA - bottleheight / 2, sagittalOffset);
-        Vector3 anchorTargetMid = new Vector3(subjectArmLength * gridMidDistanceFactor, subjectHeight2SA - bottleheight / 2, sagittalOffset);
-        Vector3 anchorTargetFar = new Vector3(subjectArmLength * gridFarDistanceFactor, subjectHeight2SA - bottleheight / 2, sagittalOffset);
-        Vector3[] childTargetClose;
-        Vector3[] childTargetMid;
-
-        //Very Close
-
-        targetPositions.Add(anchorTargetVeryClose);
-
-        // Close
-        targetPositions.Add(anchorTargetClose);
-        
-        childTargetClose = GenerateChildTargetsClose(JointAngleAtAnchor(anchorTargetClose)[0], JointAngleAtAnchor(anchorTargetClose)[1]); 
-        for (int i = 0; i < childTargetClose.Length; i++)
+        float sign = 1.0f;
+        string side = "R";
+        if (subjectLefty)
         {
-            targetPositions.Add(childTargetClose[i]); // Add child ones
+            sign = -1.0f;
+            side = "L";
         }
-        
-       
-
-        // Mid
-        targetPositions.Add(anchorTargetMid);
-        childTargetMid = GenerateChildTargetsMid(JointAngleAtAnchor(anchorTargetMid)[0], JointAngleAtAnchor(anchorTargetMid)[1]);
-        for (int i = 0; i < childTargetMid.Length; i++)
-        {
-            targetPositions.Add(childTargetMid[i]); // Add child ones
-        }
-        
-        // Far
-        targetPositions.Add(anchorTargetFar);
 
         //
-        // Rotations
+        // The lines that draw the limb
         //
-        targetRotations.Add(new Vector3(0.0f, 0.0f, 0.0f));
-        targetRotations.Add(new Vector3(45.0f, 0.0f, 0.0f));
-        targetRotations.Add(new Vector3(-45.0f, 0.0f, 0.0f));
+        uaLine = Instantiate(upperArmLinePrefab).GetComponent<LineRenderer>();
+        faLine = Instantiate(foreArmLinePrefab).GetComponent<LineRenderer>();
+        handLine = Instantiate(handLinePrefab).GetComponent<LineRenderer>();
+
+        //
+        // The 3D models
+        //
+        Material mMaterial = (Material)Resources.Load("Avatars/Limb", typeof(Material));// Load the displaying material different to avatar material
+        upperarmGO = Instantiate(upperArmPrefab);
+        upperarmGO.GetComponentInChildren<LimbFollower>().enabled = false;
+        foreach (MeshRenderer renderer in upperarmGO.GetComponentsInChildren<MeshRenderer>())
+            renderer.sharedMaterial = mMaterial;
+
+        forearmGO = Instantiate(foreArmPrefab);
+        forearmGO.GetComponent<LimbFollower>().enabled = false;
+        forearmGO.GetComponent<CapsuleCollider>().enabled = false;
+        forearmGO.GetComponent<Rigidbody>().isKinematic = true;
+        foreach (MeshRenderer renderer in forearmGO.GetComponentsInChildren<MeshRenderer>())
+            renderer.sharedMaterial = mMaterial;
+        //forearmGO.GetComponent<MeshRenderer>().sharedMaterial = mMaterial;
+
+        if (!subjectLefty) //Check to use the left or right hand prefab
+            wristHandGO = Instantiate(wristHandRPrefab);
+
+        else
+            wristHandGO = Instantiate(wrisHandLPrefab);
+        wristHandGO.transform.Find("ACESHand_" + side).gameObject.GetComponent<MeshRenderer>().sharedMaterial = mMaterial;
+        
+
+        //
+        // Scale the 3D model
+        //
+        // Hand scale
+        string objectPath = "Avatars/Hands/ACESHand_" + side;
+        string objectDataAsJson = Resources.Load<TextAsset>(objectPath).text;
+        activeHandData = JsonUtility.FromJson<AvatarObjectData>(objectDataAsJson);
+        if (activeHandData == null)
+            throw new System.Exception("The requested hand information was not found.");
+        // forearm scale
+        objectPath = "Avatars/Forearms/ForearmAble";
+        objectDataAsJson = Resources.Load<TextAsset>(objectPath).text;
+        activeForearmData = JsonUtility.FromJson<AvatarObjectData>(objectDataAsJson);
+        if (activeForearmData == null)
+            throw new System.Exception("The requested hand information was not found.");
+        //residual limb scale
+        objectPath = "Avatars/ResidualLimbs/ResidualLimbUpperDefault";
+        objectDataAsJson = Resources.Load<TextAsset>(objectPath).text;
+        activeUpperarmData = JsonUtility.FromJson<AvatarObjectData>(objectDataAsJson);
+        if (activeUpperarmData == null)
+            throw new System.Exception("The requested hand information was not found.");
+
+        //
+        // Scale the model
+        //
+        float scaleFactor = subjectUAWidth / activeUpperarmData.dimensions.y;
+        upperarmGO.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+
+        scaleFactor = subjectFAWidth / activeForearmData.dimensions.y;
+        forearmGO.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+
+        scaleFactor = subjectHandLength / activeHandData.dimensions.x;
+        wristHandGO.transform.Find("ACESHand_"+side).gameObject.transform.localScale = new Vector3(sign * scaleFactor, sign * scaleFactor, sign * scaleFactor);
+
+        //
+        //Initial display
+        //
+        int index = 0;
+        ShowLimbPose(index);
     }
 
     /// <summary>
-    /// Calculate shoulder and elbow angles of anchor position
+    /// Show the limb pose
     /// </summary>
     /// <param >
     /// <returns 
-
-    private Vector3[] GenerateChildTargetsClose(float qShoulder, float qElbow)
+    private void ShowLimbPose(int index)
     {
-        float DELTA1 = 20f;
-        float DELTA2 = 20f;
-
-        Vector3[] target = new Vector3[2];
-
-
-        target[0].x = subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qShoulder) + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qShoulder + qElbow + DELTA1) );
-        target[0].y = subjectHeight2SA - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qShoulder) - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qShoulder + qElbow + DELTA1));
-        target[0].z = sagittalOffset;
-
+        // Update the target positions
+        for (int i = 0; i <= targetPositions.Count - 1; i++)
+            balls[i].transform.position = targetPositions[i];
         
-        target[1].x = subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qShoulder) + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qShoulder + qElbow - DELTA2));
-        target[1].y = subjectHeight2SA - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qShoulder) -subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qShoulder + qElbow - 3*DELTA2));
-        target[1].z = sagittalOffset;
 
-        return target;
-    
+        //Display the limb as lines
+        uaLine.SetPosition(0, shoulderCentreLoc.position);
+        uaLine.SetPosition(1, elbowPositions[index]);
+        faLine.SetPosition(0, elbowPositions[index]);
+        faLine.SetPosition(1, wristPositions[index]);
+        handLine.SetPosition(0, wristPositions[index]);
+        handLine.SetPosition(1, targetPositions[index]);
+
+
+        // Display the 3D models    
+        upperarmGO.transform.position = elbowPositions[index];
+        upperarmGO.transform.rotation = Quaternion.Euler(0, 0, targetPoseList[index][0]); // rotate to align the pose
+        upperarmGO.transform.Translate(new Vector3(0, 0.1f, 0), Space.Self); // offset the model
+
+        forearmGO.transform.position = wristPositions[index];
+        forearmGO.transform.rotation = Quaternion.Euler(0, 0, targetPoseList[index][0] + targetPoseList[index][1]); // rotate to align the pose
+        forearmGO.transform.Translate(new Vector3(0, 0.07f, 0), Space.Self); // offset the model
+
+        wristHandGO.transform.position = wristPositions[index];
+        wristHandGO.transform.rotation = Quaternion.Euler(0, 0, targetPoseList[index][0] + targetPoseList[index][1]); // rotate to align the pose
+        
+        float q = 180.0f + targetPoseList[index][2];
+        wristHandGO.transform.Rotate(new Vector3(0, q, 0), Space.Self); 
     }
-
-    /// <summary>
-    /// Calculate shoulder and elbow angles of anchor position
-    /// </summary>
-    /// <param >
-    /// <returns 
-
-    private Vector3[] GenerateChildTargetsMid(float qShoulder, float qElbow)
-    {
-        float DELTA = 25f;
-
-        Vector3[] target = new Vector3[2];
-
-        target[0].x = subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qShoulder) + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qShoulder + qElbow + DELTA));
-        target[0].y = subjectHeight2SA - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qShoulder) - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qShoulder + qElbow + DELTA));
-        target[0].z = sagittalOffset;
-
-
-        target[1].x = subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qShoulder) + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qShoulder + qElbow + 2 * DELTA));
-        target[1].y = subjectHeight2SA - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qShoulder) - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qShoulder + qElbow + 2 * DELTA));
-        target[1].z = sagittalOffset;
-
-
-        return target;
-    }
-
     #endregion
 
+
+    #region public methods
     /// <summary>
-    /// Calculate shoulder and elbow angles of anchor position
+    /// Add the joint pose
     /// </summary>
     /// <param >
     /// <returns 
-    private float[] JointAngleAtAnchor(Vector3 anchorLocation)
+    public void AddJointPose(string type, float[] angle)
     {
-        float qShoulder = 0;
-        float qElbow = 0;
-        if (subjectArmLength > anchorLocation.x)
+        
+        switch (type)
         {
-            float alpha = Mathf.Acos((Mathf.Pow(subjectUALength, 2) + Mathf.Pow(subjectFALength, 2) - Mathf.Pow(anchorLocation.x, 2))
-                                    / (2 * subjectFALength * subjectUALength));
-            qElbow = 180 - Mathf.Rad2Deg * alpha;
+            case ADD_SFE_POSE:
+                foreach (float value in angle)
+                {
+                    qShoulderFlexionExtension.Add(value);
+                }
+                break;
+            case ADD_EFE_POSE:
+                foreach (float value in angle)
+                {
+                    qElbowFlexionExtension.Add(value);
+                }
+                break;
+            case ADD_WPS_POSE:
+                foreach (float value in angle)
+                {
+                    qWristPronationSupination.Add(value);
+                }
+                break;
 
-            float beta = Mathf.Asin(subjectFALength * Mathf.Sin(alpha) / (anchorLocation.x));
-
-            qShoulder = 90 - Mathf.Rad2Deg * beta;
-
-            return new float[] { qShoulder, qElbow };
-        }
-        else
-        {
-            return new float[] { 90, 0 };
         }
         
+
     }
 
-    /// <summary>
-    /// Spawn the boottle grid
-    /// </summary>
-    /// <param >
-    /// <returns bool reached>
-    public void SpawnTargetGrid()
+    public void AddJointPose(float[] angle)
     {
+        qUpperLimb.Add(angle);
+    }
+
+
+
+        /// <summary>
+        /// Spawn the boottle grid
+        /// </summary>
+        /// <param >
+        /// <returns bool reached>
+        public void SpawnTargetGrid()
+    {
+        
         for (int i = 0; i <= targetPositions.Count-1; i++)
         {
 
@@ -338,6 +584,8 @@ public class TargetPoseGridManager : MonoBehaviour
             {
                 // Spawn a new bottle with this as parent
                 GameObject target = Instantiate(reachBallPrefab, this.transform);
+                float scaleFactor = 0.05f;
+                target.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
                 // Move the local position of the ball.
                 target.transform.localPosition = targetPositions[i];
                 // Add bottle to collection
@@ -373,6 +621,7 @@ public class TargetPoseGridManager : MonoBehaviour
             }
         }
 
+
     }
 
     /// <summary>
@@ -387,6 +636,7 @@ public class TargetPoseGridManager : MonoBehaviour
 
         selectedIndex = index;
         
+
         switch (targetType)
         {
             case TargetType.Bottle:
@@ -399,6 +649,7 @@ public class TargetPoseGridManager : MonoBehaviour
 
         hasSelected = true;
         selectedTouched = false;
+       
     }
 
     /// <summary>
