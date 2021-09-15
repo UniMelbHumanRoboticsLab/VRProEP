@@ -446,6 +446,7 @@ public class TargetPoseGridManager : MonoBehaviour
             wristHandGO = Instantiate(wrisHandLPrefab);
         wristHandGO.transform.Find("ACESHand_" + side).gameObject.GetComponent<MeshRenderer>().sharedMaterial = mMaterial;
         
+        /*
 
         //
         // Scale the 3D model
@@ -480,6 +481,7 @@ public class TargetPoseGridManager : MonoBehaviour
 
         scaleFactor = subjectHandLength / activeHandData.dimensions.x;
         wristHandGO.transform.Find("ACESHand_"+side).gameObject.transform.localScale = new Vector3(sign * scaleFactor, sign * scaleFactor, sign * scaleFactor);
+        */
 
         //
         //Initial display
@@ -585,7 +587,7 @@ public class TargetPoseGridManager : MonoBehaviour
                 // Spawn a new bottle with this as parent
                 GameObject target = Instantiate(reachBallPrefab, this.transform);
                 float scaleFactor = 0.05f;
-                target.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+                //target.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
                 // Move the local position of the ball.
                 target.transform.localPosition = targetPositions[i];
                 // Add bottle to collection

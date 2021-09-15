@@ -51,6 +51,7 @@ MonoBehaviour:
     type: 3}
   targetType: 1
   shoulderCentreLoc: {fileID: 0}
+  shoulderCentreOffset: {x: 0, y: 0, z: 0}
   upperArmPrefab: {fileID: 6024531839625552195, guid: 2d28d2451c577124ca856d5fba420e5d,
     type: 3}
   foreArmPrefab: {fileID: 7906934636392416395, guid: 55404dea5fe4b054b9d9a360142ea72f,

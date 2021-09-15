@@ -413,8 +413,10 @@ public class SeparabilityExperiment2020GM : GameMaster
         // First flag that we are in the welcome routine
         welcomeDone = false;
         inWelcome = true;
-
         HudManager.DisplayText("Look to the top right. Instructions will be displayed there.");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+    
+        //HudManager.DisplayText("Look to the top right. Instructions will be displayed there.");
         InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
@@ -457,7 +459,7 @@ public class SeparabilityExperiment2020GM : GameMaster
         
         //
         // Generate the targets
-  
+        
         InstructionManager.DisplayText("First, let's set up the experiment targets for you. \n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
