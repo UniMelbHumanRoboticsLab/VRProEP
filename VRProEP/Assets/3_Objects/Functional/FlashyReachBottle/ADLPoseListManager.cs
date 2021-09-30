@@ -1,0 +1,116 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using VRProEP.GameEngineCore;
+
+
+public class ADLPoseListManager : MonoBehaviour
+{
+
+    // List of poses
+    private List<string> poses = new List<string>();// List of poses
+
+
+
+    // Signs
+    private bool hasSelected = false; // Whether a bottle has been selected
+    private int selectedIndex = -1;
+    private bool selectedTouched = false;
+
+    
+
+    // Accessor
+    public bool SelectedTouched { get => selectedTouched; }
+    public int TargetNumber
+    {
+        get
+        {
+                return poses.Count;
+        }
+    }
+
+    public string GetPoseName(int index)
+    {
+        return poses[index];
+    }
+
+
+    public string SelectedPose(int index)
+    {
+        return poses[index];
+    }
+            
+
+   
+
+    void Start()
+    {
+        // Debug
+        /*
+        GenerateBottleLocations();
+        SpawnBottleGrid();
+        ResetBottleSelection();
+        */
+    }
+
+    void Update()
+    {
+        // Debug: Change selected bottle for debug
+        /*
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            selectedIndex = selectedIndex + 1;
+            if (selectedIndex > poses.Count-1) selectedIndex = 0;
+            SelectPose(selectedIndex);
+
+        }
+        */
+    }
+
+
+    
+
+    #region public methods
+    /// <summary>
+    /// Add the locations of the grid
+    /// </summary>
+    /// <param >
+    /// <returns 
+    public void AddPose(string pose)
+    {
+        poses.Add(pose);
+        Debug.Log("Add pose:" + pose);
+    }
+
+
+   
+
+    /// <summary>
+    /// Select a bottle by index
+    /// </summary>
+    /// <param int index>
+    /// <returns>
+    public void SelectPose(int index)
+    {
+        // Reset previous selections
+        ResetPoseSelection();
+
+        selectedIndex = index;
+        
+
+        hasSelected = true;
+        selectedTouched = false;
+        
+    }
+
+    /// <summary>
+    /// Clears the ball selection
+    /// </summary>
+    public void ResetPoseSelection()
+    {
+
+        hasSelected = false;
+        selectedTouched = false;
+    }
+    #endregion
+}
