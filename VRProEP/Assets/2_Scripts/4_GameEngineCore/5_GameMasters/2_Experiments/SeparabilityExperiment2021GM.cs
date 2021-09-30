@@ -23,8 +23,7 @@ public class SeparabilityExperiment2021GM : GameMaster
     #region Unity objects
     [SerializeField]
     private string ablebodiedDataFormat = "loc,t,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
-    [SerializeField]
-    private TargetGridManager gridManager;
+    
 
     [Header("Experiment configuration: Start position")]
     [SerializeField]
@@ -81,6 +80,9 @@ public class SeparabilityExperiment2021GM : GameMaster
 
     [SerializeField]
     private AudioClip testAudioClip;
+
+    [SerializeField]
+    private TargetPoseGridManager gridManager = new TargetPoseGridManager();
 
     #endregion
 
@@ -355,9 +357,9 @@ public class SeparabilityExperiment2021GM : GameMaster
         #region Initialize world positioning
 
         // Set the subject physiological data for grid 
-        gridManager.ConfigUserData();
+        //gridManager.ConfigUserData();
        
-        gridManager.ConfigGridPositionFactors(gridCloseDistanceFactor, gridMidDistanceFactor, gridFarDistanceFactor, gridHeightFactor);
+        //gridManager.ConfigGridPositionFactors(gridCloseDistanceFactor, gridMidDistanceFactor, gridFarDistanceFactor, gridHeightFactor);
 
         #endregion
 
@@ -413,7 +415,34 @@ public class SeparabilityExperiment2021GM : GameMaster
         // First flag that we are in the welcome routine
         welcomeDone = false;
         inWelcome = true;
-
+        for (int i = 1; i < 10; i++)
+        {
+            gridManager.SelectTarget(7);
+            HudManager.DisplayText("Well done (you can return to start position)!");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            hasReached = false;
+            // For video
+            HudManager.colour = HUDManager.HUDColour.Orange;
+            HUDCountDown(1);
+            yield return new WaitUntil(() => CountdownDone); // And wait 
+            InstructionManager.DisplayText("Reach it!");
+            HudManager.DisplayText("Reach it!");
+            HudManager.colour = HUDManager.HUDColour.Blue;
+            yield return new WaitUntil(() => IsTaskDone());
+            // Signal the subject that the task is done
+            
+            //HudManager.DisplayText("Hold on your current position!");
+            //yield return new WaitForSecondsRealtime(1.0f);
+            audio.clip = returnAudioClip;
+            audio.Play();
+            HudManager.colour = HUDManager.HUDColour.Red;
+            HudManager.DisplayText("Well done (you can return to start position)!");
+            
+            hasReached = false;
+            taskComplete = false;
+            gridManager.ResetTargetSelection();
+           
+        }
         HudManager.DisplayText("Look to the top right. Instructions will be displayed there.");
         InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -481,13 +510,13 @@ public class SeparabilityExperiment2021GM : GameMaster
                 GameObject[] hand = GameObject.FindGameObjectsWithTag("IndexFingerCollider");
                 //Debug.Log(indexFinger[0].transform.position.ToString("F3"));
                 Vector3 location = Quaternion.Euler(0,this.worldOrientation, 0) * hand[0].transform.position; // Add the index finger location
-                gridManager.AddTargetLocation(location);
+                //gridManager.AddTargetLocation(location);
             }
         }
 
-        gridManager.AddTargetRotation(new Vector3(0.0f, 0.0f, 0.0f));
-        gridManager.AddTargetRotation(new Vector3(45.0f, 0.0f, 0.0f));
-        gridManager.AddTargetRotation(new Vector3(-45.0f, 0.0f, 0.0f));
+        //gridManager.AddTargetRotation(new Vector3(0.0f, 0.0f, 0.0f));
+        //gridManager.AddTargetRotation(new Vector3(45.0f, 0.0f, 0.0f));
+        //gridManager.AddTargetRotation(new Vector3(-45.0f, 0.0f, 0.0f));
        
 
         // Now that you are done, set the flag to indicate we are done.
@@ -886,7 +915,7 @@ public class SeparabilityExperiment2021GM : GameMaster
     public override bool IsTaskDone()
     {
         // You can implement whatever condition you want, maybe touching an object in the virtual world or being in a certain posture.
-
+       
         if (gridManager.SelectedTouched && !hasReached)
         {
             audio.clip = holdAudioClip;
@@ -981,7 +1010,7 @@ public class SeparabilityExperiment2021GM : GameMaster
     {
 
         //HudManager.DisplayText("New session");
-        if (gridManager.CurrentTargetType == TargetGridManager.TargetType.Ball)
+        if (gridManager.CurrentTargetType == TargetPoseGridManager.TargetType.Ball)
         {
             GameObject[] targets = GameObject.FindGameObjectsWithTag("TouchyBall");
             foreach (GameObject target in targets)
@@ -991,7 +1020,7 @@ public class SeparabilityExperiment2021GM : GameMaster
             targetOrder.Clear();
 
             // Generate new grid
-            gridManager.CurrentTargetType = TargetGridManager.TargetType.Bottle;
+            gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Bottle;
             gridManager.SpawnTargetGrid();
             gridManager.ResetTargetSelection();
             Debug.Log("Spawn the grid!");
