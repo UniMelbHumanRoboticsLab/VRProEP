@@ -835,7 +835,7 @@ public class VariationTest2021GM : GameMaster
         //HudManager.colour = HUDManager.HUDColour.Green;
         //HudManager.colour = HUDManager.HUDColour.Green;
        
-        yield return new WaitForSecondsRealtime(0.5f);
+        yield return new WaitForSecondsRealtime(1.0f);
         taskComplete = true;
     }
 
