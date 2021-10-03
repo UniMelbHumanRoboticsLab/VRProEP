@@ -218,7 +218,7 @@ public class VariationTest2021GM : GameMaster
             audio.clip = startAudioClip;
             audio.Play(0);
             // Comment out when sEMG is connected
-            //delsysEMG.StartRecording(ConfigEMGFilePath());
+            delsysEMG.StartRecording(ConfigEMGFilePath());
             emgIsRecording = true;
         }
 
@@ -777,18 +777,18 @@ public class VariationTest2021GM : GameMaster
         //
         // Add your custom data logging here
         //
-        //logData += targetOrder[iterationNumber - 1] + ",";  // Make sure you always end your custom data with a comma! Using CSV for data logging.
+        logData += targetOrder[iterationNumber - 1] + ",";  // Make sure you always end your custom data with a comma! Using CSV for data logging.
 
         //
         // Continue with data logging.
         //
-        //base.HandleTaskDataLogging();
+        base.HandleTaskDataLogging();
 
 
         //
         // Use for debug without vr only
         //
-            taskTime += Time.fixedDeltaTime;
+            //taskTime += Time.fixedDeltaTime;
     }
 
     /// <summary>
