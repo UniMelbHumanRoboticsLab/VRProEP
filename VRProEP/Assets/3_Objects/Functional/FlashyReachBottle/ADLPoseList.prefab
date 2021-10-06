@@ -43,7 +43,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c6999971436c124eaf3e4141a9441f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  reachBottlePrefab: {fileID: 0}
-  reachBallPrefab: {fileID: 0}
-  bottleInHand: {fileID: 0}
-  targetType: 0

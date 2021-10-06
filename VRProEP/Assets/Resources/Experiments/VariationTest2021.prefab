@@ -458,6 +458,12 @@ MonoBehaviour:
   holdAudioClip: {fileID: 8300000, guid: 520a431cc0f99e7478b4a53a290c28ff, type: 3}
   returnAudioClip: {fileID: 8300000, guid: 3cde4d34aa934b545aef79f2da842faf, type: 3}
   testAudioClip: {fileID: 8300000, guid: 7298cdd19e7244a4f9a880e0058b5c8c, type: 3}
+  restAudioClip: {fileID: 8300000, guid: c5280cdaa0b0fa64ab5b17ee6d4f610a, type: 3}
+  reachMugAudioClip: {fileID: 8300000, guid: 0c47ea015d87bb946b6c0669f4450aef, type: 3}
+  drinkAudioClip: {fileID: 8300000, guid: 31c0d95472674ce45b217f64cf2e0910, type: 3}
+  reachKeyAudioClip: {fileID: 8300000, guid: b93f166bcd9b3af40a2e5ddbd386a50f, type: 3}
+  turnKeyAudioClip: {fileID: 8300000, guid: d8a39a1d2492f6849b2d53e94f5e5337, type: 3}
+  nextAudioClip: {fileID: 8300000, guid: 64f6ec8f208df0b4683c89d42f38ad46, type: 3}
 --- !u!1 &9025509897340019074
 GameObject:
   m_ObjectHideFlags: 0

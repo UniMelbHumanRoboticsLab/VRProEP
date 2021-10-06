@@ -9,8 +9,8 @@ public class ADLPoseListManager : MonoBehaviour
 
     // List of poses
     private List<string> poses = new List<string>();// List of poses
-
-
+    private List<AudioClip> poseAudioClips = new List<AudioClip>();
+    AudioSource audio;
 
     // Signs
     private bool hasSelected = false; // Whether a bottle has been selected
@@ -33,7 +33,11 @@ public class ADLPoseListManager : MonoBehaviour
     {
         return poses[index];
     }
-
+  
+    public AudioClip GetPoseAudio(int index)
+    {
+        return poseAudioClips[index]; //Play the audio
+    }
 
     public string SelectedPose(int index)
     {
@@ -79,11 +83,19 @@ public class ADLPoseListManager : MonoBehaviour
     public void AddPose(string pose)
     {
         poses.Add(pose);
+
+        Debug.Log("Add pose:" + pose);
+    }
+
+    public void AddPose(string pose, AudioClip poseAudio)
+    {
+        poses.Add(pose);
+        poseAudioClips.Add(poseAudio);
         Debug.Log("Add pose:" + pose);
     }
 
 
-   
+
 
     /// <summary>
     /// Select a bottle by index
@@ -112,5 +124,7 @@ public class ADLPoseListManager : MonoBehaviour
         hasSelected = false;
         selectedTouched = false;
     }
+
+
     #endregion
 }

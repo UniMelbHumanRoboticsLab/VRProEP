@@ -73,7 +73,25 @@ public class VariationTest2021GM : GameMaster
     [SerializeField]
     private AudioClip testAudioClip;
 
- 
+    [SerializeField]
+    private AudioClip restAudioClip;
+
+    [SerializeField]
+    private AudioClip reachMugAudioClip;
+
+    [SerializeField]
+    private AudioClip drinkAudioClip;
+
+    [SerializeField]
+    private AudioClip reachKeyAudioClip;
+
+    [SerializeField]
+    private AudioClip turnKeyAudioClip;
+
+    [SerializeField]
+    private AudioClip nextAudioClip;
+
+
 
     #endregion
 
@@ -115,19 +133,27 @@ public class VariationTest2021GM : GameMaster
     //Audio
     AudioSource audio;
 
-    private void DisplayTaskText(int index)
-    {
-        poseListManager.SelectPose(index);
-        taskPoseText.text = poseListManager.SelectedPose(index);
-        Debug.Log("Ite:" + iterationNumber + ". Next pose:" + poseListManager.SelectedPose(index) + ".");
-    }
-
+   
     #region Private methods
     private string ConfigEMGFilePath()
     {
         //string emgDataFilename =  Path.Combine(taskDataLogger.ActiveDataPath, "session_" + sessionNumber , "i" + "_" + iterationNumber + "EMG.csv");
         string emgDataFilename = taskDataLogger.ActiveDataPath + "/session_" + sessionNumber + "/i" + "_" + iterationNumber + "EMG.csv";
         return emgDataFilename;
+    }
+
+    private IEnumerator DisplayTaskText(int index)
+    {
+        poseListManager.SelectPose(index);
+        taskPoseText.text = poseListManager.SelectedPose(index);
+        // Play the audio
+        audio.clip = nextAudioClip;
+        audio.Play(0);
+        yield return new WaitForSecondsRealtime(1.0f);
+        audio.clip = poseListManager.GetPoseAudio(index);
+        audio.Play(0);
+
+        Debug.Log("Ite:" + iterationNumber + ". Next pose:" + poseListManager.SelectedPose(index) + ".");
     }
 
 
@@ -218,7 +244,8 @@ public class VariationTest2021GM : GameMaster
             audio.clip = startAudioClip;
             audio.Play(0);
             // Comment out when sEMG is connected
-            delsysEMG.StartRecording(ConfigEMGFilePath());
+            if(!debug)
+                delsysEMG.StartRecording(ConfigEMGFilePath());
             emgIsRecording = true;
         }
 
@@ -394,11 +421,11 @@ public class VariationTest2021GM : GameMaster
         //
         // Target ADL poses
         //
-        poseListManager.AddPose("Rest");
-        poseListManager.AddPose("Reach Mug");
-        poseListManager.AddPose("Drink with Mug");
-        poseListManager.AddPose("Reach Key");
-        poseListManager.AddPose("Turn Key");
+        poseListManager.AddPose("Rest",restAudioClip);
+        poseListManager.AddPose("Reach Mug",reachMugAudioClip);
+        poseListManager.AddPose("Drink with Mug",drinkAudioClip);
+        poseListManager.AddPose("Reach Key",reachKeyAudioClip);
+        poseListManager.AddPose("Turn Key",turnKeyAudioClip);
 
 
     }
@@ -491,7 +518,8 @@ public class VariationTest2021GM : GameMaster
         targetOrder.Shuffle();
 
         #endregion
-        DisplayTaskText(targetOrder[0]);
+        StartCoroutine(DisplayTaskText(targetOrder[0]));
+        
     }
 
     /// <summary>
@@ -774,21 +802,25 @@ public class VariationTest2021GM : GameMaster
     /// </summary>
     public override void HandleTaskDataLogging()
     {
-        //
-        // Add your custom data logging here
-        //
-        logData += targetOrder[iterationNumber - 1] + ",";  // Make sure you always end your custom data with a comma! Using CSV for data logging.
+        if (!debug)
+        {
+            //
+            // Add your custom data logging here
+            //
+            logData += targetOrder[iterationNumber - 1] + ",";  // Make sure you always end your custom data with a comma! Using CSV for data logging.
 
-        //
-        // Continue with data logging.
-        //
-        base.HandleTaskDataLogging();
+            //
+            // Continue with data logging.
+            //
+            base.HandleTaskDataLogging();
 
+        }
 
         //
         // Use for debug without vr only
         //
-            //taskTime += Time.fixedDeltaTime;
+        if (debug)
+            taskTime += Time.fixedDeltaTime;
     }
 
     /// <summary>
@@ -888,8 +920,8 @@ public class VariationTest2021GM : GameMaster
        
 
         base.HandleIterationInitialisation();
-
-        DisplayTaskText(targetOrder[iterationNumber - 1]);
+        StartCoroutine(DisplayTaskText(targetOrder[iterationNumber - 1]));
+        
 
     }
 
@@ -922,6 +954,7 @@ public class VariationTest2021GM : GameMaster
 
 
         // Create the list of target indexes and shuffle it.
+        targetOrder.Clear(); //clear the target order
         for (int i = 0; i < targetNumber; i++)
         {
             for (int j = 0; j < iterationsPerTarget; j++)
@@ -940,8 +973,16 @@ public class VariationTest2021GM : GameMaster
         performanceDataLogger.AddNewLogFile(AvatarSystem.AvatarType.ToString(), sessionNumber, performanceDataFormat); // Add file
 
         // Display task text
-        DisplayTaskText(targetOrder[0]);
+        StartCoroutine(DisplayTaskText(targetOrder[0]));
+        
 
+        if (debug)
+        {
+            foreach (int target in targetOrder)
+            {
+                Debug.Log("Pose:" + target);
+            }
+        }
         #endregion
 
 
