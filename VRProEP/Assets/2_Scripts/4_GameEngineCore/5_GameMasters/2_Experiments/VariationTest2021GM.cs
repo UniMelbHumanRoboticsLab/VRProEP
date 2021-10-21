@@ -83,6 +83,9 @@ public class VariationTest2021GM : GameMaster
     private AudioClip drinkAudioClip;
 
     [SerializeField]
+    private AudioClip mug2MouthAudioClip;
+
+    [SerializeField]
     private AudioClip reachKeyAudioClip;
 
     [SerializeField]
@@ -423,6 +426,7 @@ public class VariationTest2021GM : GameMaster
         //
         poseListManager.AddPose("Rest",restAudioClip);
         poseListManager.AddPose("Reach Mug",reachMugAudioClip);
+        poseListManager.AddPose("Mug to Mouth", mug2MouthAudioClip);
         poseListManager.AddPose("Drink with Mug",drinkAudioClip);
         poseListManager.AddPose("Reach Key",reachKeyAudioClip);
         poseListManager.AddPose("Turn Key",turnKeyAudioClip);

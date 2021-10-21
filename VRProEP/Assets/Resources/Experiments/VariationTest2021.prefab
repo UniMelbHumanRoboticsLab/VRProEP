@@ -461,6 +461,7 @@ MonoBehaviour:
   restAudioClip: {fileID: 8300000, guid: c5280cdaa0b0fa64ab5b17ee6d4f610a, type: 3}
   reachMugAudioClip: {fileID: 8300000, guid: 0c47ea015d87bb946b6c0669f4450aef, type: 3}
   drinkAudioClip: {fileID: 8300000, guid: 31c0d95472674ce45b217f64cf2e0910, type: 3}
+  mug2MouthAudioClip: {fileID: 8300000, guid: b45849b9623322a42819154a0220a124, type: 3}
   reachKeyAudioClip: {fileID: 8300000, guid: b93f166bcd9b3af40a2e5ddbd386a50f, type: 3}
   turnKeyAudioClip: {fileID: 8300000, guid: d8a39a1d2492f6849b2d53e94f5e5337, type: 3}
   nextAudioClip: {fileID: 8300000, guid: 64f6ec8f208df0b4683c89d42f38ad46, type: 3}
