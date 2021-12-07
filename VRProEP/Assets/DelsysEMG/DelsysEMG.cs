@@ -7,6 +7,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using System.Linq;
 
 // Threading includes
 using System.Threading;
@@ -16,6 +17,8 @@ using UnityEngine;
 
 public class DelsysEMG 
 {
+    private ZMQRequester zmqRequester = new ZMQRequester();
+    
     //example of creating a list of sensor types to keep track of various TCP streams...
     enum SensorTypes { SensorTrigno, SensorTrignoImu, SensorTrignoMiniHead, NoSensor };
     private List<SensorTypes> _sensors = new List<SensorTypes>();
@@ -157,9 +160,14 @@ public class DelsysEMG
         emgStream.Close();
         emgSocket.Close();
 
+        zmqRequester.Stop();
         Debug.Log("Delsys-> Disconnect from server and quit!");
     }
 
+    private void OnDestroy()
+    {
+        zmqRequester.Stop();
+    }
 
     #endregion
 
@@ -271,7 +279,6 @@ public class DelsysEMG
         }// block until all data are recorded
 
         recording = false;
-
         Debug.Log("Delsys-> " + emgDataList[1].Count + " samples recorded.");
 
         //Write header to file
@@ -386,6 +393,17 @@ public class DelsysEMG
                 // Stream the data;
                 for (int sn = 0; sn < 16; ++sn)
                     tempEmgDataList[sn] = reader.ReadSingle();
+
+                // Send data to other platform
+                float[] zmqData = null;
+                int n = 0;
+                foreach (int channel in activeSensorChannels)
+                {
+                    zmqData[n] = tempEmgDataList[channel-1];
+                    n = n + 1;
+                }
+                zmqRequester.newData(zmqData); // Send the data
+
 
                 // Record the data
                 if (recording)

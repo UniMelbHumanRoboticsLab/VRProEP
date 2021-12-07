@@ -105,6 +105,7 @@ public class VariationTest2021GM : GameMaster
     // Delsys EMG background data collection
     private DelsysEMG delsysEMG = new DelsysEMG();
 
+
     // Target management variables
     private int targetNumber = 9; // The total number of targets
     private List<int> targetOrder = new List<int>(); // A list of target indexes ordered for selection over iterations in a session.
@@ -123,6 +124,7 @@ public class VariationTest2021GM : GameMaster
 
     // Lefty subject sign
     private float leftySign = 1.0f;
+
 
 
 
@@ -376,7 +378,7 @@ public class VariationTest2021GM : GameMaster
         #endregion
 
         #region Initialize EMG sensors
-        //Initialse Delsys EMG sensor
+        //Initialise Delsys EMG sensor
         delsysEMG.Init();
         delsysEMG.Connect();
         delsysEMG.StartAcquisition();
