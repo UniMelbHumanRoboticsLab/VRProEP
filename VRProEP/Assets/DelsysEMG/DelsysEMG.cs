@@ -17,7 +17,7 @@ using UnityEngine;
 
 public class DelsysEMG 
 {
-    private ZMQRequester zmqRequester = new ZMQRequester();
+    private ZMQPusher zmqPusher = new ZMQPusher(5555); // No need for response from the server
     
     //example of creating a list of sensor types to keep track of various TCP streams...
     enum SensorTypes { SensorTrigno, SensorTrignoImu, SensorTrignoMiniHead, NoSensor };
@@ -160,13 +160,13 @@ public class DelsysEMG
         emgStream.Close();
         emgSocket.Close();
 
-        zmqRequester.Stop();
+        zmqPusher.Stop();
         Debug.Log("Delsys-> Disconnect from server and quit!");
     }
 
     private void OnDestroy()
     {
-        zmqRequester.Stop();
+        zmqPusher.Stop();
     }
 
     #endregion
@@ -402,7 +402,7 @@ public class DelsysEMG
                     zmqData[n] = tempEmgDataList[channel-1];
                     n = n + 1;
                 }
-                zmqRequester.newData(zmqData); // Send the data
+                zmqPusher.newData(zmqData); // Send the data
 
 
                 // Record the data

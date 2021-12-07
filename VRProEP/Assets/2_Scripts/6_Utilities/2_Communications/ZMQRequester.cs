@@ -14,7 +14,7 @@ public class ZMQRequester : RunAbleThread
     private byte[] sendData;
     private byte[] receiveData;
     private bool newDataFlag = false;
-
+    private int port = 5555;
     /*
     public byte[] SendData
     {
@@ -33,18 +33,21 @@ public class ZMQRequester : RunAbleThread
     //
     // Constructor
     //
-    public ZMQRequester()
-    {
 
+    public ZMQRequester(int port)
+    {
+        this.port = port;
     }
 
-    public ZMQRequester(byte[] data)
+    public ZMQRequester(int port, byte[] data)
     {
+        this.port = port;
         this.newData(data);
     }
 
-    public ZMQRequester(float[] data)
-    {    
+    public ZMQRequester(int port, float[] data)
+    {
+        this.port = port;
         this.newData(data);
     }
 
@@ -74,7 +77,8 @@ public class ZMQRequester : RunAbleThread
         ForceDotNet.Force(); // this line is needed to prevent unity freeze after one use, not sure why yet
         using (RequestSocket client = new RequestSocket())
         {
-            client.Connect("tcp://localhost:5555");
+            string addr = "tcp://localhost:" + port;
+            client.Connect(addr);
             while (Running)
             {
                 if (newDataFlag)

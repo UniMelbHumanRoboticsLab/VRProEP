@@ -6,7 +6,7 @@ using System;
 /// <summary>
 /// Stream data to python and receive the response - now in a sync way, maybe will consider async way
 /// </summary>
-public class PyTCPRequester : RunAbleThread
+public class ZMQPusher : RunAbleThread
 {
     /// <summary>
     /// 
@@ -14,7 +14,7 @@ public class PyTCPRequester : RunAbleThread
     private byte[] sendData;
     private byte[] receiveData;
     private bool newDataFlag = false;
-
+    private int port = 5555;
     /*
     public byte[] SendData
     {
@@ -33,18 +33,21 @@ public class PyTCPRequester : RunAbleThread
     //
     // Constructor
     //
-    public PyTCPRequester()
-    {
 
+    public ZMQPusher(int port)
+    {
+        this.port = port;
     }
 
-    public PyTCPRequester(byte[] data)
+    public ZMQPusher(int port,  byte[] data)
     {
+        this.port = port;
         this.newData(data);
     }
 
-    public PyTCPRequester(float[] data)
-    {    
+    public ZMQPusher(int port, float[] data)
+    {
+        this.port = port;
         this.newData(data);
     }
 
@@ -72,39 +75,18 @@ public class PyTCPRequester : RunAbleThread
     protected override void Run()
     {
         ForceDotNet.Force(); // this line is needed to prevent unity freeze after one use, not sure why yet
-        using (RequestSocket client = new RequestSocket())
+        using (PushSocket client = new PushSocket())
         {
-            client.Connect("tcp://localhost:5555");
+            string addr = "tcp://localhost:" + port;
+            client.Connect(addr);
             while (Running)
             {
                 if (newDataFlag)
                 {
-                    Debug.Log("PyRequester-> Data Sent to Python.");
+                    Debug.Log("ZMQPusher-> Data Sent through ZMQ.");
                     client.SendFrame(sendData);
                     newDataFlag = false;
 
-                    byte[] response = null;
-                    double[] parsedResponse = null;
-                    bool gotResponse = false;
-                    while (Running)
-                    {
-                        gotResponse = client.TryReceiveFrameBytes(out response); // this returns true if it's successful
-                        if (gotResponse) break;
-                    }
-
-                    if (gotResponse)
-                    {
-                        parsedResponse = parseReceivedData(response);
-                        string responseStr = null;
-                        foreach (double element in parsedResponse)
-                        {
-                            responseStr += element.ToString() + ",";
-                        }
-
-
-                        Debug.Log("PyRequester<- Received: " + responseStr);
-
-                    }
                 }
 
             }
@@ -114,7 +96,7 @@ public class PyTCPRequester : RunAbleThread
         NetMQConfig.Cleanup(); // this line is needed to prevent unity freeze after one use, not sure why yet
     }
 
-    private double[] parseReceivedData(byte[] receivedData) // From python it's 64 bit float (double)
+    private double[] parseReceivedData(byte[] receivedData) // From python/matlab it's 64 bit float (double)
     {
         double[] floatArray = new double[receivedData.Length / sizeof(double)];
         Buffer.BlockCopy(receivedData, 0, floatArray, 0, receivedData.Length);
