@@ -14,7 +14,7 @@ public class ZMQPusher : RunAbleThread
     private byte[] sendData;
     private byte[] receiveData;
     private bool newDataFlag = false;
-    private int port = 5555;
+    private int port;
     /*
     public byte[] SendData
     {
@@ -83,7 +83,7 @@ public class ZMQPusher : RunAbleThread
             {
                 if (newDataFlag)
                 {
-                    Debug.Log("ZMQPusher-> Data Sent through ZMQ.");
+                    //Debug.Log("ZMQPusher-> Data Sent through ZMQ.");
                     client.SendFrame(sendData);
                     newDataFlag = false;
 

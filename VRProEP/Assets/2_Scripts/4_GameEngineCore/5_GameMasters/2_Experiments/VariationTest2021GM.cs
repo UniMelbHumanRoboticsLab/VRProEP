@@ -381,7 +381,7 @@ public class VariationTest2021GM : GameMaster
         //Initialise Delsys EMG sensor
         delsysEMG.Init();
         delsysEMG.Connect();
-        delsysEMG.StartAcquisition();
+        
 
         #endregion
 
@@ -433,6 +433,9 @@ public class VariationTest2021GM : GameMaster
         poseListManager.AddPose("Reach Key",reachKeyAudioClip);
         poseListManager.AddPose("Turn Key",turnKeyAudioClip);
 
+
+        // Start EMG readings
+        delsysEMG.StartAcquisition();
 
     }
 
