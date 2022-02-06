@@ -8,7 +8,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Linq;
-
 // Threading includes
 using System.Threading;
 // Debug
@@ -18,7 +17,8 @@ using UnityEngine;
 public class DelsysEMG 
 {
     private ZMQPusher zmqPusher; // No need for response from the server
-    private const int zmqPort = 5556;
+    private const int zmqPort = 6000;
+    private bool zmqPushFlag = false;
 
     //example of creating a list of sensor types to keep track of various TCP streams...
     enum SensorTypes { SensorTrigno, SensorTrignoImu, SensorTrignoMiniHead, NoSensor };
@@ -390,6 +390,17 @@ public class DelsysEMG
         return response;    //return the response we got
     }
 
+    // Set if stream the data through zmq
+    public void SetZMQPusher(bool flag)
+    {
+        this.zmqPushFlag = flag;
+    }
+
+    // Stop the zmq pusher from outsied scripts
+    public void StopZMQPusher()
+    {
+        zmqPusher.Stop();
+    }
 
     // Thread for imu emg acquisition
     private void ImuEmgThreadRoutine(object state)
@@ -405,17 +416,19 @@ public class DelsysEMG
                 for (int sn = 0; sn < 16; ++sn)
                     tempEmgDataList[sn] = reader.ReadSingle();
 
-                // Send data to other platform
-                float[] zmqData = new float[activeSensorChannels.Max()];
-                //Debug.Log("Active Delsys Sesnors:" +activeSensorChannels.Max());
-                for (int i = 0; i<activeSensorChannels.Max(); i++)
+                if (zmqPushFlag)
                 {
-                    zmqData[i] = tempEmgDataList[activeSensorChannels[i]-1];
-                    //Debug.Log("Active Delsys Sesnors Channel: " + (activeSensorChannels[i] - 1) + ". Readings: " + zmqData[i]);
+                    // Send data to other platform
+                    float[] zmqData = new float[activeSensorChannels.Max()];
+                    //Debug.Log("Active Delsys Sesnors:" +activeSensorChannels.Max());
+                    for (int i = 0; i < activeSensorChannels.Max(); i++)
+                    {
+                        zmqData[i] = tempEmgDataList[activeSensorChannels[i] - 1];
+                        //Debug.Log("Active Delsys Sesnors Channel: " + (activeSensorChannels[i] - 1) + ". Readings: " + zmqData[i]);
+                    }
+                    zmqPusher.newData(zmqData); // Send the data
+                    //Debug.Log("ZMQ pushed");
                 }
-                
-                zmqPusher.newData(zmqData); // Send the data
-                //Debug.Log("ZMQ pushed");
 
                 // Record the data
                 if (recording)

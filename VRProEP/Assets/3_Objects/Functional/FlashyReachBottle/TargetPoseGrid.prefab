@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6701242334375883130}
-  - component: {fileID: 604360039968892826}
+  - component: {fileID: 4575647500253486568}
   m_Layer: 0
   m_Name: TargetPoseGrid
   m_TagString: Untagged
@@ -31,7 +31,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &604360039968892826
+--- !u!114 &4575647500253486568
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -40,10 +40,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 3896783260280946348}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c6999971436c124eaf3e4141a9441f9, type: 3}
+  m_Script: {fileID: 11500000, guid: 9ba7b10720c8d0e489d852acf016632f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-
   reachBottlePrefab: {fileID: 5402829214342902688, guid: 839fbc23337464a41924dcdf052e5fdf,
     type: 3}
   reachBallPrefab: {fileID: 4745927119710796115, guid: eafc0d42657ecd144bd2e855582fc314,
@@ -51,8 +50,8 @@ MonoBehaviour:
   bottleInHand: {fileID: 5402829214342902688, guid: 3bed2d0015ddc484da5f5dfb2fe20aed,
     type: 3}
   targetType: 1
-  shoulderCentreLoc: {fileID: 0}
   shoulderCentreOffset: {x: 0, y: 0, z: 0}
+  shoulderCentreLoc: {fileID: 0}
   upperArmPrefab: {fileID: 6024531839625552195, guid: 2d28d2451c577124ca856d5fba420e5d,
     type: 3}
   foreArmPrefab: {fileID: 7906934636392416395, guid: 55404dea5fe4b054b9d9a360142ea72f,
@@ -68,4 +67,3 @@ MonoBehaviour:
   handLinePrefab: {fileID: 680951973858318924, guid: 0626ff61b1a215446ac78d8aca8dbcbf,
     type: 3}
   debug: 0
-

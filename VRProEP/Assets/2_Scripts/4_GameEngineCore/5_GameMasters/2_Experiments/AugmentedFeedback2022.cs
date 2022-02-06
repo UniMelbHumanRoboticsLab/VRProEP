@@ -11,19 +11,23 @@ using TMPro;
 using Valve.VR;
 using Valve.VR.InteractionSystem;
 
+//NetMQ
+using NetMQ;
+
 // GameMaster includes
 using VRProEP.ExperimentCore;
 using VRProEP.GameEngineCore;
 using VRProEP.ProsthesisCore;
 using VRProEP.Utilities;
 
-public class SeparabilityExperiment2021GM : GameMaster
+public class AugmentedFeedback2022 : GameMaster
 {
     // Here you can place all your Unity (GameObjects or similar)
     #region Unity objects
     [SerializeField]
     private string ablebodiedDataFormat = "loc,t,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
-    
+    [SerializeField]
+    private string performanceDataFormat = "i,loc,t_f";
 
     [Header("Experiment configuration: Start position")]
     [SerializeField]
@@ -48,24 +52,6 @@ public class SeparabilityExperiment2021GM : GameMaster
     private int iterationsPerTarget = 10;
 
 
-    [Header("Grid Configurations")]
-    [SerializeField]
-    [Tooltip("Grid-Close: The percentage of the subject's armlentgh where the grid centre will be placed.")]
-    [Range(0, 2)]
-    private float gridCloseDistanceFactor = 0.75f;
-    [SerializeField]
-    [Tooltip("Grid-Mid: The percentage of the subject's armlentgh where the grid centre will be placed.")]
-    [Range(0, 2)]
-    private float gridMidDistanceFactor = 1.0f;
-    [SerializeField]
-    [Tooltip("Grid-Far: The percentage of the subject's armlentgh where the grid centre will be placed.")]
-    [Range(0, 2)]
-    private float gridFarDistanceFactor = 1.5f;
-    [SerializeField]
-    [Tooltip("The percentage of the subject's height where the grid centre will be placed.")]
-    [Range(0, 2)]
-    private float gridHeightFactor = 0.5f;
-
     [SerializeField]
     private bool checkStartPosition;
 
@@ -85,7 +71,9 @@ public class SeparabilityExperiment2021GM : GameMaster
     private TargetPoseGridManager gridManager = new TargetPoseGridManager();
 
     #endregion
-
+    // Additional data logging
+    private DataStreamLogger performanceDataLogger;
+    private float iterationDoneTime;
 
     // Delsys EMG background data collection
     private DelsysEMG delsysEMG = new DelsysEMG();
@@ -115,7 +103,7 @@ public class SeparabilityExperiment2021GM : GameMaster
 
     private float[] shoulderDesiredPos = { 40, 60, 80};
 
-    private class SeparabilityGridReachingConfigurator
+    private class AugmentedFeedbackConfigurator
     {
         public int iterationsPerTarget = 10;
         public int sessionNumber = 2;
@@ -124,10 +112,14 @@ public class SeparabilityExperiment2021GM : GameMaster
         public float gridFarDistanceFactor = 1.5f;
         public float gridHeightFactor = 0.5f;
     }
-    private SeparabilityGridReachingConfigurator configurator;
+    private AugmentedFeedbackConfigurator configurator;
 
     //Audio
     AudioSource audio;
+
+    //Matlab ZMQ communication:
+    private ZMQRequester zmqRequester; 
+    private const int zmqPort = 5900;
 
     #region Private methods
     private string ConfigEMGFilePath()
@@ -285,7 +277,7 @@ public class SeparabilityExperiment2021GM : GameMaster
         //configAsset = Resources.Load<TextAsset>("Experiments/" + ExperimentSystem.ActiveExperimentID);
 
         // Convert configuration file to configuration class.
-        configurator = JsonUtility.FromJson<SeparabilityGridReachingConfigurator>(configAsset.text);
+        configurator = JsonUtility.FromJson<AugmentedFeedbackConfigurator>(configAsset.text);
 
         // Load from config file
         iterationsPerTarget = configurator.iterationsPerTarget;
@@ -294,10 +286,6 @@ public class SeparabilityExperiment2021GM : GameMaster
             iterationsPerSession.Add(0);
         }
         
-        gridCloseDistanceFactor = configurator.gridCloseDistanceFactor;
-        gridMidDistanceFactor = configurator.gridMidDistanceFactor;
-        gridFarDistanceFactor = configurator.gridFarDistanceFactor;
-        gridHeightFactor = configurator.gridHeightFactor;
 
     }
 
@@ -341,6 +329,13 @@ public class SeparabilityExperiment2021GM : GameMaster
         ExperimentSystem.AddExperimentLogger(taskDataLogger);
         taskDataLogger.AddNewLogFile(sessionNumber, iterationNumber, taskDataFormat); // Add file
 
+        //
+        // Create the performance data loggers
+        //
+        performanceDataLogger = new DataStreamLogger("PerformanceData");
+        ExperimentSystem.AddExperimentLogger(performanceDataLogger);
+        performanceDataLogger.AddNewLogFile(AvatarSystem.AvatarType.ToString(), sessionNumber, performanceDataFormat); // Add file
+
         // Send the player to the experiment centre position
         TeleportToStartPosition();
         #endregion
@@ -350,9 +345,8 @@ public class SeparabilityExperiment2021GM : GameMaster
         delsysEMG.Init();
         delsysEMG.Connect();
         delsysEMG.StartAcquisition();
-
+        delsysEMG.SetZMQPusher(true);
         #endregion
-
 
         #region Initialize world positioning
 
@@ -400,8 +394,12 @@ public class SeparabilityExperiment2021GM : GameMaster
 
         #endregion
 
+        #region  Initialize zmq communication
+        zmqRequester = new ZMQRequester(zmqPort);
+        zmqRequester.Start();
+        #endregion
 
-       
+
 
     }
 
@@ -415,6 +413,29 @@ public class SeparabilityExperiment2021GM : GameMaster
         // First flag that we are in the welcome routine
         welcomeDone = false;
         inWelcome = true;
+        Debug.Log("Press Up key.");
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
+        delsysEMG.SetZMQPusher(false);
+
+        Debug.Log("Press Down key.");
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
+        zmqRequester.newData(new float[] { 1.0f });
+        yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
+        double[] response = zmqRequester.GetReceiveData();
+        Debug.Log("Feedback Score: " + response[0]);
+
+        Debug.Log("Press Up key.");
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
+        zmqRequester.newData(new float[] { 1.0f });
+        yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
+        response = zmqRequester.GetReceiveData();
+        Debug.Log("Feedback Score: " + response[0]);
+
+
+        //
+        welcomeDone = true;
+        
+        /*
         for (int i = 1; i < 10; i++)
         {
             gridManager.SelectTarget(7);
@@ -443,6 +464,7 @@ public class SeparabilityExperiment2021GM : GameMaster
             gridManager.ResetTargetSelection();
            
         }
+        */
         HudManager.DisplayText("Look to the top right. Instructions will be displayed there.");
         InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -483,45 +505,13 @@ public class SeparabilityExperiment2021GM : GameMaster
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
 
-        
-        //
-        // Generate the targets
-  
-        InstructionManager.DisplayText("First, let's set up the experiment targets for you. \n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+       
 
-        InstructionManager.DisplayText("Extend your arms naturally forward and the desired joint positions will be shown on the HUD. \n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-        InstructionManager.DisplayText("HUD Format: SH - Shoulder, EB - Elbow and in the bracket (current joint angle / the desired one)");
-
-        for (int i = 0; i < shoulderDesiredPos.Length; i++)
-        {
-            for (int j = 0; j < elbowDesiredPos.Length; j++)
-            {
-                //yield return new WaitUntil(() => IsAtRightPosition(shoulderDesiredPos[i], elbowDesiredPos[j], 2.0f));
-
-                
-                if ( i % 2 == 0)
-                    yield return new WaitUntil(() => IsAtRightPosition(shoulderDesiredPos[i], elbowDesiredPos[j], 2.0f));
-                else
-                    yield return new WaitUntil(() => IsAtRightPosition(shoulderDesiredPos[i], elbowDesiredPos[elbowDesiredPos.Length-1-j], 2.0f));
-                
-                GameObject[] hand = GameObject.FindGameObjectsWithTag("IndexFingerCollider");
-                //Debug.Log(indexFinger[0].transform.position.ToString("F3"));
-                Vector3 location = Quaternion.Euler(0,this.worldOrientation, 0) * hand[0].transform.position; // Add the index finger location
-                //gridManager.AddTargetLocation(location);
-            }
-        }
-
-        //gridManager.AddTargetRotation(new Vector3(0.0f, 0.0f, 0.0f));
-        //gridManager.AddTargetRotation(new Vector3(45.0f, 0.0f, 0.0f));
-        //gridManager.AddTargetRotation(new Vector3(-45.0f, 0.0f, 0.0f));
        
 
         // Now that you are done, set the flag to indicate we are done.
         
-        welcomeDone = true;
+        
 
     }
 
@@ -530,17 +520,21 @@ public class SeparabilityExperiment2021GM : GameMaster
     /// </summary>
     public override void InitialiseExperiment()
     {
+        //Spwan grid
         #region Spawn grid
         // Spawn the grid
-        //gridManager.CurrentTargetType = TargetGridManager.TargetType.Ball; // Type is the ball
+        gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
+        gridManager.AddJointPose(new float[4] { 60, 0, 30, 0 });
+        gridManager.AddJointPose(new float[4] { 30, 0, 30, 0 });
         gridManager.SpawnTargetGrid();
-        gridManager.ResetTargetSelection();
+        //gridManager.SelectTarget(1);
         Debug.Log("Spawn the grid!");
         #endregion
 
         #region Iteration settings
         // Set iterations variables for flow control.
         targetNumber = gridManager.TargetNumber;
+        Debug.Log("Target number: " + targetNumber);
         iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget;
 
         // Create the list of target indexes and shuffle it.
@@ -918,11 +912,14 @@ public class SeparabilityExperiment2021GM : GameMaster
        
         if (gridManager.SelectedTouched && !hasReached)
         {
+            iterationDoneTime = taskTime;
             audio.clip = holdAudioClip;
             audio.Play();
-            StartCoroutine(EndTaskCoroutine());
-        }
+
             
+            StartCoroutine(EndTaskCoroutine());
+            Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + iterationDoneTime.ToString() + ".");
+        } 
         return taskComplete;
     }
 
@@ -986,8 +983,13 @@ public class SeparabilityExperiment2021GM : GameMaster
     public override void HandleIterationInitialisation()
     {
         
-        base.HandleIterationInitialisation();
+        //base.HandleIterationInitialisation();
+        //Debug.Log("J = " + J);
+        string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + iterationDoneTime.ToString();
 
+        // Log results
+        performanceDataLogger.AppendData(iterationResults);
+        performanceDataLogger.SaveLog();
     }
 
     /// <summary>
@@ -1090,4 +1092,14 @@ public class SeparabilityExperiment2021GM : GameMaster
 
     #endregion
 
+    /// <summary>
+    /// Avoid unity freeze
+    /// </summary>
+    /// <returns></returns>
+    private void OnApplicationQuit()
+    {
+        delsysEMG.StopZMQPusher();
+        zmqRequester.Stop();
+        NetMQConfig.Cleanup();
+    }
 }

@@ -27,9 +27,9 @@ public class TargetPoseGridManager : MonoBehaviour
 
     [Header("Physical Property")]
     [SerializeField]
-    private Transform shoulderCentreLoc;
-    [SerializeField]
     private Vector3 shoulderCentreOffset;
+    [SerializeField]
+    private Transform shoulderCentreLoc;
 
 
     [Header("Limb Models")]
@@ -93,16 +93,40 @@ public class TargetPoseGridManager : MonoBehaviour
     private bool selectedTouched = false;
 
     // Subject information
-    private float subjectHeight;
-    private float subjectFALength;
+    
+    [Header("Height to acromion")]
+    [SerializeField]
+    private float subjectHeight2SA;
+
+    [Header("Shoulder breadth")]
+    [SerializeField]
+    private float subjectShoulderBreadth;
+
+    [Header("Upperarm length")]
+    [SerializeField]
     private float subjectUALength;
+
+    [Header("Forearm length")]
+    [SerializeField]
+    private float subjectFALength;
+
+    [Header("Hand length")]
+    [SerializeField]
     private float subjectHandLength;
-    private float subjectFAWidth;
+
+    [Header("Upperarm width")]
+    [SerializeField]
     private float subjectUAWidth;
 
+    [Header("Forearm width")]
+    [SerializeField]
+    private float subjectFAWidth;
+
+
+
+
+    private float subjectHeight;
     private float subjectTrunkLength2SA;
-    private float subjectHeight2SA;
-    private float subjectShoulderBreadth;
     private bool subjectLefty;
     private float sagittalOffset;
 
@@ -127,7 +151,7 @@ public class TargetPoseGridManager : MonoBehaviour
     /// <param >
     /// <returns>
     /// 
-    public void UpdateUserData()
+    private void ConfigUserData()
     {
         //
         // Debug able
@@ -144,29 +168,45 @@ public class TargetPoseGridManager : MonoBehaviour
         subjectFAWidth = SaveSystem.ActiveUser.forearmWidth;
         subjectUAWidth = SaveSystem.ActiveUser.upperArmWidth;
         subjectHandLength = SaveSystem.ActiveUser.handLength;
-        
-       
-        //Unused ones
-            subjectTrunkLength2SA = SaveSystem.ActiveUser.trunkLength2SA;
-            subjectHeight2SA = SaveSystem.ActiveUser.height2SA;
-            subjectShoulderBreadth = SaveSystem.ActiveUser.shoulderBreadth;
-            subjectLefty = SaveSystem.ActiveUser.lefty;
+        subjectTrunkLength2SA = SaveSystem.ActiveUser.trunkLength2SA;
+        subjectHeight2SA = SaveSystem.ActiveUser.height2SA;
+        subjectShoulderBreadth = SaveSystem.ActiveUser.shoulderBreadth;
+        subjectLefty = SaveSystem.ActiveUser.lefty;
 
-        //shoulderCentreLoc.position = shoulderCentreLoc.position - shoulderCentreOffset;
+        //
         shoulderCentreLoc.position = new Vector3(0, subjectHeight2SA, -subjectShoulderBreadth/2.0f);
-        
+        shoulderCentreLoc.position = shoulderCentreLoc.position - shoulderCentreOffset;
+
         //sagittalOffset = -subjectShoulderBreadth / 4.0f;
+
+        Debug.Log("Gridmanager: load user data");
+    }
+
+    /// <summary>
+    /// Update user physiology data
+    /// </summary>
+    /// <param >
+    /// <returns>
+    /// 
+    public void UpdateUserData()
+    {
+
+        //
+        shoulderCentreLoc.position = new Vector3(0, subjectHeight2SA, -subjectShoulderBreadth / 2.0f);
+        shoulderCentreLoc.position = shoulderCentreLoc.position - shoulderCentreOffset;
+
+        //sagittalOffset = -subjectShoulderBreadth / 4.0f;
+
+        Debug.Log("Gridmanager: update user data");
     }
 
     void Start()
     {
 
-
-
+        ConfigUserData();
         // Debug
         if (debug)
         {
-            UpdateUserData();
             /*
             AddJointPose("ADD_SFE_POSE", new float[4]{0,30,60,90});
             AddJointPose("ADD_EFE_POSE", new float[4] { 0, 30, 60, 90 });
@@ -181,34 +221,42 @@ public class TargetPoseGridManager : MonoBehaviour
             AddJointPose(new float[4] { 40, 0, 55, 0 }); AddJointPose(new float[4] { 60, 0, 55, 0 }); AddJointPose(new float[4] { 80, 0, 55, 0 });
             AddJointPose(new float[4] { 40, 0, 80, 0 }); AddJointPose(new float[4] { 60, 0, 80, 0 }); AddJointPose(new float[4] { 80, 0, 80, 0 });
             GenerateTargetLocations();
-            SpawnTargetGrid(); 
+            SpawnTargetGrid();
+            InitialiseLimb();
 
         }
-
-        //InitialiseLimb();
 
     }
 
     void Update()
     {
         // Debug: Change selected bottle for debug
-
-        if (Input.GetKeyDown(KeyCode.F1))
+        //if (debug)
+        //{
+        if (Input.GetKeyDown(KeyCode.F1)) // Update the grid parameters
         {
             UpdateUserData();
             GenerateTargetLocations(); // Update the locations if there is any change in the offset
-            //ShowLimbPose(selectedIndex);
+            ShowLimbPose(selectedIndex);
         }
-        if (Input.GetKeyDown(KeyCode.F2))
+        if (Input.GetKeyDown(KeyCode.F2)) //Update the grid parameters and select the next target
         {
             selectedIndex = selectedIndex + 1;
-            if (selectedIndex > balls.Count-1)
+            if (selectedIndex > balls.Count - 1)
                 selectedIndex = 0;
             UpdateUserData();
             GenerateTargetLocations(); // Update the locations if there is any change in the offset
             SelectTarget(selectedIndex);
-            //ShowLimbPose(selectedIndex);
+                
         }
+        if (Input.GetKeyDown(KeyCode.F3)) //Restore the grid parameters 
+        {
+            ConfigUserData();
+            GenerateTargetLocations(); // Update the locations if there is any change in the offset
+            ShowLimbPose(selectedIndex);
+
+        }
+        //}
 
 
         // Check if the selected bottle is reached or not
@@ -257,7 +305,7 @@ public class TargetPoseGridManager : MonoBehaviour
     /// </summary>
     /// <param >
     /// <returns 
-    private void GenerateTargetLocations()
+    public void GenerateTargetLocations()
     {
         float sign = 1.0f;
         if (subjectLefty)
@@ -445,8 +493,8 @@ public class TargetPoseGridManager : MonoBehaviour
         else
             wristHandGO = Instantiate(wrisHandLPrefab);
         wristHandGO.transform.Find("ACESHand_" + side).gameObject.GetComponent<MeshRenderer>().sharedMaterial = mMaterial;
+
         
-        /*
 
         //
         // Scale the 3D model
@@ -469,10 +517,7 @@ public class TargetPoseGridManager : MonoBehaviour
         activeUpperarmData = JsonUtility.FromJson<AvatarObjectData>(objectDataAsJson);
         if (activeUpperarmData == null)
             throw new System.Exception("The requested hand information was not found.");
-
-        //
         // Scale the model
-        //
         float scaleFactor = subjectUAWidth / activeUpperarmData.dimensions.y;
         upperarmGO.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
 
@@ -481,7 +526,7 @@ public class TargetPoseGridManager : MonoBehaviour
 
         scaleFactor = subjectHandLength / activeHandData.dimensions.x;
         wristHandGO.transform.Find("ACESHand_"+side).gameObject.transform.localScale = new Vector3(sign * scaleFactor, sign * scaleFactor, sign * scaleFactor);
-        */
+        
 
         //
         //Initial display
@@ -571,13 +616,14 @@ public class TargetPoseGridManager : MonoBehaviour
 
 
 
-        /// <summary>
-        /// Spawn the boottle grid
-        /// </summary>
-        /// <param >
-        /// <returns bool reached>
-        public void SpawnTargetGrid()
+    /// <summary>
+    /// Spawn the boottle grid
+    /// </summary>
+    /// <param >
+    /// <returns bool reached>
+    public void SpawnTargetGrid()
     {
+        GenerateTargetLocations();
         
         for (int i = 0; i <= targetPositions.Count-1; i++)
         {
@@ -623,6 +669,7 @@ public class TargetPoseGridManager : MonoBehaviour
             }
         }
 
+        InitialiseLimb();
 
     }
 
@@ -651,7 +698,7 @@ public class TargetPoseGridManager : MonoBehaviour
 
         hasSelected = true;
         selectedTouched = false;
-       
+        ShowLimbPose(index);
     }
 
     /// <summary>

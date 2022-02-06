@@ -93,7 +93,7 @@ public class ZMQPusher : RunAbleThread
 
         }
 
-        NetMQConfig.Cleanup(); // this line is needed to prevent unity freeze after one use, not sure why yet
+        //NetMQConfig.Cleanup(); // this line is needed to prevent unity freeze after one use, not sure why yet //Do this in the monobehavior script
     }
 
     private double[] parseReceivedData(byte[] receivedData) // From python/matlab it's 64 bit float (double)

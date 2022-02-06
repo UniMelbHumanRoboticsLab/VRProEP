@@ -14,7 +14,8 @@ public class ZMQRequester : RunAbleThread
     private byte[] sendData;
     private byte[] receiveData;
     private bool newDataFlag = false;
-    private int port = 5555;
+    private bool receivedResponseFlag = false;
+    private int port;
     /*
     public byte[] SendData
     {
@@ -29,6 +30,20 @@ public class ZMQRequester : RunAbleThread
     }
 
     */
+
+    //
+    // Accessor
+    //
+    public bool ReceivedResponseFlag
+    {
+        get { return receivedResponseFlag; }
+    }
+
+    public double[] GetReceiveData()
+    {
+        double[] parsedResponse = parseReceivedData(receiveData);
+        return parsedResponse;
+    }
 
     //
     // Constructor
@@ -59,6 +74,7 @@ public class ZMQRequester : RunAbleThread
     {
         sendData = data;
         newDataFlag = true;
+        receivedResponseFlag = false;
     }
     // for float array data
     public void newData(float[] data)
@@ -67,11 +83,13 @@ public class ZMQRequester : RunAbleThread
         Buffer.BlockCopy(data, 0, byteArray, 0, byteArray.Length);
         sendData = byteArray; // assign the senData
         newDataFlag = true;
+        receivedResponseFlag = false;
     }
 
 
-
+    //
     // Overide the run thread
+    //
     protected override void Run()
     {
         ForceDotNet.Force(); // this line is needed to prevent unity freeze after one use, not sure why yet
@@ -98,6 +116,9 @@ public class ZMQRequester : RunAbleThread
 
                     if (gotResponse)
                     {
+                        this.receiveData = (byte[]) response.Clone();
+                        receivedResponseFlag = true;
+
                         parsedResponse = parseReceivedData(response);
                         string responseStr = null;
                         foreach (double element in parsedResponse)
@@ -115,7 +136,7 @@ public class ZMQRequester : RunAbleThread
 
         }
 
-        NetMQConfig.Cleanup(); // this line is needed to prevent unity freeze after one use, not sure why yet
+        //NetMQConfig.Cleanup(); // this line is needed to prevent unity freeze after one use, not sure why yet  //Do this in the monobehavior script
     }
 
     private double[] parseReceivedData(byte[] receivedData) // From python/matlab it's 64 bit float (double)

@@ -328,6 +328,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ACESHand_R
       objectReference: {fileID: 0}
+    - target: {fileID: 1148639304437202, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4213740165048796, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.005

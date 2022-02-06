@@ -1,5 +1,35 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1193169648036937678
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5100051051040587645}
+  m_Layer: 0
+  m_Name: ShoulderLoc
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5100051051040587645
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1193169648036937678}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.6844126, y: 1.1288123, z: 0.61354595}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 3173896575985748330}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5497247315125598260
 GameObject:
   m_ObjectHideFlags: 0
@@ -93,7 +123,7 @@ GameObject:
   - component: {fileID: 2421776329618411123}
   - component: {fileID: 8320610425934508015}
   m_Layer: 0
-  m_Name: SeparabilityGrid2021_Interface
+  m_Name: AugmentedFeedback2022
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -113,6 +143,7 @@ Transform:
   - {fileID: 2751063810298709859}
   - {fileID: 8645427431186587858}
   - {fileID: 6613308507470478340}
+  - {fileID: 5100051051040587645}
   - {fileID: 7159149178417149295}
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -244,16 +275,12 @@ MonoBehaviour:
   startElbowAngle: 90
   startTolerance: 15
   iterationsPerTarget: 10
-  gridCloseDistanceFactor: 0.75
-  gridMidDistanceFactor: 1
-  gridFarDistanceFactor: 1.5
-  gridHeightFactor: 0.5
   checkStartPosition: 0
   startPosPhoto: {fileID: 9025509897340019074}
   holdAudioClip: {fileID: 8300000, guid: 520a431cc0f99e7478b4a53a290c28ff, type: 3}
   returnAudioClip: {fileID: 8300000, guid: 3cde4d34aa934b545aef79f2da842faf, type: 3}
   testAudioClip: {fileID: 8300000, guid: 7298cdd19e7244a4f9a880e0058b5c8c, type: 3}
-  gridManager: {fileID: 822202654594992135}
+  gridManager: {fileID: 4055313623165390998}
 --- !u!1 &9025509897340019074
 GameObject:
   m_ObjectHideFlags: 0
@@ -269,7 +296,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7159149178417149295
 Transform:
   m_ObjectHideFlags: 0
@@ -283,7 +310,7 @@ Transform:
   m_Children:
   - {fileID: 300726375571019500}
   m_Father: {fileID: 3173896575985748330}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1001 &520352027672317310
 PrefabInstance:
@@ -307,6 +334,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: TargetPoseGrid
       objectReference: {fileID: 0}
+    - target: {fileID: 4575647500253486568, guid: b0812a9d2f3a08c48b080ff266bf1c1d,
+        type: 3}
+      propertyPath: shoulderCentreLoc
+      value: 
+      objectReference: {fileID: 5100051051040587645}
     - target: {fileID: 6701242334375883130, guid: b0812a9d2f3a08c48b080ff266bf1c1d,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -370,9 +402,9 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 520352027672317310}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &822202654594992135 stripped
+--- !u!114 &4055313623165390998 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 887672694476408185, guid: b0812a9d2f3a08c48b080ff266bf1c1d,
+  m_CorrespondingSourceObject: {fileID: 4575647500253486568, guid: b0812a9d2f3a08c48b080ff266bf1c1d,
     type: 3}
   m_PrefabInstance: {fileID: 520352027672317310}
   m_PrefabAsset: {fileID: 0}
