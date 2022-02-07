@@ -317,38 +317,42 @@ public class TargetPoseGridManager : MonoBehaviour
         ClearTargetLocations();// Clear the target locations
 
         Vector3 shoulderCentre = shoulderCentreLoc.position;
+
+        #region Depreacted
         /*
-        foreach (float qSfe in qShoulderFlexionExtension)
-        {
-            foreach (float qEfe in qElbowFlexionExtension)
-            {
-                foreach (float qWps in qWristPronationSupination)
-                { 
-                    Vector3 target = new Vector3();
-                    Vector3 elbow = new Vector3();
-                    Vector3 wrist = new Vector3();
+       foreach (float qSfe in qShoulderFlexionExtension)
+       {
+           foreach (float qEfe in qElbowFlexionExtension)
+           {
+               foreach (float qWps in qWristPronationSupination)
+               { 
+                   Vector3 target = new Vector3();
+                   Vector3 elbow = new Vector3();
+                   Vector3 wrist = new Vector3();
 
-                    elbow.x = shoulderCentre.x + subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe);
-                    elbow.y = shoulderCentre.y - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qSfe);
-                    elbow.z = shoulderCentre.z;
-                    AddElbowLocation(elbow);
+                   elbow.x = shoulderCentre.x + subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe);
+                   elbow.y = shoulderCentre.y - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qSfe);
+                   elbow.z = shoulderCentre.z;
+                   AddElbowLocation(elbow);
 
-                    wrist.x = elbow.x + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
-                    wrist.y = elbow.y - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
-                    wrist.z = shoulderCentre.z;
-                    AddWristLocation(wrist);
+                   wrist.x = elbow.x + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
+                   wrist.y = elbow.y - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
+                   wrist.z = shoulderCentre.z;
+                   AddWristLocation(wrist);
 
-                    target.x = elbow.x + (subjectFALength + subjectHandLength) * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
-                    target.y = elbow.y - (subjectFALength + subjectHandLength) * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
-                    target.z = shoulderCentre.z + this.sagittalOffset;
-                    AddTargetLocation(target);
+                   target.x = elbow.x + (subjectFALength + subjectHandLength) * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
+                   target.y = elbow.y - (subjectFALength + subjectHandLength) * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
+                   target.z = shoulderCentre.z + this.sagittalOffset;
+                   AddTargetLocation(target);
 
-                    targetPoseList.Add(new float[]{qSfe,qEfe,qWps});
-                }
-            }
+                   targetPoseList.Add(new float[]{qSfe,qEfe,qWps});
+               }
+           }
 
-        }
-        */
+       }
+       */
+        #endregion
+
 
         foreach (float[] qUA in qUpperLimb)
         {
@@ -361,17 +365,17 @@ public class TargetPoseGridManager : MonoBehaviour
             Vector3 elbow = new Vector3();
             Vector3 wrist = new Vector3();
 
-            elbow.x = shoulderCentre.x + subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe);
+            elbow.x = shoulderCentre.x - subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe); 
             elbow.y = shoulderCentre.y - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qSfe);
             elbow.z = shoulderCentre.z;
             AddElbowLocation(elbow);
 
-            wrist.x = elbow.x + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
+            wrist.x = elbow.x - subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe)); 
             wrist.y = elbow.y - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
             wrist.z = shoulderCentre.z;
             AddWristLocation(wrist);
 
-            target.x = elbow.x + (subjectFALength + subjectHandLength) * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
+            target.x = elbow.x - (subjectFALength + subjectHandLength) * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe)); 
             target.y = elbow.y - (subjectFALength + subjectHandLength) * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
             target.z = shoulderCentre.z + this.sagittalOffset;
             AddTargetLocation(target);
@@ -558,15 +562,15 @@ public class TargetPoseGridManager : MonoBehaviour
 
         // Display the 3D models    
         upperarmGO.transform.position = elbowPositions[index];
-        upperarmGO.transform.rotation = Quaternion.Euler(0, 0, targetPoseList[index][0]); // rotate to align the pose
+        upperarmGO.transform.rotation = Quaternion.Euler(0, 0, -targetPoseList[index][0]); // rotate to align the pose
         upperarmGO.transform.Translate(new Vector3(0, 0.1f, 0), Space.Self); // offset the model
 
         forearmGO.transform.position = wristPositions[index];
-        forearmGO.transform.rotation = Quaternion.Euler(0, 0, targetPoseList[index][0] + targetPoseList[index][1]); // rotate to align the pose
+        forearmGO.transform.rotation = Quaternion.Euler(180, 0, targetPoseList[index][0] + targetPoseList[index][1] +180); // rotate to align the pose
         forearmGO.transform.Translate(new Vector3(0, 0.07f, 0), Space.Self); // offset the model
 
         wristHandGO.transform.position = wristPositions[index];
-        wristHandGO.transform.rotation = Quaternion.Euler(0, 0, targetPoseList[index][0] + targetPoseList[index][1]); // rotate to align the pose
+        wristHandGO.transform.rotation = Quaternion.Euler(180, 0, targetPoseList[index][0] + targetPoseList[index][1]+180); // rotate to align the pose
         
         float q = 180.0f + targetPoseList[index][2];
         wristHandGO.transform.Rotate(new Vector3(0, q, 0), Space.Self); 

@@ -1,1 +1,1 @@
-{"iterationsPerTarget": 2, "sessionNumber": 2}
+{"iterationsPerTarget": [5,100], "holdingTime": 1.0 }

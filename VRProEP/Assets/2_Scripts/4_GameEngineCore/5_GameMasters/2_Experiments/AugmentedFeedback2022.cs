@@ -27,8 +27,9 @@ public class AugmentedFeedback2022 : GameMaster
     [SerializeField]
     private string ablebodiedDataFormat = "loc,t,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
     [SerializeField]
-    private string performanceDataFormat = "i,loc,t_f";
+    private string performanceDataFormat = "i,loc,t_f,score";
 
+    
     [Header("Experiment configuration: Start position")]
     [SerializeField]
     [Tooltip("The subject's shoulder start angle in degrees.")]
@@ -44,12 +45,8 @@ public class AugmentedFeedback2022 : GameMaster
     [Tooltip("The start angle tolerance in degrees.")]
     [Range(0.0f, 90.0f)]
     private float startTolerance = 15.0f;
-
-    [Header("Experiment configuration: Reps and Sets")]
-    [SerializeField]
-    [Tooltip("The number of iterations per target.")]
-    [Range(1, 100)]
-    private int iterationsPerTarget = 10;
+    
+    private int[] iterationsPerTarget;
 
 
     [SerializeField]
@@ -74,6 +71,10 @@ public class AugmentedFeedback2022 : GameMaster
     // Additional data logging
     private DataStreamLogger performanceDataLogger;
     private float iterationDoneTime;
+    private float feedbackScore;
+
+    // Time to hold the final pose
+    private float holdingTime;
 
     // Delsys EMG background data collection
     private DelsysEMG delsysEMG = new DelsysEMG();
@@ -96,23 +97,6 @@ public class AugmentedFeedback2022 : GameMaster
 
     // Lefty subject sign
     private float leftySign = 1.0f;
-
-    //
-    private float[] elbowDesiredPos = { 30, 55, 80 };
-    //private float[] elbowDesiredPos = { 25, 50, 75 };
-
-    private float[] shoulderDesiredPos = { 40, 60, 80};
-
-    private class AugmentedFeedbackConfigurator
-    {
-        public int iterationsPerTarget = 10;
-        public int sessionNumber = 2;
-        public float gridCloseDistanceFactor = 0.75f;
-        public float gridMidDistanceFactor = 1.0f;
-        public float gridFarDistanceFactor = 1.5f;
-        public float gridHeightFactor = 0.5f;
-    }
-    private AugmentedFeedbackConfigurator configurator;
 
     //Audio
     AudioSource audio;
@@ -195,11 +179,12 @@ public class AugmentedFeedback2022 : GameMaster
     // Configuration class:
     // Modify this class to be able to configure your experiment from a configuration file
     //
-    private class Configurator
+    private class AugmentedFeedbackConfigurator
     {
-        
+        public int[] iterationsPerTarget = {10};
+        public float holdingTime = 0.5f;
     }
-    private Configurator config;
+    private AugmentedFeedbackConfigurator configurator;
 
     #endregion
 
@@ -280,13 +265,14 @@ public class AugmentedFeedback2022 : GameMaster
         configurator = JsonUtility.FromJson<AugmentedFeedbackConfigurator>(configAsset.text);
 
         // Load from config file
+        holdingTime = configurator.holdingTime;
         iterationsPerTarget = configurator.iterationsPerTarget;
-        for (int i = 0; i < configurator.sessionNumber-1; i++)
+        // Load from config file
+        for (int i = 0; i <= iterationsPerTarget.Length - 1; i++)
         {
             iterationsPerSession.Add(0);
         }
-        
-
+        Debug.Log("Size of iterationperTarget: " + iterationsPerTarget.Length);
     }
 
     /// <summary>
@@ -345,7 +331,7 @@ public class AugmentedFeedback2022 : GameMaster
         delsysEMG.Init();
         delsysEMG.Connect();
         delsysEMG.StartAcquisition();
-        delsysEMG.SetZMQPusher(true);
+        //delsysEMG.SetZMQPusher(true);
         #endregion
 
         #region Initialize world positioning
@@ -413,58 +399,76 @@ public class AugmentedFeedback2022 : GameMaster
         // First flag that we are in the welcome routine
         welcomeDone = false;
         inWelcome = true;
+        Debug.Log("Press Up key for EMG visualisation.");
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
+        delsysEMG.SetZMQPusher(true);
+
+        Debug.Log("Press Down key to stop EMG visualisation.");
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
+        delsysEMG.SetZMQPusher(false);
+
+        #region Debug the zmq communications
+        /*
         Debug.Log("Press Up key.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
         delsysEMG.SetZMQPusher(false);
 
         Debug.Log("Press Down key.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
-        zmqRequester.newData(new float[] { 1.0f });
-        yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
-        double[] response = zmqRequester.GetReceiveData();
-        Debug.Log("Feedback Score: " + response[0]);
+        delsysEMG.SetZMQPusher(true);
 
         Debug.Log("Press Up key.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
         zmqRequester.newData(new float[] { 1.0f });
         yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
-        response = zmqRequester.GetReceiveData();
+        double[] response = zmqRequester.GetReceiveData();
         Debug.Log("Feedback Score: " + response[0]);
 
-
-        //
-        welcomeDone = true;
-        
-        /*
-        for (int i = 1; i < 10; i++)
-        {
-            gridManager.SelectTarget(7);
-            HudManager.DisplayText("Well done (you can return to start position)!");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            hasReached = false;
-            // For video
-            HudManager.colour = HUDManager.HUDColour.Orange;
-            HUDCountDown(1);
-            yield return new WaitUntil(() => CountdownDone); // And wait 
-            InstructionManager.DisplayText("Reach it!");
-            HudManager.DisplayText("Reach it!");
-            HudManager.colour = HUDManager.HUDColour.Blue;
-            yield return new WaitUntil(() => IsTaskDone());
-            // Signal the subject that the task is done
-            
-            //HudManager.DisplayText("Hold on your current position!");
-            //yield return new WaitForSecondsRealtime(1.0f);
-            audio.clip = returnAudioClip;
-            audio.Play();
-            HudManager.colour = HUDManager.HUDColour.Red;
-            HudManager.DisplayText("Well done (you can return to start position)!");
-            
-            hasReached = false;
-            taskComplete = false;
-            gridManager.ResetTargetSelection();
-           
-        }
+        Debug.Log("Press Down key.");
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
+        zmqRequester.newData(new float[] { 1.0f });
+        yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
+        response = zmqRequester.GetReceiveData();
+        Debug.Log("Feedback Score: " + response[0]);
         */
+        #endregion
+
+
+        #region For simple reaching video recording
+        /*
+         for (int i = 1; i < 10; i++)
+         {
+             gridManager.SelectTarget(7);
+             HudManager.DisplayText("Well done (you can return to start position)!");
+             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+             hasReached = false;
+             // For video
+             HudManager.colour = HUDManager.HUDColour.Orange;
+             HUDCountDown(1);
+             yield return new WaitUntil(() => CountdownDone); // And wait 
+             InstructionManager.DisplayText("Reach it!");
+             HudManager.DisplayText("Reach it!");
+             HudManager.colour = HUDManager.HUDColour.Blue;
+             yield return new WaitUntil(() => IsTaskDone());
+             // Signal the subject that the task is done
+
+             //HudManager.DisplayText("Hold on your current position!");
+             //yield return new WaitForSecondsRealtime(1.0f);
+             audio.clip = returnAudioClip;
+             audio.Play();
+             HudManager.colour = HUDManager.HUDColour.Red;
+             HudManager.DisplayText("Well done (you can return to start position)!");
+
+             hasReached = false;
+             taskComplete = false;
+             gridManager.ResetTargetSelection();
+
+         }
+         */
+        #endregion
+
+        welcomeDone = true;
+
         HudManager.DisplayText("Look to the top right. Instructions will be displayed there.");
         InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -525,9 +529,9 @@ public class AugmentedFeedback2022 : GameMaster
         // Spawn the grid
         gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
         gridManager.AddJointPose(new float[4] { 60, 0, 30, 0 });
-        gridManager.AddJointPose(new float[4] { 30, 0, 30, 0 });
+        //gridManager.AddJointPose(new float[4] { 30, 0, 30, 0 });
         gridManager.SpawnTargetGrid();
-        //gridManager.SelectTarget(1);
+        //gridManager.SelectTarget(0);
         Debug.Log("Spawn the grid!");
         #endregion
 
@@ -535,12 +539,12 @@ public class AugmentedFeedback2022 : GameMaster
         // Set iterations variables for flow control.
         targetNumber = gridManager.TargetNumber;
         Debug.Log("Target number: " + targetNumber);
-        iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget;
+        iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget[sessionNumber-1];
 
         // Create the list of target indexes and shuffle it.
         for (int i = 0; i < targetNumber; i++)
         {
-            for (int j = 0; j < iterationsPerTarget; j++)
+            for (int j = 0; j < iterationsPerTarget[sessionNumber - 1]; j++)
             {
                 targetOrder.Add(i);
                 Debug.Log(targetOrder[targetOrder.Count - 1]);
@@ -789,61 +793,13 @@ public class AugmentedFeedback2022 : GameMaster
     /// <returns>True if ready to start.</returns>
     public override bool IsReadyToStart()
     {
+
         if (checkStartPosition)
         {
             return IsAtRightPosition(startShoulderAngle, startElbowAngle, startTolerance);
-            #region Deprecated, use new method instead
 
-            /*
-              // Check that upper and lower arms are within the tolerated start position.
-              float qShoulder = leftySign * Mathf.Rad2Deg * (upperArmTracker.GetProcessedData(5) + Mathf.PI); // Offsetting to horizontal position being 0.
-              float qElbow = 0;
-
-
-              HudManager.colour = HUDManager.HUDColour.Orange;
-              qElbow = Mathf.Rad2Deg * (lowerArmTracker.GetProcessedData(5)) - qShoulder; // Offsetting to horizontal position being 0.
-              // The difference to the start position
-              float qSDiff = qShoulder - startShoulderAngle;
-              float qEDiff = qElbow - startElbowAngle;
-
-              //
-              // Update information displayed for debugging purposes
-              //
-
-
-              //InstructionManager.DisplayText(qShoulder.ToString() + "\n" + qElbow.ToString() + "\n");
-
-              if (Mathf.Abs(qSDiff) < startTolerance && Mathf.Abs(qEDiff) < startTolerance)
-              {
-                  HudManager.colour = HUDManager.HUDColour.Orange;
-                  return true;
-              }
-              // Provide instructions when not there yet
-              else
-              {
-
-                  string helpText = "";
-                  if (qSDiff < 0 && Mathf.Abs(qSDiff) > startTolerance)
-                      helpText += "UA: ++ (" + qShoulder.ToString("F0") + "/" + startShoulderAngle.ToString("F0") + ").\n";
-                  else if (qSDiff > 0 && Mathf.Abs(qSDiff) > startTolerance)
-                      helpText += "UA: -- (" + qShoulder.ToString("F0") + "/" + startShoulderAngle.ToString("F0") + ").\n";
-
-                  if (qEDiff < 0 && Mathf.Abs(qEDiff) > startTolerance)
-                      helpText += "LA: ++ (" + qElbow.ToString("F0") + "/" + startElbowAngle.ToString("F0") + ").\n";
-                  else if (qEDiff > 0 && Mathf.Abs(qEDiff) > startTolerance)
-                      helpText += "LA: -- (" + qElbow.ToString("F0") + "/" + startElbowAngle.ToString("F0") + ").\n"; ;
-
-                  HudManager.DisplayText(helpText);
-                  HudManager.colour = HUDManager.HUDColour.Red;
-
-
-                  return false;
-              }
-              */
-            #endregion
         }
 
-        else
             return true;
 
     
@@ -937,7 +893,7 @@ public class AugmentedFeedback2022 : GameMaster
         HudManager.colour = HUDManager.HUDColour.Green;
         HudManager.colour = HUDManager.HUDColour.Green;
        
-        yield return new WaitForSecondsRealtime(1.0f);
+        yield return new WaitForSecondsRealtime(holdingTime);
         taskComplete = true;
     }
 
@@ -947,16 +903,12 @@ public class AugmentedFeedback2022 : GameMaster
     /// </summary>
     public override void HandleTaskCompletion()
     {
-
-
         // Stop EMG reading and save data
         delsysEMG.StopRecording();
         emgIsRecording = false;
-
+        // Save log data
         base.HandleTaskCompletion();
-
         
-
         // Reset flags
         hasReached = false;
         taskComplete = false;
@@ -964,6 +916,31 @@ public class AugmentedFeedback2022 : GameMaster
         // Play return audio
         audio.clip = returnAudioClip;
         audio.Play();
+
+        // Try to get the feedback score
+
+
+        StartCoroutine(HandleTaskCompletionCoroutine());
+        Debug.Log("Try feedback");
+
+    }
+
+    /// <summary>
+    /// Handles the coroutine need to be done after task completion
+    ///
+    /// </summary>
+    private IEnumerator HandleTaskCompletionCoroutine()
+    {
+        //Get feedback score
+        zmqRequester.newData(new float[] { (float) sessionNumber, (float) iterationNumber, iterationDoneTime });
+        yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
+        double[] response = zmqRequester.GetReceiveData();
+        feedbackScore = (float) response[0];
+        HudManager.DisplayText("Score: " + feedbackScore);
+        Debug.Log("Feedback Score: " + feedbackScore);
+
+        HudManager.DisplayText("Score: " + feedbackScore + ". Press to continue.");
+        yield return WaitForSubjectAcknowledgement();
     }
 
     /// <summary>
@@ -972,7 +949,12 @@ public class AugmentedFeedback2022 : GameMaster
     public override void HandleResultAnalysis()
     {
         // Do some analysis
+        //Debug.Log("J = " + J);
+        string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + iterationDoneTime.ToString() + "," + feedbackScore.ToString();
 
+        // Log results
+        performanceDataLogger.AppendData(iterationResults);
+        performanceDataLogger.SaveLog();
     }
 
     /// <summary>
@@ -982,15 +964,20 @@ public class AugmentedFeedback2022 : GameMaster
     /// </summary>
     public override void HandleIterationInitialisation()
     {
+        //StartCoroutine(HandleIterationInitialisationCoroutine());
+        base.HandleIterationInitialisation();
         
-        //base.HandleIterationInitialisation();
-        //Debug.Log("J = " + J);
-        string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + iterationDoneTime.ToString();
-
-        // Log results
-        performanceDataLogger.AppendData(iterationResults);
-        performanceDataLogger.SaveLog();
     }
+
+    /*
+    /// <summary>
+    /// Coroutine when initialising the next iteration
+    /// </summary>
+    private IEnumerator HandleIterationInitialisationCoroutine()
+    {
+        yield return;
+    }
+    */
 
     /// <summary>
     /// Checks if the condition for changing experiment session has been reached.
@@ -1012,6 +999,7 @@ public class AugmentedFeedback2022 : GameMaster
     {
 
         //HudManager.DisplayText("New session");
+        /*
         if (gridManager.CurrentTargetType == TargetPoseGridManager.TargetType.Ball)
         {
             GameObject[] targets = GameObject.FindGameObjectsWithTag("TouchyBall");
@@ -1027,19 +1015,20 @@ public class AugmentedFeedback2022 : GameMaster
             gridManager.ResetTargetSelection();
             Debug.Log("Spawn the grid!");
         }
+        */
 
         base.HandleSessionInitialisation();
 
         #region Iteration settings
         // Set iterations variables for flow control.
         targetNumber = gridManager.TargetNumber;
-        iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget;
+        iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget[sessionNumber - 1];
 
 
         // Create the list of target indexes and shuffle it.
         for (int i = 0; i < targetNumber; i++)
         {
-            for (int j = 0; j < iterationsPerTarget; j++)
+            for (int j = 0; j < iterationsPerTarget[sessionNumber - 1]; j++)
             {
                 targetOrder.Add(i);
                 Debug.Log(targetOrder[targetOrder.Count-1]);
