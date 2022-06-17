@@ -24,6 +24,7 @@ public class DataCollection2022GM : GameMaster
     [Header("Sensor settings")]
     [SerializeField]
     private bool delsysEMGEnable = false;
+    [SerializeField]
     private bool fourTrackerEnable = false;
 
 
@@ -139,7 +140,7 @@ public class DataCollection2022GM : GameMaster
     private IEnumerator DisplayTaskText(int index)
     {
         poseListManager.SelectPose(index);
-        taskPoseText.text = poseListManager.SelectedPose(index);
+        taskPoseText.text = poseListManager.SelectedPose(index) + " "+ iterationNumber.ToString();
         // Play the audio
         audio.clip = nextAudioClip;
         audio.Play(0);
@@ -415,7 +416,7 @@ public class DataCollection2022GM : GameMaster
         //
         // Target ADL poses
         //
-        poseListManager.AddPose("Next iteration", nextAudioClip);
+        poseListManager.AddPose("Iteration:", nextAudioClip);
 
 
 
