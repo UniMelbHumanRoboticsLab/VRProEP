@@ -28,34 +28,37 @@ namespace VRProEP.GameEngineCore
         protected override void Update()
         {
             gm.HandleResultAnalysis();
-            if(gm.IsEndOfExperiment()) // Experiment end
+            if (gm.AnalysisDone)
             {
-                gm.HudManager.DisplayText("Experiment end. Thank you!", 6.0f);
-                //nextRequest = NextStateRequest.End;
-                nextState = new End(gm);
-                stateStage = EVENT.EXIT;
-            }
-            else if (gm.IsEndOfSession()) // End session and start a new one
-            {
-                gm.SetWaitFlag(3.0f);
-                //nextRequest = NextStateRequest.Next;
-                nextState = new InitialisingNextSession(gm);
-                stateStage = EVENT.EXIT;
-            }
-            else if (gm.IsRestTime()) // Rest time
-            {
-                gm.HudManager.DisplayText("Take a " + gm.RestTime + " seconds rest.", 6.0f);
-                gm.SetWaitFlag(gm.RestTime);
-                //nextRequest = NextStateRequest.Rest;
-                nextState = new Resting(gm);
-                stateStage = EVENT.EXIT;
-            }
-            else // Continue with next iteration
-            {
-                gm.SetWaitFlag(3.0f);
-                //nextRequest = NextStateRequest.Continue;
-                nextState = new InitialisingNextIteration(gm);
-                stateStage = EVENT.EXIT;
+                if (gm.IsEndOfExperiment()) // Experiment end
+                {
+                    gm.HudManager.DisplayText("Experiment end. Thank you!", 6.0f);
+                    //nextRequest = NextStateRequest.End;
+                    nextState = new End(gm);
+                    stateStage = EVENT.EXIT;
+                }
+                else if (gm.IsEndOfSession()) // End session and start a new one
+                {
+                    gm.SetWaitFlag(3.0f);
+                    //nextRequest = NextStateRequest.Next;
+                    nextState = new InitialisingNextSession(gm);
+                    stateStage = EVENT.EXIT;
+                }
+                else if (gm.IsRestTime()) // Rest time
+                {
+                    gm.HudManager.DisplayText("Take a " + gm.RestTime + " seconds rest.", 6.0f);
+                    gm.SetWaitFlag(gm.RestTime);
+                    //nextRequest = NextStateRequest.Rest;
+                    nextState = new Resting(gm);
+                    stateStage = EVENT.EXIT;
+                }
+                else // Continue with next iteration
+                {
+                    gm.SetWaitFlag(3.0f);
+                    //nextRequest = NextStateRequest.Continue;
+                    nextState = new InitialisingNextIteration(gm);
+                    stateStage = EVENT.EXIT;
+                }
             }
         }
 

@@ -129,6 +129,7 @@ public abstract class GameMaster : MonoBehaviour
     protected bool inTraining = false;
     protected bool trainingDone = false;
     protected bool countdownDone = false;
+    protected bool analysisDone = true;
     private bool waitFlag = false;
     private Coroutine countdownCoroutine;
     protected SteamVR_Action_Boolean buttonAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("ObjectInteractButton");
@@ -140,6 +141,7 @@ public abstract class GameMaster : MonoBehaviour
     public bool InTraining { get => inTraining; set => inTraining = value; }
     public bool TrainingDone { get => trainingDone; }
     public bool CountdownDone { get => countdownDone; }
+    public bool AnalysisDone { get => analysisDone; }
     public bool WaitFlag { get => waitFlag; }
 
     //

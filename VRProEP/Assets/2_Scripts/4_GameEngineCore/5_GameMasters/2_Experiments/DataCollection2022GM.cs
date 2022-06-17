@@ -11,25 +11,34 @@ using TMPro;
 using Valve.VR;
 using Valve.VR.InteractionSystem;
 
-//NetMQ
-using NetMQ;
-
 // GameMaster includes
 using VRProEP.ExperimentCore;
 using VRProEP.GameEngineCore;
 using VRProEP.ProsthesisCore;
 using VRProEP.Utilities;
 
-public class AugmentedFeedback2022 : GameMaster
+public class DataCollection2022GM : GameMaster
 {
     // Here you can place all your Unity (GameObjects or similar)
     #region Unity objects
+    [Header("Sensor settings")]
     [SerializeField]
-    private string ablebodiedDataFormat = "loc,t,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
-    [SerializeField]
-    private string performanceDataFormat = "i,loc,t_f,score";
+    private bool delsysEMGEnable = false;
+    private bool fourTrackerEnable = false;
 
-    
+
+    [SerializeField]
+    private string ablebodiedDataFormat = "pose,t,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
+    [SerializeField]
+    private string performanceDataFormat = "i,pose,name,t_f";
+
+    [SerializeField]
+    private TextMeshPro taskPoseText;
+
+    [SerializeField]
+    private ADLPoseListManager poseListManager;
+
+   
     [Header("Experiment configuration: Start position")]
     [SerializeField]
     [Tooltip("The subject's shoulder start angle in degrees.")]
@@ -45,8 +54,12 @@ public class AugmentedFeedback2022 : GameMaster
     [Tooltip("The start angle tolerance in degrees.")]
     [Range(0.0f, 90.0f)]
     private float startTolerance = 15.0f;
-    
-    private int[] iterationsPerTarget;
+
+    [Header("Experiment configuration: Reps and Sets")]
+    [SerializeField]
+    [Tooltip("The number of iterations per target.")]
+    [Range(1, 100)]
+    private int iterationsPerTarget = 10;
 
 
     [SerializeField]
@@ -54,6 +67,9 @@ public class AugmentedFeedback2022 : GameMaster
 
     [SerializeField]
     private GameObject startPosPhoto;
+
+    [SerializeField]
+    private AudioClip startAudioClip;
 
     [SerializeField]
     private AudioClip holdAudioClip;
@@ -65,19 +81,19 @@ public class AugmentedFeedback2022 : GameMaster
     private AudioClip testAudioClip;
 
     [SerializeField]
-    private TargetPoseGridManager gridManager = new TargetPoseGridManager();
+    private AudioClip nextAudioClip;
+
+
 
     #endregion
+
     // Additional data logging
     private DataStreamLogger performanceDataLogger;
-    private float iterationDoneTime;
-    private float feedbackScore;
-
-    // Time to hold the final pose
-    private float holdingTime;
+    private float doneTime;
 
     // Delsys EMG background data collection
     private DelsysEMG delsysEMG = new DelsysEMG();
+
 
     // Target management variables
     private int targetNumber = 9; // The total number of targets
@@ -98,19 +114,40 @@ public class AugmentedFeedback2022 : GameMaster
     // Lefty subject sign
     private float leftySign = 1.0f;
 
+
+
+
+    private class VariationTestConfigurator
+    {
+        public int iterationsPerTarget = 10;
+        public int sessionNumber = 2;
+    }
+    private VariationTestConfigurator configurator;
+
     //Audio
     AudioSource audio;
 
-    //Matlab ZMQ communication:
-    private ZMQRequester zmqRequester; 
-    private const int zmqPort = 5900;
-
+   
     #region Private methods
     private string ConfigEMGFilePath()
     {
         //string emgDataFilename =  Path.Combine(taskDataLogger.ActiveDataPath, "session_" + sessionNumber , "i" + "_" + iterationNumber + "EMG.csv");
         string emgDataFilename = taskDataLogger.ActiveDataPath + "/session_" + sessionNumber + "/i" + "_" + iterationNumber + "EMG.csv";
         return emgDataFilename;
+    }
+
+    private IEnumerator DisplayTaskText(int index)
+    {
+        poseListManager.SelectPose(index);
+        taskPoseText.text = poseListManager.SelectedPose(index);
+        // Play the audio
+        audio.clip = nextAudioClip;
+        audio.Play(0);
+        yield return new WaitForSecondsRealtime(1.0f);
+        audio.clip = poseListManager.GetPoseAudio(index);
+        audio.Play(0);
+
+        Debug.Log("Ite:" + iterationNumber + ". Next pose:" + poseListManager.SelectedPose(index) + ".");
     }
 
 
@@ -179,12 +216,11 @@ public class AugmentedFeedback2022 : GameMaster
     // Configuration class:
     // Modify this class to be able to configure your experiment from a configuration file
     //
-    private class AugmentedFeedbackConfigurator
+    private class Configurator
     {
-        public int[] iterationsPerTarget = {10};
-        public float holdingTime = 0.5f;
+        
     }
-    private AugmentedFeedbackConfigurator configurator;
+    private Configurator config;
 
     #endregion
 
@@ -197,8 +233,13 @@ public class AugmentedFeedback2022 : GameMaster
         // Override fixed update to start the emg recording when the start performing the task
         if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK && !emgIsRecording)
         {
-            
-            delsysEMG.StartRecording(ConfigEMGFilePath());
+           
+            Debug.Log("Ite:" + iterationNumber + ". Start task");
+            audio.clip = startAudioClip;
+            audio.Play(0);
+            // Comment out when sEMG is connected
+            if(delsysEMGEnable)
+                delsysEMG.StartRecording(ConfigEMGFilePath());
             emgIsRecording = true;
         }
 
@@ -262,17 +303,16 @@ public class AugmentedFeedback2022 : GameMaster
         //configAsset = Resources.Load<TextAsset>("Experiments/" + ExperimentSystem.ActiveExperimentID);
 
         // Convert configuration file to configuration class.
-        configurator = JsonUtility.FromJson<AugmentedFeedbackConfigurator>(configAsset.text);
+        configurator = JsonUtility.FromJson<VariationTestConfigurator>(configAsset.text);
 
         // Load from config file
-        holdingTime = configurator.holdingTime;
         iterationsPerTarget = configurator.iterationsPerTarget;
-        // Load from config file
-        for (int i = 0; i <= iterationsPerTarget.Length - 1; i++)
+        for (int i = 0; i < configurator.sessionNumber-1; i++)
         {
             iterationsPerSession.Add(0);
         }
-        Debug.Log("Size of iterationperTarget: " + iterationsPerTarget.Length);
+        
+
     }
 
     /// <summary>
@@ -327,21 +367,13 @@ public class AugmentedFeedback2022 : GameMaster
         #endregion
 
         #region Initialize EMG sensors
-        //Initialse Delsys EMG sensor
+        //Initialise Delsys EMG sensor
         delsysEMG.Init();
         delsysEMG.Connect();
-        delsysEMG.StartAcquisition();
-        //delsysEMG.SetZMQPusher(true);
-        #endregion
-
-        #region Initialize world positioning
-
-        // Set the subject physiological data for grid 
-        //gridManager.ConfigUserData();
-       
-        //gridManager.ConfigGridPositionFactors(gridCloseDistanceFactor, gridMidDistanceFactor, gridFarDistanceFactor, gridHeightFactor);
+        
 
         #endregion
+
 
         #region  Initialize motion sensors
         //
@@ -357,7 +389,7 @@ public class AugmentedFeedback2022 : GameMaster
         upperArmTracker = new VIVETrackerManager(ulMotionTrackerGO.transform);
         ExperimentSystem.AddSensor(upperArmTracker);
 
-        if (!debug)
+        if (fourTrackerEnable)
         {
             // Shoulder acromium head tracker
             GameObject motionTrackerGO1 = AvatarSystem.AddMotionTracker();
@@ -380,12 +412,15 @@ public class AugmentedFeedback2022 : GameMaster
 
         #endregion
 
-        #region  Initialize zmq communication
-        zmqRequester = new ZMQRequester(zmqPort);
-        zmqRequester.Start();
-        #endregion
+        //
+        // Target ADL poses
+        //
+        poseListManager.AddPose("Next iteration", nextAudioClip);
 
 
+
+        // Start EMG readings
+        delsysEMG.StartAcquisition();
 
     }
 
@@ -399,74 +434,7 @@ public class AugmentedFeedback2022 : GameMaster
         // First flag that we are in the welcome routine
         welcomeDone = false;
         inWelcome = true;
-        Debug.Log("Press Up key for EMG visualisation.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
-        delsysEMG.SetZMQPusher(true);
-
-        Debug.Log("Press Down key to stop EMG visualisation.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
-        delsysEMG.SetZMQPusher(false);
-
-        #region Debug the zmq communications
-        /*
-        Debug.Log("Press Up key.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
-        delsysEMG.SetZMQPusher(false);
-
-        Debug.Log("Press Down key.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
-        delsysEMG.SetZMQPusher(true);
-
-        Debug.Log("Press Up key.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
-        zmqRequester.newData(new float[] { 1.0f });
-        yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
-        double[] response = zmqRequester.GetReceiveData();
-        Debug.Log("Feedback Score: " + response[0]);
-
-        Debug.Log("Press Down key.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
-        zmqRequester.newData(new float[] { 1.0f });
-        yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
-        response = zmqRequester.GetReceiveData();
-        Debug.Log("Feedback Score: " + response[0]);
-        */
-        #endregion
-
-
-        #region For simple reaching video recording
-        /*
-         for (int i = 1; i < 10; i++)
-         {
-             gridManager.SelectTarget(7);
-             HudManager.DisplayText("Well done (you can return to start position)!");
-             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-             hasReached = false;
-             // For video
-             HudManager.colour = HUDManager.HUDColour.Orange;
-             HUDCountDown(1);
-             yield return new WaitUntil(() => CountdownDone); // And wait 
-             InstructionManager.DisplayText("Reach it!");
-             HudManager.DisplayText("Reach it!");
-             HudManager.colour = HUDManager.HUDColour.Blue;
-             yield return new WaitUntil(() => IsTaskDone());
-             // Signal the subject that the task is done
-
-             //HudManager.DisplayText("Hold on your current position!");
-             //yield return new WaitForSecondsRealtime(1.0f);
-             audio.clip = returnAudioClip;
-             audio.Play();
-             HudManager.colour = HUDManager.HUDColour.Red;
-             HudManager.DisplayText("Well done (you can return to start position)!");
-
-             hasReached = false;
-             taskComplete = false;
-             gridManager.ResetTargetSelection();
-
-         }
-         */
-        #endregion
-
+        
         welcomeDone = true;
 
         HudManager.DisplayText("Look to the top right. Instructions will be displayed there.");
@@ -508,14 +476,9 @@ public class AugmentedFeedback2022 : GameMaster
         InstructionManager.DisplayText("A 60 sec rest occurs every 35 iterations" + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-
-       
-
-       
-
         // Now that you are done, set the flag to indicate we are done.
         
-        
+        welcomeDone = true;
 
     }
 
@@ -524,27 +487,22 @@ public class AugmentedFeedback2022 : GameMaster
     /// </summary>
     public override void InitialiseExperiment()
     {
-        //Spwan grid
         #region Spawn grid
         // Spawn the grid
-        gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
-        gridManager.AddJointPose(new float[4] { 60, 0, 30, 0 });
-        //gridManager.AddJointPose(new float[4] { 30, 0, 30, 0 });
-        gridManager.SpawnTargetGrid();
-        //gridManager.SelectTarget(0);
-        Debug.Log("Spawn the grid!");
+        //gridManager.CurrentTargetType = TargetGridManager.TargetType.Ball; // Type is the ball
+        poseListManager.ResetPoseSelection();
+        Debug.Log("Spawn the list!");
         #endregion
 
         #region Iteration settings
         // Set iterations variables for flow control.
-        targetNumber = gridManager.TargetNumber;
-        Debug.Log("Target number: " + targetNumber);
-        iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget[sessionNumber-1];
+        targetNumber = poseListManager.TargetNumber;
+        iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget;
 
         // Create the list of target indexes and shuffle it.
         for (int i = 0; i < targetNumber; i++)
         {
-            for (int j = 0; j < iterationsPerTarget[sessionNumber - 1]; j++)
+            for (int j = 0; j < iterationsPerTarget; j++)
             {
                 targetOrder.Add(i);
                 Debug.Log(targetOrder[targetOrder.Count - 1]);
@@ -552,8 +510,10 @@ public class AugmentedFeedback2022 : GameMaster
                 
         }
         targetOrder.Shuffle();
-        
+
         #endregion
+        StartCoroutine(DisplayTaskText(targetOrder[0]));
+        
     }
 
     /// <summary>
@@ -566,11 +526,6 @@ public class AugmentedFeedback2022 : GameMaster
         // First flag that we are in the instructions routine
         instructionsDone = false;
         inInstructions = true;
-
-        InstructionManager.DisplayText("Press trigger to continue" + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-        instructionsDone = true;
 
         //Instructions
         if (sessionNumber == 1) // first session
@@ -614,10 +569,6 @@ public class AugmentedFeedback2022 : GameMaster
         trainingDone = false;
         inTraining = true;
 
-        InstructionManager.DisplayText("Press trigger to continue" + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-        trainingDone = true;
 
         if (sessionNumber == 1)
         {
@@ -714,7 +665,7 @@ public class AugmentedFeedback2022 : GameMaster
             HudManager.ClearText();
 
             //Start practice
-            gridManager.SelectTarget(0);
+            poseListManager.SelectPose(0);
             InstructionManager.DisplayText("The sphere that you need to reach will turn blue. Don't reach now." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("You'll have to wait for a three second countdown. Look at the sphere and get ready!" + "\n\n (Press the trigger)");
@@ -760,7 +711,7 @@ public class AugmentedFeedback2022 : GameMaster
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
             //Start practice         
-            gridManager.SelectTarget(2);
+            poseListManager.SelectPose(2);
             InstructionManager.DisplayText("The sphere that you need to reach will turn blue. Do not reach now." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("You'll have to wait for a three second countdown. Look at the sphere and get ready!" + "\n\n (Press the trigger)");
@@ -802,13 +753,13 @@ public class AugmentedFeedback2022 : GameMaster
     /// <returns>True if ready to start.</returns>
     public override bool IsReadyToStart()
     {
-
         if (checkStartPosition)
         {
-            return IsAtRightPosition(startShoulderAngle, startElbowAngle, startTolerance);
-
+            //return Input.GetKey(KeyCode.UpArrow);
+            return buttonAction.GetState(SteamVR_Input_Sources.Any);
         }
 
+        else
             return true;
 
     
@@ -823,8 +774,7 @@ public class AugmentedFeedback2022 : GameMaster
         // Here you can do stuff like preparing objects/assets, like setting a different colour to the object
 
         // Select target
-        gridManager.SelectTarget(targetOrder[iterationNumber - 1]);
-
+        
     }
 
     /// <summary>
@@ -835,7 +785,7 @@ public class AugmentedFeedback2022 : GameMaster
     {
         // If our subject fails, do some resetting. 
         // Clear bottle selection
-        gridManager.ResetTargetSelection();
+        poseListManager.ResetPoseSelection();
 
     }
 
@@ -847,15 +797,16 @@ public class AugmentedFeedback2022 : GameMaster
     /// </summary>
     public override void HandleTaskDataLogging()
     {
+        //
         // Add your custom data logging here
+        //
         logData += targetOrder[iterationNumber - 1] + ",";  // Make sure you always end your custom data with a comma! Using CSV for data logging.
 
-
+        //
         // Continue with data logging.
+        //
         base.HandleTaskDataLogging();
-    
 
-        //HudManager.DisplayText(GameObject.Find("Bottle").transform.localEulerAngles.ToString());
     }
 
     /// <summary>
@@ -874,17 +825,17 @@ public class AugmentedFeedback2022 : GameMaster
     public override bool IsTaskDone()
     {
         // You can implement whatever condition you want, maybe touching an object in the virtual world or being in a certain posture.
-       
-        if (gridManager.SelectedTouched && !hasReached)
-        {
-            iterationDoneTime = taskTime;
-            audio.clip = holdAudioClip;
-            audio.Play();
 
-            
+        //gridManager.SelectedTouched && !hasReached
+        if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any)  && !hasReached) //Input.GetKey(KeyCode.DownArrow)
+        {
+            doneTime = taskTime;
+            //audio.clip = holdAudioClip;
+            //audio.Play();
             StartCoroutine(EndTaskCoroutine());
-            Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + iterationDoneTime.ToString() + ".");
-        } 
+            Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + doneTime.ToString() + ".");
+        }
+            
         return taskComplete;
     }
 
@@ -898,11 +849,11 @@ public class AugmentedFeedback2022 : GameMaster
     {
         hasReached = true;
         // Signal the subject that the task is done
-        HudManager.DisplayText("Hold on for a while!!");
-        HudManager.colour = HUDManager.HUDColour.Green;
-        HudManager.colour = HUDManager.HUDColour.Green;
+        //HudManager.DisplayText("Hold on for a while!!");
+        //HudManager.colour = HUDManager.HUDColour.Green;
+        //HudManager.colour = HUDManager.HUDColour.Green;
        
-        yield return new WaitForSecondsRealtime(holdingTime);
+        yield return new WaitForSecondsRealtime(1.0f);
         taskComplete = true;
     }
 
@@ -912,12 +863,16 @@ public class AugmentedFeedback2022 : GameMaster
     /// </summary>
     public override void HandleTaskCompletion()
     {
+
+
         // Stop EMG reading and save data
         delsysEMG.StopRecording();
         emgIsRecording = false;
-        // Save log data
+
         base.HandleTaskCompletion();
+
         
+
         // Reset flags
         hasReached = false;
         taskComplete = false;
@@ -925,51 +880,21 @@ public class AugmentedFeedback2022 : GameMaster
         // Play return audio
         audio.clip = returnAudioClip;
         audio.Play();
-
-        //
-        
-
     }
 
-    
     /// <summary>
     /// Handles the procedures performed when analysing results.
     /// </summary>
     public override void HandleResultAnalysis()
     {
-        analysisDone = false;
         // Do some analysis
-        StartCoroutine(HandleResultAnalysisCoroutine());
-        Debug.Log("Try feedback");
-
-        string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + iterationDoneTime.ToString() + "," + feedbackScore.ToString();
+        //Debug.Log("J = " + J);
+        string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + poseListManager.GetPoseName(targetOrder[iterationNumber - 1]) +"," + doneTime.ToString();
 
         // Log results
         performanceDataLogger.AppendData(iterationResults);
         performanceDataLogger.SaveLog();
-
-        analysisDone = true;
     }
-
-
-    /// <summary>
-    /// Handles the coroutine need to be done after task completion
-    ///
-    /// </summary>
-    private IEnumerator HandleResultAnalysisCoroutine()
-    {
-        //Get feedback score
-        zmqRequester.newData(new float[] { (float)sessionNumber, (float)iterationNumber, iterationDoneTime });
-        yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
-        double[] response = zmqRequester.GetReceiveData();
-        feedbackScore = (float)response[0];
-        HudManager.DisplayText("Score: " + feedbackScore);
-        Debug.Log("Feedback Score: " + feedbackScore);
-
-        HudManager.DisplayText("Score: " + feedbackScore + ". Press to continue.");
-        yield return WaitForSubjectAcknowledgement();
-    }
-
 
     /// <summary>
     /// Handles procedures performed when initialising the next iteration.
@@ -978,20 +903,13 @@ public class AugmentedFeedback2022 : GameMaster
     /// </summary>
     public override void HandleIterationInitialisation()
     {
-        //StartCoroutine(HandleIterationInitialisationCoroutine());
-        base.HandleIterationInitialisation();
-        
-    }
+       
 
-    /*
-    /// <summary>
-    /// Coroutine when initialising the next iteration
-    /// </summary>
-    private IEnumerator HandleIterationInitialisationCoroutine()
-    {
-        yield return;
+        base.HandleIterationInitialisation();
+        StartCoroutine(DisplayTaskText(targetOrder[iterationNumber - 1]));
+        
+
     }
-    */
 
     /// <summary>
     /// Checks if the condition for changing experiment session has been reached.
@@ -1012,37 +930,20 @@ public class AugmentedFeedback2022 : GameMaster
     public override void HandleSessionInitialisation()
     {
 
-        //HudManager.DisplayText("New session");
-        /*
-        if (gridManager.CurrentTargetType == TargetPoseGridManager.TargetType.Ball)
-        {
-            GameObject[] targets = GameObject.FindGameObjectsWithTag("TouchyBall");
-            foreach (GameObject target in targets)
-            {
-                Destroy(target);
-            }
-            targetOrder.Clear();
-
-            // Generate new grid
-            gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Bottle;
-            gridManager.SpawnTargetGrid();
-            gridManager.ResetTargetSelection();
-            Debug.Log("Spawn the grid!");
-        }
-        */
 
         base.HandleSessionInitialisation();
 
         #region Iteration settings
         // Set iterations variables for flow control.
-        targetNumber = gridManager.TargetNumber;
-        iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget[sessionNumber - 1];
+        targetNumber = poseListManager.TargetNumber;
+        iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget;
 
 
         // Create the list of target indexes and shuffle it.
+        targetOrder.Clear(); //clear the target order
         for (int i = 0; i < targetNumber; i++)
         {
-            for (int j = 0; j < iterationsPerTarget[sessionNumber - 1]; j++)
+            for (int j = 0; j < iterationsPerTarget; j++)
             {
                 targetOrder.Add(i);
                 Debug.Log(targetOrder[targetOrder.Count-1]);
@@ -1052,10 +953,25 @@ public class AugmentedFeedback2022 : GameMaster
         }
 
         targetOrder.Shuffle();
+
+        // New file for the performance data logger
+        performanceDataLogger.CloseLog();
+        performanceDataLogger.AddNewLogFile(AvatarSystem.AvatarType.ToString(), sessionNumber, performanceDataFormat); // Add file
+
+        // Display task text
+        StartCoroutine(DisplayTaskText(targetOrder[0]));
         
+
+        if (debug)
+        {
+            foreach (int target in targetOrder)
+            {
+                Debug.Log("Pose:" + target);
+            }
+        }
         #endregion
 
-        
+
 
     }
 
@@ -1093,16 +1009,9 @@ public class AugmentedFeedback2022 : GameMaster
         return iterationNumber % RestIterations == 0;
     }
 
+
+
     #endregion
 
-    /// <summary>
-    /// Avoid unity freeze
-    /// </summary>
-    /// <returns></returns>
-    private void OnApplicationQuit()
-    {
-        delsysEMG.StopZMQPusher();
-        zmqRequester.Stop();
-        NetMQConfig.Cleanup();
-    }
+   
 }
