@@ -27,12 +27,14 @@ public class DataCollection2022GM : GameMaster
     [SerializeField]
     private bool fourTrackerEnable = false;
 
-
+    [Header("Data format")]
     [SerializeField]
     private string ablebodiedDataFormat = "pose,t,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
     [SerializeField]
     private string performanceDataFormat = "i,pose,name,t_f";
 
+
+    [Header("Grid manager")]
     [SerializeField]
     private TextMeshPro taskPoseText;
 
