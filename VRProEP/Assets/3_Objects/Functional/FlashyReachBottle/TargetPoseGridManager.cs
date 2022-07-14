@@ -481,7 +481,7 @@ public class TargetPoseGridManager : MonoBehaviour
         upperarmGO = Instantiate(upperArmPrefab);
         upperarmGO.GetComponentInChildren<LimbFollower>().enabled = false;
         foreach (MeshRenderer renderer in upperarmGO.GetComponentsInChildren<MeshRenderer>())
-            renderer.sharedMaterial = mMaterial;
+           renderer.sharedMaterial = mMaterial;
 
         forearmGO = Instantiate(foreArmPrefab);
         forearmGO.GetComponent<LimbFollower>().enabled = false;

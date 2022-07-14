@@ -528,7 +528,7 @@ public class AugmentedFeedback2022 : GameMaster
         #region Spawn grid
         // Spawn the grid
         gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
-        gridManager.AddJointPose(new float[4] { 60, 0, 30, 0 });
+        gridManager.AddJointPose(new float[4] { 40, 0, 80, 0 });
         //gridManager.AddJointPose(new float[4] { 30, 0, 30, 0 });
         gridManager.SpawnTargetGrid();
         //gridManager.SelectTarget(0);
