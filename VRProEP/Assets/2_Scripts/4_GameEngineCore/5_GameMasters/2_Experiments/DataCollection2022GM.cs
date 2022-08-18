@@ -508,7 +508,7 @@ public class DataCollection2022GM : GameMaster
             for (int j = 0; j < iterationsPerTarget; j++)
             {
                 targetOrder.Add(i);
-                //Debug.Log(targetOrder[targetOrder.Count - 1]);
+                Debug.Log(targetOrder[targetOrder.Count - 1]);
             }
                 
         }
