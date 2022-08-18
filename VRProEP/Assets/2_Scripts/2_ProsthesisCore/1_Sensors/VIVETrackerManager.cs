@@ -95,6 +95,7 @@ namespace VRProEP.ProsthesisCore
             //
             // Generate a list with tracker indexes
             List<float> trackerIndexes = new List<float>(totalTrackerNumber);
+            //Debug.Log(totalTrackerNumber);
             for (int i = 1; i <= totalTrackerNumber; i++)
                 trackerIndexes.Add(i);
             // Look for trackers
@@ -102,7 +103,7 @@ namespace VRProEP.ProsthesisCore
             foreach (XRNodeState ns in xrNodes)
             {
                 // If a hardware tracker is found, and matches index.
-                //Debug.Log(ns.nodeType.ToString() + " " + currentTracker + " " + trackerIndexes[trackerNumber - 1]);
+                //Debug.Log("XRNodeState:" + ns.nodeType.ToString() + " " + currentTracker + " " + trackerIndexes[trackerNumber - 1]);
                 if (ns.nodeType == XRNode.HardwareTracker && currentTracker == (trackerIndexes[trackerNumber - 1]))
                 {
                     //Debug.Log(currentTracker.ToString());
