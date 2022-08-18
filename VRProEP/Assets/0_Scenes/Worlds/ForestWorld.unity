@@ -6905,6 +6905,11 @@ PrefabInstance:
       propertyPath: fourTrackerEnable
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
+        type: 3}
+      propertyPath: delsysEMGEnable
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3173896575985748330, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -6993,7 +6998,7 @@ PrefabInstance:
     - target: {fileID: 7057585951369286232, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8645427431186587885, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
