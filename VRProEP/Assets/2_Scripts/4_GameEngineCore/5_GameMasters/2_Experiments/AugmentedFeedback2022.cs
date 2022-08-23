@@ -1103,6 +1103,6 @@ public class AugmentedFeedback2022 : GameMaster
     {
         delsysEMG.StopZMQPusher();
         zmqRequester.Stop();
-        NetMQConfig.Cleanup();
+        NetMQConfig.Cleanup(false);
     }
 }

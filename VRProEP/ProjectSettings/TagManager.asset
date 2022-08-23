@@ -33,6 +33,9 @@ TagManager:
   - ReachBottle
   - TouchyBall
   - MiddleFingerCollider
+  - UpperarmTracker
+  - SATracker
+  - C7Tracker
   layers:
   - Default
   - TransparentFX

@@ -11,6 +11,9 @@ using TMPro;
 using Valve.VR;
 using Valve.VR.InteractionSystem;
 
+//NetMQ
+using NetMQ;
+
 // GameMaster includes
 using VRProEP.ExperimentCore;
 using VRProEP.GameEngineCore;
@@ -26,10 +29,14 @@ public class DataCollection2022GM : GameMaster
     private bool delsysEMGEnable = false;
     [SerializeField]
     private bool fourTrackerEnable = false;
+    [SerializeField]
+    private bool xrSkip = false;
 
     [Header("Data format")]
     [SerializeField]
     private string ablebodiedDataFormat = "pose,t,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
+    [SerializeField]
+    private string positionDataFormat = "iteration,t,x1,y1,z1,w1,qx1,qy1,qz1, x2,y2,z2,w2,qx2,qy2,qz2, x3,y3,z3,w3,qx3,qy3,qz3, x4,y4,z4,w4,qx4,qy4,qz4";
     [SerializeField]
     private string performanceDataFormat = "i,pose,name,t_f";
 
@@ -328,8 +335,10 @@ public class DataCollection2022GM : GameMaster
     {
 
         // Set data format
-        taskDataFormat = ablebodiedDataFormat;
-
+        if (!xrSkip) // If not using the XR to read sensor data
+            taskDataFormat = ablebodiedDataFormat;
+        else
+            taskDataFormat = positionDataFormat;
         // Lefty sign
         /*
         if (SaveSystem.ActiveUser.lefty)
@@ -389,6 +398,7 @@ public class DataCollection2022GM : GameMaster
 
         // Upper limb motion tracker
         GameObject ulMotionTrackerGO = AvatarSystem.AddMotionTracker();
+        ulMotionTrackerGO.tag = "UpperarmTracker";
         upperArmTracker = new VIVETrackerManager(ulMotionTrackerGO.transform);
         ExperimentSystem.AddSensor(upperArmTracker);
 
@@ -397,10 +407,12 @@ public class DataCollection2022GM : GameMaster
             // Shoulder acromium head tracker
             GameObject motionTrackerGO1 = AvatarSystem.AddMotionTracker();
             shoulderTracker = new VIVETrackerManager(motionTrackerGO1.transform);
+            motionTrackerGO1.tag = "SATracker";
             ExperimentSystem.AddSensor(shoulderTracker);
             // C7 tracker
             GameObject motionTrackerGO2 = AvatarSystem.AddMotionTracker();
             c7Tracker = new VIVETrackerManager(motionTrackerGO2.transform);
+            motionTrackerGO2.tag = "C7Tracker";
             ExperimentSystem.AddSensor(c7Tracker);
         }
 
@@ -808,7 +820,39 @@ public class DataCollection2022GM : GameMaster
         //
         // Continue with data logging.
         //
-        base.HandleTaskDataLogging();
+        if (!xrSkip)
+            base.HandleTaskDataLogging();
+        else
+        {
+            logData += taskTime.ToString();
+            GameObject got = GameObject.FindGameObjectWithTag("ForearmTracker");
+            logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
+            logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
+
+            got = GameObject.FindGameObjectWithTag("UpperarmTracker");
+            logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
+            logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
+
+            got = GameObject.FindGameObjectWithTag("SATracker");
+            logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
+            logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
+
+            got = GameObject.FindGameObjectWithTag("C7Tracker");
+            logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
+            logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
+
+            //
+            // Log current data and clear before next run.
+            //
+            taskDataLogger.AppendData(logData);
+            logData = "";
+
+            // Update run time
+            taskTime += Time.fixedDeltaTime;
+        }
+            
+
+
 
     }
 
@@ -1012,9 +1056,17 @@ public class DataCollection2022GM : GameMaster
         return iterationNumber % RestIterations == 0;
     }
 
-
+    /// <summary>
+    /// Avoid unity freeze
+    /// </summary>
+    /// <returns></returns>
+    private void OnApplicationQuit()
+    {
+        delsysEMG.StopZMQPusher();
+        NetMQConfig.Cleanup(false);
+    }
+}
 
     #endregion
 
    
-}
