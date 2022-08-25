@@ -1,6 +1,7 @@
 ﻿// System
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 
 // Unity
@@ -77,7 +78,21 @@ public class AugmentedFeedback2022 : GameMaster
     private float holdingTime;
 
     // Delsys EMG background data collection
+    [SerializeField]
+    private bool delsysEnable;
     private DelsysEMG delsysEMG = new DelsysEMG();
+
+    // Push the motion tracker data to other platform through ZMQ
+    [SerializeField]
+    private bool zmqPushEnable;
+    private ZMQPusher zmqPusher; // No need for response from the server
+    private const int zmqPushPort = 6002;
+
+    // Request matlab interface output through ZMQ:
+    [SerializeField]
+    private bool zmqReqEnable;
+    private ZMQRequester zmqRequester;
+    private const int zmqReqPort = 5900;
 
     // Target management variables
     private int targetNumber = 9; // The total number of targets
@@ -98,12 +113,10 @@ public class AugmentedFeedback2022 : GameMaster
     // Lefty subject sign
     private float leftySign = 1.0f;
 
-    //Audio
+    // Audio
     AudioSource audio;
 
-    //Matlab ZMQ communication:
-    private ZMQRequester zmqRequester; 
-    private const int zmqPort = 5900;
+    
 
     #region Private methods
     private string ConfigEMGFilePath()
@@ -195,7 +208,7 @@ public class AugmentedFeedback2022 : GameMaster
     {
        
         // Override fixed update to start the emg recording when the start performing the task
-        if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK && !emgIsRecording)
+        if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK && delsysEnable && !emgIsRecording )
         {
             
             delsysEMG.StartRecording(ConfigEMGFilePath());
@@ -328,10 +341,14 @@ public class AugmentedFeedback2022 : GameMaster
 
         #region Initialize EMG sensors
         //Initialse Delsys EMG sensor
-        delsysEMG.Init();
-        delsysEMG.Connect();
-        delsysEMG.StartAcquisition();
-        //delsysEMG.SetZMQPusher(true);
+        if (delsysEnable)
+        {
+            delsysEMG.Init();
+            delsysEMG.Connect();
+            delsysEMG.StartAcquisition();
+        }
+        
+
         #endregion
 
         #region Initialize world positioning
@@ -381,8 +398,19 @@ public class AugmentedFeedback2022 : GameMaster
         #endregion
 
         #region  Initialize zmq communication
-        zmqRequester = new ZMQRequester(zmqPort);
-        zmqRequester.Start();
+        //ZMQ
+        if (zmqPushEnable)
+        {
+            zmqPusher = new ZMQPusher(zmqPushPort);
+            zmqPusher.Start();
+        }
+
+        if (zmqReqEnable)
+        {
+            zmqRequester = new ZMQRequester(zmqReqPort);
+            zmqRequester.Start();
+        }
+       
         #endregion
 
 
@@ -401,11 +429,13 @@ public class AugmentedFeedback2022 : GameMaster
         inWelcome = true;
         Debug.Log("Press Up key for EMG visualisation.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
-        delsysEMG.SetZMQPusher(true);
+        if(delsysEnable)
+            delsysEMG.SetZMQPusher(true);
 
         Debug.Log("Press Down key to stop EMG visualisation.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
-        delsysEMG.SetZMQPusher(false);
+        if(delsysEnable)
+            delsysEMG.SetZMQPusher(false);
 
         #region Debug the zmq communications
         /*
@@ -851,9 +881,70 @@ public class AugmentedFeedback2022 : GameMaster
         logData += targetOrder[iterationNumber - 1] + ",";  // Make sure you always end your custom data with a comma! Using CSV for data logging.
 
 
+
+
+        #region Rewrite the base method
+        //
+        // Gather data while experiment is in progress
+        //
+        logData += taskTime.ToString();
+        // Read from all user sensors
+        foreach (ISensor sensor in AvatarSystem.GetActiveSensors())
+        {
+            float[] sensorData = sensor.GetAllProcessedData();
+            foreach (float element in sensorData)
+                logData += "," + element.ToString();
+        }
+        // Read from all experiment sensors
+        float[] zmqData = new float[0];
+        foreach (ISensor sensor in ExperimentSystem.GetActiveSensors())
+        {
+            float[] sensorData = sensor.GetAllProcessedData();
+
+            var temp = zmqData.Concat(sensorData).ToArray();
+            zmqData = new float[temp.Length];
+            temp.CopyTo(zmqData, 0);
+
+            // Append data to local data logger
+            foreach (float element in sensorData)
+            {
+                logData += "," + element.ToString();
+            }
+   
+        }
+
+        //Debug the zmq data
+        //string debugString="";
+        //foreach (float element in zmqData)
+            //debugString += "," + element.ToString();
+        //Debug.Log(debugString);
+
+        // Push data to other platform through ZMQ
+        if (zmqPushEnable)
+        {
+            zmqPusher.newData(zmqData); // Send the data
+            //Debug.Log("ZMQ pushed");
+        }
+        
+
+        //
+        // Log current data and clear before next run.
+        //
+        taskDataLogger.AppendData(logData);
+        logData = "";
+
+        // Update run time
+        taskTime += Time.fixedDeltaTime;
+
+        #endregion
+
+
+
+
+
+
         // Continue with data logging.
-        base.HandleTaskDataLogging();
-    
+        //base.HandleTaskDataLogging();
 
         //HudManager.DisplayText(GameObject.Find("Bottle").transform.localEulerAngles.ToString());
     }
@@ -913,8 +1004,12 @@ public class AugmentedFeedback2022 : GameMaster
     public override void HandleTaskCompletion()
     {
         // Stop EMG reading and save data
-        delsysEMG.StopRecording();
-        emgIsRecording = false;
+        if (delsysEnable)
+        {
+            delsysEMG.StopRecording();
+            emgIsRecording = false;
+        }
+      
         // Save log data
         base.HandleTaskCompletion();
         
@@ -959,14 +1054,18 @@ public class AugmentedFeedback2022 : GameMaster
     private IEnumerator HandleResultAnalysisCoroutine()
     {
         //Get feedback score
-        zmqRequester.newData(new float[] { (float)sessionNumber, (float)iterationNumber, iterationDoneTime });
-        yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
-        double[] response = zmqRequester.GetReceiveData();
-        feedbackScore = (float)response[0];
-        HudManager.DisplayText("Score: " + feedbackScore);
-        Debug.Log("Feedback Score: " + feedbackScore);
+        if (zmqReqEnable)
+        {
+            zmqRequester.newData(new float[] { (float)sessionNumber, (float)iterationNumber, iterationDoneTime });
+            yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
+            double[] response = zmqRequester.GetReceiveData();
+            feedbackScore = (float)response[0];
+            HudManager.DisplayText("Score: " + feedbackScore);
+            Debug.Log("Feedback Score: " + feedbackScore);
 
-        HudManager.DisplayText("Score: " + feedbackScore + ". Press to continue.");
+            HudManager.DisplayText("Score: " + feedbackScore + ". Press to continue.");
+        }
+        
         yield return WaitForSubjectAcknowledgement();
     }
 
@@ -1077,10 +1176,17 @@ public class AugmentedFeedback2022 : GameMaster
     public override void EndExperiment()
     {
         base.EndExperiment();
-        delsysEMG.StopAcquisition();
-        delsysEMG.Close();
-        
+
         // You can do your own end of experiment stuff here
+        if (delsysEnable)
+        {
+            delsysEMG.StopAcquisition();
+            delsysEMG.Close();
+        }
+        
+        if(zmqPushEnable)
+            zmqPusher.Stop();
+        
     }
 
     /// <summary>
@@ -1101,8 +1207,26 @@ public class AugmentedFeedback2022 : GameMaster
     /// <returns></returns>
     private void OnApplicationQuit()
     {
-        delsysEMG.StopZMQPusher();
-        zmqRequester.Stop();
+        if (delsysEnable)
+        {
+            delsysEMG.StopZMQPusher();
+            delsysEMG.StopAcquisition();
+            delsysEMG.Close();
+        }
+
+        if (zmqPushEnable)
+        {
+            zmqPusher.newData(new float[] { 0.0f });
+            zmqPusher.Stop();
+        }
+
+        if(zmqReqEnable)
+            zmqRequester.Stop();
+       
+
+
+    
+
         NetMQConfig.Cleanup(false);
     }
 }

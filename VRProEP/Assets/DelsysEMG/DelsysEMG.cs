@@ -176,8 +176,7 @@ public class DelsysEMG
 
     private void OnDestroy()
     {
-        zmqPusher.newData(new float[] { 0.0f });
-        zmqPusher.Stop();
+        StopZMQPusher();
     }
 
     #endregion
@@ -399,6 +398,7 @@ public class DelsysEMG
     // Stop the zmq pusher from outsied scripts
     public void StopZMQPusher()
     {
+        zmqPusher.newData(new float[] { 0.0f });
         zmqPusher.Stop();
     }
 
