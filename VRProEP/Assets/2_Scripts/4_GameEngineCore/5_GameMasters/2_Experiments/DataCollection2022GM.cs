@@ -1062,7 +1062,8 @@ public class DataCollection2022GM : GameMaster
     /// <returns></returns>
     private void OnApplicationQuit()
     {
-        delsysEMG.StopZMQPusher();
+        //ZMQSystem.AddPushData(zmq, new float[] { 0.0f });
+        //ZMQSystem.CloseZMQSocket(zmqPort, ZMQSystem.SocketType.Pusher);
         NetMQConfig.Cleanup(false);
     }
 }

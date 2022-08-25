@@ -85,13 +85,13 @@ public class AugmentedFeedback2022 : GameMaster
     // Push the motion tracker data to other platform through ZMQ
     [SerializeField]
     private bool zmqPushEnable;
-    private ZMQPusher zmqPusher; // No need for response from the server
-    private const int zmqPushPort = 6002;
+    //private ZMQPusher zmqPusher; // No need for response from the server
+    private const int zmqPushPort = 6000;
 
     // Request matlab interface output through ZMQ:
     [SerializeField]
     private bool zmqReqEnable;
-    private ZMQRequester zmqRequester;
+    //private ZMQRequester zmqRequester;
     private const int zmqReqPort = 5900;
 
     // Target management variables
@@ -339,17 +339,7 @@ public class AugmentedFeedback2022 : GameMaster
         TeleportToStartPosition();
         #endregion
 
-        #region Initialize EMG sensors
-        //Initialse Delsys EMG sensor
-        if (delsysEnable)
-        {
-            delsysEMG.Init();
-            delsysEMG.Connect();
-            delsysEMG.StartAcquisition();
-        }
-        
-
-        #endregion
+       
 
         #region Initialize world positioning
 
@@ -401,16 +391,27 @@ public class AugmentedFeedback2022 : GameMaster
         //ZMQ
         if (zmqPushEnable)
         {
-            zmqPusher = new ZMQPusher(zmqPushPort);
-            zmqPusher.Start();
+            ZMQSystem.AddZMQSocket(zmqPushPort, ZMQSystem.SocketType.Pusher);
+
         }
 
         if (zmqReqEnable)
         {
-            zmqRequester = new ZMQRequester(zmqReqPort);
-            zmqRequester.Start();
+            ZMQSystem.AddZMQSocket(zmqReqPort, ZMQSystem.SocketType.Requester);
         }
-       
+
+        #endregion
+
+        #region Initialize EMG sensors
+        //Initialse Delsys EMG sensor
+        if (delsysEnable)
+        {
+            delsysEMG.Init();
+            delsysEMG.Connect();
+            delsysEMG.StartAcquisition();
+        }
+
+
         #endregion
 
 
@@ -434,8 +435,8 @@ public class AugmentedFeedback2022 : GameMaster
 
         Debug.Log("Press Down key to stop EMG visualisation.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
-        if(delsysEnable)
-            delsysEMG.SetZMQPusher(false);
+        //if(delsysEnable)
+            //delsysEMG.SetZMQPusher(false);
 
         #region Debug the zmq communications
         /*
@@ -896,7 +897,7 @@ public class AugmentedFeedback2022 : GameMaster
                 logData += "," + element.ToString();
         }
         // Read from all experiment sensors
-        float[] zmqData = new float[0];
+        float[] zmqData = new float[] { 1 };
         foreach (ISensor sensor in ExperimentSystem.GetActiveSensors())
         {
             float[] sensorData = sensor.GetAllProcessedData();
@@ -922,7 +923,7 @@ public class AugmentedFeedback2022 : GameMaster
         // Push data to other platform through ZMQ
         if (zmqPushEnable)
         {
-            zmqPusher.newData(zmqData); // Send the data
+            ZMQSystem.AddPushData(zmqPushPort, zmqData);
             //Debug.Log("ZMQ pushed");
         }
         
@@ -1056,9 +1057,10 @@ public class AugmentedFeedback2022 : GameMaster
         //Get feedback score
         if (zmqReqEnable)
         {
-            zmqRequester.newData(new float[] { (float)sessionNumber, (float)iterationNumber, iterationDoneTime });
-            yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
-            double[] response = zmqRequester.GetReceiveData();
+            //zmqRequester.newData(new float[] { (float)sessionNumber, (float)iterationNumber, iterationDoneTime });
+            // yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
+            //double[] response = zmqRequester.GetReceiveData();
+            double[] response = ZMQSystem.AddRequest(zmqReqPort, new float[] { (float)sessionNumber, (float)iterationNumber, iterationDoneTime });
             feedbackScore = (float)response[0];
             HudManager.DisplayText("Score: " + feedbackScore);
             Debug.Log("Feedback Score: " + feedbackScore);
@@ -1183,9 +1185,12 @@ public class AugmentedFeedback2022 : GameMaster
             delsysEMG.StopAcquisition();
             delsysEMG.Close();
         }
-        
-        if(zmqPushEnable)
-            zmqPusher.Stop();
+
+        if (zmqPushEnable || zmqReqEnable)
+            ZMQSystem.CloseZMQSocket(zmqPushPort,ZMQSystem.SocketType.Pusher);
+
+        if (zmqReqEnable)
+            ZMQSystem.CloseZMQSocket(zmqReqPort, ZMQSystem.SocketType.Requester);
         
     }
 
@@ -1209,23 +1214,22 @@ public class AugmentedFeedback2022 : GameMaster
     {
         if (delsysEnable)
         {
-            delsysEMG.StopZMQPusher();
             delsysEMG.StopAcquisition();
             delsysEMG.Close();
         }
 
         if (zmqPushEnable)
         {
-            zmqPusher.newData(new float[] { 0.0f });
-            zmqPusher.Stop();
+            ZMQSystem.AddPushData(zmqPushPort, new float[] { 0.0f });
+            ZMQSystem.CloseZMQSocket(zmqPushPort,ZMQSystem.SocketType.Pusher);
         }
 
         if(zmqReqEnable)
-            zmqRequester.Stop();
-       
+            ZMQSystem.CloseZMQSocket(zmqReqPort,ZMQSystem.SocketType.Requester);
 
 
-    
+
+
 
         NetMQConfig.Cleanup(false);
     }

@@ -16,10 +16,10 @@ using UnityEngine;
 
 public class DelsysEMG 
 {
-    private ZMQPusher zmqPusher; // No need for response from the server
+    //private ZMQPusher zmqPusher; // No need for response from the server
     private const int zmqPort = 6000;
     private bool zmqPushFlag = false;
-
+    
     //example of creating a list of sensor types to keep track of various TCP streams...
     enum SensorTypes { SensorTrigno, SensorTrignoImu, SensorTrignoMiniHead, NoSensor };
     private List<SensorTypes> _sensors = new List<SensorTypes>();
@@ -103,8 +103,7 @@ public class DelsysEMG
             commandReader.ReadLine();
             commandReader.ReadLine();   //get extra line terminator
 
-            //ZMQ
-            zmqPusher = new ZMQPusher(zmqPort);
+            
 
             connected = true;   //indicate that we are connected
         }
@@ -155,8 +154,8 @@ public class DelsysEMG
             return;
         }
 
-        zmqPusher.newData(new float[] {0.0f});
-        zmqPusher.Stop();
+        //if (zmqPushFlag)
+            //StopZMQPusher();
 
         //send QUIT command
         SendCommand(COMMAND_QUIT);
@@ -176,7 +175,7 @@ public class DelsysEMG
 
     private void OnDestroy()
     {
-        StopZMQPusher();
+        //StopZMQPusher();
     }
 
     #endregion
@@ -212,7 +211,7 @@ public class DelsysEMG
         running = true;
 
         //ZMQ
-        zmqPusher.Start();
+        //ZMQSystem.AddZMQSocket(zmqPort, ZMQSystem.SocketType.Pusher);
 
         //emgTimer = new Timer(new TimerCallback(this.ImuEmgThreadRoutine), null, new TimeSpan(10000), new TimeSpan(10000));
         emgThread.Start();
@@ -244,7 +243,7 @@ public class DelsysEMG
             running = false;    //no longer running
                                 //Wait for threads to terminate
             emgThread.Join();
-            zmqPusher.Stop();
+            //ZMQSystem.CloseZMQSocket(zmqPort, ZMQSystem.SocketType.Pusher);
         }
         
 
@@ -396,11 +395,11 @@ public class DelsysEMG
     }
 
     // Stop the zmq pusher from outsied scripts
-    public void StopZMQPusher()
-    {
-        zmqPusher.newData(new float[] { 0.0f });
-        zmqPusher.Stop();
-    }
+    //public void StopZMQPusher()
+    //{
+        //ZMQSystem.AddPushData(zmqPort, new float[] { 0.0f });
+        //ZMQSystem.CloseZMQSocket(zmqPort, ZMQSystem.SocketType.Pusher);
+    //}
 
     // Thread for imu emg acquisition
     private void ImuEmgThreadRoutine(object state)
@@ -419,14 +418,15 @@ public class DelsysEMG
                 if (zmqPushFlag)
                 {
                     // Send data to other platform
-                    float[] zmqData = new float[activeSensorChannels.Max()];
+                    float[] zmqData = new float[activeSensorChannels.Max()+1];
+                    zmqData[0] = 2; // Label indicating this is emg data
                     //Debug.Log("Active Delsys Sesnors:" +activeSensorChannels.Max());
                     for (int i = 0; i < activeSensorChannels.Max(); i++)
                     {
-                        zmqData[i] = tempEmgDataList[activeSensorChannels[i] - 1];
+                        zmqData[i+1] = tempEmgDataList[activeSensorChannels[i] - 1];
                         //Debug.Log("Active Delsys Sesnors Channel: " + (activeSensorChannels[i] - 1) + ". Readings: " + zmqData[i]);
                     }
-                    zmqPusher.newData(zmqData); // Send the data
+                    ZMQSystem.AddPushData(zmqPort, zmqData);
                     //Debug.Log("ZMQ pushed");
                 }
 
