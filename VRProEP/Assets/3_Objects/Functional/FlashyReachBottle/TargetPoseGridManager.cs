@@ -9,6 +9,7 @@ public class TargetPoseGridManager : MonoBehaviour
     public const string ADD_SFE_POSE = "ADD_SFE_POSE";
     public const string ADD_EFE_POSE = "ADD_EFE_POSE";
     public const string ADD_WPS_POSE = "ADD_WPS_POSE";
+    public const string ADD_WFE_POSE = "ADD_WFE_POSE";
 
     // Config variables
     public enum TargetType { Bottle, Ball}
@@ -76,16 +77,19 @@ public class TargetPoseGridManager : MonoBehaviour
     private List<float> qShoulderFlexionExtension = new List<float>();
     private List<float> qElbowFlexionExtension = new List<float>();
     private List<float> qWristPronationSupination = new List<float>();
-    
-
+    private List<float> qWristFlexionExtension = new List<float>();
     private List<float[]> qUpperLimb = new List<float[]>();
+
+
 
     // Postion of rotations of the bottles in the grid
     private List<Vector3> targetPositions = new List<Vector3>();// List of the target postions
     private List<Vector3> elbowPositions = new List<Vector3>();// List of the elbow postions
     private List<Vector3> wristPositions = new List<Vector3>();// List of the wrist postions
-    private List<Vector3> targetRotations = new List<Vector3>();// List of the target rotations
+    private List<Quaternion> targetRotations = new List<Quaternion>();// List of the target rotations
     private List<float[]> targetPoseList = new List<float[]>();// List of the target poses
+
+
 
     // Signs
     private bool hasSelected = false; // Whether a bottle has been selected
@@ -217,10 +221,12 @@ public class TargetPoseGridManager : MonoBehaviour
 
             //AddJointPose(new float[4] { 10, 0, 70, 0 });
             //AddJointPose(new float[4] { 80, 0, 10, -70 });
-            AddJointPose(new float[4] { 40, 0, 30, 0 }); AddJointPose(new float[4] { 60, 0, 30, 0 }); AddJointPose(new float[4] { 80, 0, 30, 0 });
-            AddJointPose(new float[4] { 40, 0, 55, 0 }); AddJointPose(new float[4] { 60, 0, 55, 0 }); AddJointPose(new float[4] { 80, 0, 55, 0 });
-            AddJointPose(new float[4] { 40, 0, 80, 0 }); AddJointPose(new float[4] { 60, 0, 80, 0 }); AddJointPose(new float[4] { 80, 0, 80, 0 });
-            GenerateTargetLocations();
+            //AddJointPose(new float[4] { 40, 0, 30, 0 }); AddJointPose(new float[4] { 60, 0, 30, 0 }); AddJointPose(new float[4] { 80, 0, 30, 0 });
+            //AddJointPose(new float[4] { 40, 0, 55, 0 }); AddJointPose(new float[4] { 60, 0, 55, 0 }); AddJointPose(new float[4] { 80, 0, 55, 0 });
+            //AddJointPose(new float[4] { 40, 0, 80, 0 }); AddJointPose(new float[4] { 60, 0, 80, 0 }); AddJointPose(new float[4] { 80, 0, 80, 0 });
+
+            AddJointPose(new float[5] { 40, 0, 60, 60, 0 });
+            //GenerateTargetLocations();
             SpawnTargetGrid();
             InitialiseLimb();
 
@@ -360,6 +366,7 @@ public class TargetPoseGridManager : MonoBehaviour
             float qSaa = qUA[1];
             float qEfe = qUA[2];
             float qWps = qUA[3];
+            float qWfe = qUA[4];
 
             Vector3 target = new Vector3();
             Vector3 elbow = new Vector3();
@@ -374,13 +381,29 @@ public class TargetPoseGridManager : MonoBehaviour
             wrist.y = elbow.y - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
             wrist.z = shoulderCentre.z;
             AddWristLocation(wrist);
+            
+            Vector3 tempX = wrist - elbow;
+            tempX.Normalize();
+            Debug.Log(wrist);
+            Debug.Log(elbow);
+            Debug.Log(tempX);
 
-            target.x = elbow.x - (subjectFALength + subjectHandLength) * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe)); 
-            target.y = elbow.y - (subjectFALength + subjectHandLength) * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
-            target.z = shoulderCentre.z + this.sagittalOffset;
-            AddTargetLocation(target);
+            GameObject tempGO = new GameObject("TargetPoint"); // temp gamobject describes hand orientation
+            tempGO.transform.position = wrist;
+            tempGO.transform.rotation = Quaternion.LookRotation(tempX,Vector3.left);
+            //tempGO.transform.Rotate(new Vector3())
+            tempGO.transform.localRotation *= Quaternion.Euler(0, 0, qWps);
+            tempGO.transform.localRotation *= Quaternion.Euler(0, qWfe, 0);
+            tempGO.transform.Translate(new Vector3(0, 0, subjectHandLength), Space.Self);
 
-            targetPoseList.Add(new float[] { qSfe, qEfe, qWps });
+
+            AddTargetLocation(tempGO.transform.position);
+            AddTargetRotation(tempGO.transform.rotation);
+
+            targetPoseList.Add(new float[] { qSfe, qEfe, qWps, qWfe});
+
+            Destroy(tempGO);
+
         }
 
     }
@@ -440,7 +463,7 @@ public class TargetPoseGridManager : MonoBehaviour
     /// </summary>
     /// <param >
     /// <returns 
-    private void AddTargetRotation(Vector3 rotation)
+    private void AddTargetRotation(Quaternion rotation)
     {
         targetRotations.Add(rotation);
 
@@ -570,10 +593,15 @@ public class TargetPoseGridManager : MonoBehaviour
         forearmGO.transform.Translate(new Vector3(0, 0.07f, 0), Space.Self); // offset the model
 
         wristHandGO.transform.position = wristPositions[index];
-        wristHandGO.transform.rotation = Quaternion.Euler(180, 0, targetPoseList[index][0] + targetPoseList[index][1]+180); // rotate to align the pose
-        
-        float q = 180.0f + targetPoseList[index][2];
-        wristHandGO.transform.Rotate(new Vector3(0, q, 0), Space.Self); 
+        GameObject tempGO = new GameObject("Wrist Joint");
+        tempGO.transform.rotation = targetRotations[index];
+        tempGO.transform.localRotation *= Quaternion.Euler(0, -90, 0);
+        tempGO.transform.localRotation *= Quaternion.Euler(0, 0, 90);
+        wristHandGO.transform.rotation = tempGO.transform.rotation;
+        Destroy(tempGO);
+
+
+
     }
     #endregion
 
@@ -605,6 +633,13 @@ public class TargetPoseGridManager : MonoBehaviour
                 foreach (float value in angle)
                 {
                     qWristPronationSupination.Add(value);
+                }
+                break;
+
+            case ADD_WFE_POSE:
+                foreach (float value in angle)
+                {
+                    qWristFlexionExtension.Add(value);
                 }
                 break;
 
@@ -658,7 +693,7 @@ public class TargetPoseGridManager : MonoBehaviour
                     GameObject target = Instantiate(reachBottlePrefab, this.transform);
                     // Move the local position of the ball.
                     target.transform.localPosition = targetPositions[i];
-                    target.transform.Rotate(targetRotations[j]);
+                    //target.transform.Rotate(targetRotations[j]);
                     // Add bottle to collection
                     ReachBottleManager manager = target.GetComponent<ReachBottleManager>();
                     bottles.Add(manager);

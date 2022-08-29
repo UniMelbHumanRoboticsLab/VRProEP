@@ -430,13 +430,14 @@ public class AugmentedFeedback2022 : GameMaster
         inWelcome = true;
         Debug.Log("Press Up key for EMG visualisation.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
-        if(delsysEnable)
-            delsysEMG.SetZMQPusher(true);
+        
 
         Debug.Log("Press Down key to stop EMG visualisation.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
+        if (delsysEnable)
+            delsysEMG.SetZMQPusher(true);
         //if(delsysEnable)
-            //delsysEMG.SetZMQPusher(false);
+        //delsysEMG.SetZMQPusher(false);
 
         #region Debug the zmq communications
         /*
@@ -559,7 +560,7 @@ public class AugmentedFeedback2022 : GameMaster
         #region Spawn grid
         // Spawn the grid
         gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
-        gridManager.AddJointPose(new float[4] { 40, 0, 80, 0 });
+        gridManager.AddJointPose(new float[5] { 40, 0, 80, 45, 45 });
         //gridManager.AddJointPose(new float[4] { 30, 0, 30, 0 });
         gridManager.SpawnTargetGrid();
         //gridManager.SelectTarget(0);
