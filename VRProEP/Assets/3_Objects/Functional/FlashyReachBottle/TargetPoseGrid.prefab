@@ -67,3 +67,13 @@ MonoBehaviour:
   handLinePrefab: {fileID: 680951973858318924, guid: 0626ff61b1a215446ac78d8aca8dbcbf,
     type: 3}
   debug: 0
+  xOffestBottle: -0.03
+  yOffestBottle: -0.055
+  zOffestBottle: 0.02
+  subjectHeight2SA: 0
+  subjectShoulderBreadth: 0
+  subjectUALength: 0
+  subjectFALength: 0
+  subjectHandLength: 0
+  subjectUAWidth: 0
+  subjectFAWidth: 0

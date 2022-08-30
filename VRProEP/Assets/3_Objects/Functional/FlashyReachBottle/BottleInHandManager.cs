@@ -27,6 +27,7 @@ public class BottleInHandManager : MonoBehaviour
             transform.rotation = hand.transform.rotation;  // Orientation
             transform.Rotate(Vector3.left, -90f);
             transform.Rotate(Vector3.up, -90f);
+            transform.localRotation *= Quaternion.Euler(0,0,10);
             transform.position = hand.transform.position + transform.forward* zOffest + transform.up * yOffest + transform.right * xOffest; //Position
         }
     }

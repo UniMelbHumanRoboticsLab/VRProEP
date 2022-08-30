@@ -16,6 +16,8 @@ public class ReachBottleManager : MonoBehaviour
     Vector3 positionTolerance;
     [SerializeField]
     Vector3 rotationTolerance;
+    [SerializeField]
+    float rotationToleranceAngle;
 
     [Header("Colour configuration")]
     [SerializeField]
@@ -45,6 +47,7 @@ public class ReachBottleManager : MonoBehaviour
 
     void Update()
     {
+       
         //Debug.Log(BottleState);
         //Debug.Log(bottleState);
         /*
@@ -55,11 +58,13 @@ public class ReachBottleManager : MonoBehaviour
             */
     }
 
-    void Start()
+    void Awake()
     {
-        //bottleRenderer = GetComponent<Renderer>();
+        bottleInHand = GameObject.FindGameObjectWithTag("Bottle");
+        bottleRenderer = GetComponent<Renderer>();
+        Debug.Log(bottleRenderer.ToString());
         allRenderer = GetComponentsInChildren<Renderer>();
-        bottleRenderer = allRenderer[0];
+        //bottleRenderer = allRenderer[0];
         baseRenderer = allRenderer[0];
 
         bottleRenderer.material.color = idleColor;
@@ -76,6 +81,7 @@ public class ReachBottleManager : MonoBehaviour
         // Check if hand is gone to return to idle.
         if (other.tag == "Bottle")
         {
+            bottleInHand = GameObject.FindGameObjectWithTag("Bottle");
             //Debug.Log("Collide");
             if (CheckReached())
             {
@@ -128,22 +134,15 @@ public class ReachBottleManager : MonoBehaviour
         bool positionReached = false;
         bool orientationReached = false;
         bool reached = false;
+        
 
         Vector3 postionError = this.transform.position - bottleInHand.transform.position;
-        //Quaternion quaterError = this.transform.rotation * Quaternion.Inverse(bottleInHand.transform.rotation);
-        // Vector3 rotationError = quaterError.eulerAngles;
 
-        Vector3 targetRotation = this.gameObject.transform.rotation.eulerAngles;
-        if (targetRotation.x > 200) targetRotation.x -= 360;
-        if (targetRotation.y > 200) targetRotation.y -= 360;
-        if (targetRotation.z > 200) targetRotation.z -= 360;
+        Quaternion targetRotation = this.gameObject.transform.localRotation;
 
-        Vector3 bottleInHandRotation = bottleInHand.transform.rotation.eulerAngles;
-        if (bottleInHandRotation.x > 200) bottleInHandRotation.x -= 360;
-        if (bottleInHandRotation.y > 200) bottleInHandRotation.y -= 360;
-        if (bottleInHandRotation.z > 200) bottleInHandRotation.z -= 360;
+        Quaternion bottleInHandRotation = bottleInHand.transform.localRotation;
 
-        Vector3 rotationError = targetRotation - bottleInHandRotation;
+        float rotationError = Quaternion.Angle(targetRotation, bottleInHandRotation);
 
         if (Mathf.Abs(postionError.x) < positionTolerance.x && Mathf.Abs(postionError.y) < positionTolerance.y && Mathf.Abs(postionError.z) < positionTolerance.z )
             positionReached = true;  
@@ -151,18 +150,17 @@ public class ReachBottleManager : MonoBehaviour
             positionReached = false;
 
 
-        if ( (Mathf.Abs(rotationError.x) <= rotationTolerance.x) && (Mathf.Abs(rotationError.z) <= rotationTolerance.z) ) //
+        if ( Mathf.Abs(rotationError) <= rotationToleranceAngle) //
             orientationReached = true;
         else
             orientationReached = false;
 
 
-        //Debug.Log(targetRotation);
         //Debug.Log(bottleInHandRotation);
-        // Debug.Log(postionError);
-        Debug.Log(rotationError);
-        //if(bottleState == ReachBottleState.Selected)
-         //Debug.Log(bottleInHandRotation);
+        //Debug.Log(bottleInHand.transform.position);
+        //Debug.Log(postionError);
+        //Debug.Log(rotationError);
+         
 
 
         reached = positionReached & orientationReached;

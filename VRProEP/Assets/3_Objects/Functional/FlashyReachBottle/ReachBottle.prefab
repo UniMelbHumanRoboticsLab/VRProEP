@@ -18,7 +18,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &7542093968696702159
 Transform:
   m_ObjectHideFlags: 0
@@ -191,10 +191,11 @@ MonoBehaviour:
   bottleInHand: {fileID: 0}
   positionTolerance: {x: 0.03, y: 0.03, z: 0.03}
   rotationTolerance: {x: 8, y: 30, z: 30}
+  rotationToleranceAngle: 5
   idleColor: {r: 1, g: 1, b: 1, a: 0}
-  selectedColor: {r: 0.11347453, g: 0.29153177, b: 0.9622642, a: 0.6313726}
+  selectedColor: {r: 0.11347453, g: 0.29153177, b: 0.9622642, a: 1}
   correctColor: {r: 0.06132078, g: 1, b: 0.44227362, a: 1}
-  wrongColor: {r: 1, g: 0.9858491, b: 0.9858491, a: 0}
+  wrongColor: {r: 0.9622642, g: 0.049928807, b: 0.049928807, a: 0.6862745}
 --- !u!65 &2639130513856246488
 BoxCollider:
   m_ObjectHideFlags: 0

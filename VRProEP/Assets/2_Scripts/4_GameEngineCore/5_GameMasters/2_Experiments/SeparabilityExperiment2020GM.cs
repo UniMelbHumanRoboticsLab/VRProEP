@@ -68,20 +68,19 @@ public class SeparabilityExperiment2020GM : GameMaster
     private float gridHeightFactor = 0.5f;
 
     [SerializeField]
-    private bool checkStartPosition;
-
-    [SerializeField]
     private GameObject startPosPhoto;
 
+    [Header("Audios")]
     [SerializeField]
     private AudioClip holdAudioClip;
-
     [SerializeField]
     private AudioClip returnAudioClip;
-
     [SerializeField]
     private AudioClip testAudioClip;
 
+    [Header("Audios")]
+    [SerializeField]
+    private bool checkStartPosition;
     #endregion
 
 

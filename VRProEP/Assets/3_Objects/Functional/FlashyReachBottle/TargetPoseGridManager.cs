@@ -89,6 +89,11 @@ public class TargetPoseGridManager : MonoBehaviour
     private List<Quaternion> targetRotations = new List<Quaternion>();// List of the target rotations
     private List<float[]> targetPoseList = new List<float[]>();// List of the target poses
 
+    [Header("Bottle Offsets")]
+    [SerializeField] [Range(-0.1f, 0.1f)] private float xOffestBottle; 
+    [SerializeField] [Range(-0.1f, 0.1f)] private float yOffestBottle; 
+    [SerializeField] [Range(-0.1f, 0.1f)] private float zOffestBottle; 
+
 
 
     // Signs
@@ -178,7 +183,7 @@ public class TargetPoseGridManager : MonoBehaviour
         subjectLefty = SaveSystem.ActiveUser.lefty;
 
         //
-        shoulderCentreLoc.position = new Vector3(0, subjectHeight2SA, -subjectShoulderBreadth/2.0f);
+        shoulderCentreLoc.position = new Vector3(subjectShoulderBreadth / 2.0f, subjectHeight2SA, 0);
         shoulderCentreLoc.position = shoulderCentreLoc.position - shoulderCentreOffset;
 
         //sagittalOffset = -subjectShoulderBreadth / 4.0f;
@@ -196,7 +201,7 @@ public class TargetPoseGridManager : MonoBehaviour
     {
 
         //
-        shoulderCentreLoc.position = new Vector3(0, subjectHeight2SA, -subjectShoulderBreadth / 2.0f);
+        shoulderCentreLoc.position = new Vector3(subjectShoulderBreadth / 2.0f, subjectHeight2SA, 0);
         shoulderCentreLoc.position = shoulderCentreLoc.position - shoulderCentreOffset;
 
         //sagittalOffset = -subjectShoulderBreadth / 4.0f;
@@ -229,7 +234,7 @@ public class TargetPoseGridManager : MonoBehaviour
             //GenerateTargetLocations();
             SpawnTargetGrid();
             InitialiseLimb();
-
+            SelectTarget(0);
         }
 
     }
@@ -372,26 +377,25 @@ public class TargetPoseGridManager : MonoBehaviour
             Vector3 elbow = new Vector3();
             Vector3 wrist = new Vector3();
 
-            elbow.x = shoulderCentre.x - subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe); 
+            elbow.z = shoulderCentre.z + subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe); 
             elbow.y = shoulderCentre.y - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qSfe);
-            elbow.z = shoulderCentre.z;
+            elbow.x = shoulderCentre.x;
             AddElbowLocation(elbow);
 
-            wrist.x = elbow.x - subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe)); 
+            wrist.z = elbow.z + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe)); 
             wrist.y = elbow.y - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
-            wrist.z = shoulderCentre.z;
+            wrist.x = shoulderCentre.x;
+            //wrist = Quaternion.Euler(0, -90, 0) * wrist;
             AddWristLocation(wrist);
             
             Vector3 tempX = wrist - elbow;
             tempX.Normalize();
-            Debug.Log(wrist);
-            Debug.Log(elbow);
-            Debug.Log(tempX);
+
 
             GameObject tempGO = new GameObject("TargetPoint"); // temp gamobject describes hand orientation
             tempGO.transform.position = wrist;
             tempGO.transform.rotation = Quaternion.LookRotation(tempX,Vector3.left);
-            //tempGO.transform.Rotate(new Vector3())
+
             tempGO.transform.localRotation *= Quaternion.Euler(0, 0, qWps);
             tempGO.transform.localRotation *= Quaternion.Euler(0, qWfe, 0);
             tempGO.transform.Translate(new Vector3(0, 0, subjectHandLength), Space.Self);
@@ -500,6 +504,7 @@ public class TargetPoseGridManager : MonoBehaviour
         //
         // The 3D models
         //
+
         Material mMaterial = (Material)Resources.Load("Avatars/Limb", typeof(Material));// Load the displaying material different to avatar material
         upperarmGO = Instantiate(upperArmPrefab);
         upperarmGO.GetComponentInChildren<LimbFollower>().enabled = false;
@@ -570,8 +575,24 @@ public class TargetPoseGridManager : MonoBehaviour
     private void ShowLimbPose(int index)
     {
         // Update the target positions
-        for (int i = 0; i <= targetPositions.Count - 1; i++)
-            balls[i].transform.position = targetPositions[i];
+        if (targetType == TargetType.Ball)
+        {
+            for (int i = 0; i <= targetPositions.Count - 1; i++)
+                balls[i].transform.position = targetPositions[i];
+        }
+        if (targetType == TargetType.Bottle)
+        {
+            for (int i = 0; i <= targetPositions.Count - 1; i++)
+            {
+                bottles[i].transform.position = targetPositions[i];
+                bottles[i].transform.rotation = targetRotations[i];
+                bottles[i].transform.localRotation *= Quaternion.Euler(0, 0, 180);
+                bottles[i].transform.localRotation *= Quaternion.Euler(0, -90, 0);
+                bottles[i].transform.Translate(new Vector3(xOffestBottle, yOffestBottle, zOffestBottle), Space.Self);
+            }
+     
+        }
+            
         
 
         //Display the limb as lines
@@ -583,14 +604,16 @@ public class TargetPoseGridManager : MonoBehaviour
         handLine.SetPosition(1, targetPositions[index]);
 
 
-        // Display the 3D models    
-        upperarmGO.transform.position = elbowPositions[index];
-        upperarmGO.transform.rotation = Quaternion.Euler(0, 0, -targetPoseList[index][0]); // rotate to align the pose
-        upperarmGO.transform.Translate(new Vector3(0, 0.1f, 0), Space.Self); // offset the model
+        // Display the 3D models   
+        upperarmGO.SetActive(false);
+        //upperarmGO.transform.position = elbowPositions[index];
+        //upperarmGO.transform.rotation = Quaternion.Euler(0, 0, -targetPoseList[index][0]); // rotate to align the pose
+        //upperarmGO.transform.Translate(new Vector3(0, 0.1f, 0), Space.Self); // offset the model
 
-        forearmGO.transform.position = wristPositions[index];
-        forearmGO.transform.rotation = Quaternion.Euler(180, 0, targetPoseList[index][0] + targetPoseList[index][1] +180); // rotate to align the pose
-        forearmGO.transform.Translate(new Vector3(0, 0.07f, 0), Space.Self); // offset the model
+        forearmGO.SetActive(false);
+        //forearmGO.transform.position = wristPositions[index];
+        //forearmGO.transform.rotation = Quaternion.Euler(180, 0, targetPoseList[index][0] + targetPoseList[index][1] +180); // rotate to align the pose
+        //forearmGO.transform.Translate(new Vector3(0, 0.07f, 0), Space.Self); // offset the model
 
         wristHandGO.transform.position = wristPositions[index];
         GameObject tempGO = new GameObject("Wrist Joint");
@@ -684,7 +707,7 @@ public class TargetPoseGridManager : MonoBehaviour
             }
 
             // Only bottle will use rotation requirements
-            for (int j = 0; j <= targetRotations.Count-1; j++)
+            for (int j = 0; j <= targetPositions.Count-1; j++)
             {
 
                 if (targetType == TargetType.Bottle)
@@ -692,8 +715,9 @@ public class TargetPoseGridManager : MonoBehaviour
                     // Spawn a new bottle with this as parent
                     GameObject target = Instantiate(reachBottlePrefab, this.transform);
                     // Move the local position of the ball.
-                    target.transform.localPosition = targetPositions[i];
-                    //target.transform.Rotate(targetRotations[j]);
+                    target.transform.position = targetPositions[i];
+                    target.transform.rotation = targetRotations[i];
+
                     // Add bottle to collection
                     ReachBottleManager manager = target.GetComponent<ReachBottleManager>();
                     bottles.Add(manager);

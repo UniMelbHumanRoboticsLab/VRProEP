@@ -46,29 +46,37 @@ public class AugmentedFeedback2022 : GameMaster
     [Tooltip("The start angle tolerance in degrees.")]
     [Range(0.0f, 90.0f)]
     private float startTolerance = 15.0f;
-    
+
+   
+    [Header("Tasks")]
+    [SerializeField]
+    private TargetPoseGridManager gridManager;
+    [SerializeField]
     private int[] iterationsPerTarget;
 
-
-    [SerializeField]
-    private bool checkStartPosition;
-
+    [Header("Media")]
     [SerializeField]
     private GameObject startPosPhoto;
-
     [SerializeField]
     private AudioClip holdAudioClip;
-
     [SerializeField]
     private AudioClip returnAudioClip;
-
     [SerializeField]
     private AudioClip testAudioClip;
 
+    
+    [Header("Flags")]
     [SerializeField]
-    private TargetPoseGridManager gridManager = new TargetPoseGridManager();
+    private bool fourTrackerEnable;
+    [SerializeField]
+    private bool skipXR;
+    [SerializeField]
+    private bool checkStartPosition;
+
+
 
     #endregion
+    
     // Additional data logging
     private DataStreamLogger performanceDataLogger;
     private float iterationDoneTime;
@@ -364,7 +372,7 @@ public class AugmentedFeedback2022 : GameMaster
         upperArmTracker = new VIVETrackerManager(ulMotionTrackerGO.transform);
         ExperimentSystem.AddSensor(upperArmTracker);
 
-        if (!debug)
+        if (fourTrackerEnable)
         {
             // Shoulder acromium head tracker
             GameObject motionTrackerGO1 = AvatarSystem.AddMotionTracker();
@@ -559,11 +567,9 @@ public class AugmentedFeedback2022 : GameMaster
         //Spwan grid
         #region Spawn grid
         // Spawn the grid
-        gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
-        gridManager.AddJointPose(new float[5] { 40, 0, 80, 45, 45 });
-        //gridManager.AddJointPose(new float[4] { 30, 0, 30, 0 });
+        gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Bottle;
+        gridManager.AddJointPose(new float[5] { 40, 0, 80, 45, 0 });
         gridManager.SpawnTargetGrid();
-        //gridManager.SelectTarget(0);
         Debug.Log("Spawn the grid!");
         #endregion
 

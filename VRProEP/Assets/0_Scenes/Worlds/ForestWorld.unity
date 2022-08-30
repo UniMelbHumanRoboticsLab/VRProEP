@@ -4115,10 +4115,35 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3467666750903069864, guid: 258682ab411a72c4a87bf0334391016e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3543364044464059346, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4055313623165390998, guid: 258682ab411a72c4a87bf0334391016e,
+        type: 3}
+      propertyPath: targetType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4055313623165390998, guid: 258682ab411a72c4a87bf0334391016e,
+        type: 3}
+      propertyPath: xOffestBottle
+      value: -0.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 4055313623165390998, guid: 258682ab411a72c4a87bf0334391016e,
+        type: 3}
+      propertyPath: yOffestBottle
+      value: -0.055
+      objectReference: {fileID: 0}
+    - target: {fileID: 4055313623165390998, guid: 258682ab411a72c4a87bf0334391016e,
+        type: 3}
+      propertyPath: zOffestBottle
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: 7057585951369286232, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -4148,12 +4173,22 @@ PrefabInstance:
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: delsysEnable
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: zmqPushEnable
-      value: 1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
+        type: 3}
+      propertyPath: worldOrientation
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
+        type: 3}
+      propertyPath: playerOrientation
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8645427431186587885, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -7678,6 +7713,11 @@ PrefabInstance:
       propertyPath: shoulderCentreLoc
       value: 
       objectReference: {fileID: 2095671417}
+    - target: {fileID: 4575647500253486568, guid: b0812a9d2f3a08c48b080ff266bf1c1d,
+        type: 3}
+      propertyPath: targetType
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6701242334375883130, guid: b0812a9d2f3a08c48b080ff266bf1c1d,
         type: 3}
       propertyPath: m_LocalPosition.x
