@@ -81,6 +81,11 @@ namespace VRProEP.ProsthesisCore
             this.trackerTransform = trackerTransform ?? throw new System.ArgumentNullException();
         }
 
+        public Transform GetTrackerTransform()
+        {
+            return this.trackerTransform;
+        }
+
         /// <summary>
         /// Uses Unity's XR API to extract angular velocity information from the tracker.
         /// </summary>

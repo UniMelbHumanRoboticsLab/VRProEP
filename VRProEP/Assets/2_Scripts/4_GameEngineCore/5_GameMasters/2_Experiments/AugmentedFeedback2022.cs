@@ -113,6 +113,11 @@ public class AugmentedFeedback2022 : GameMaster
     private VIVETrackerManager c7Tracker;
     private VirtualPositionTracker handTracker;
 
+
+    private List<Quaternion> initialOrientation = new List<Quaternion>();
+    private List<Vector3> initialPosition = new List<Vector3>();
+
+
     // Flow control
     private bool hasReached = false;
     private bool taskComplete = false;
@@ -375,12 +380,12 @@ public class AugmentedFeedback2022 : GameMaster
         if (fourTrackerEnable)
         {
             // Shoulder acromium head tracker
-            GameObject motionTrackerGO1 = AvatarSystem.AddMotionTracker();
-            shoulderTracker = new VIVETrackerManager(motionTrackerGO1.transform);
+            GameObject shMotionTrackerGO = AvatarSystem.AddMotionTracker();
+            shoulderTracker = new VIVETrackerManager(shMotionTrackerGO.transform);
             ExperimentSystem.AddSensor(shoulderTracker);
             // C7 tracker
-            GameObject motionTrackerGO2 = AvatarSystem.AddMotionTracker();
-            c7Tracker = new VIVETrackerManager(motionTrackerGO2.transform);
+            GameObject c7MotionTrackerGO = AvatarSystem.AddMotionTracker();
+            c7Tracker = new VIVETrackerManager(c7MotionTrackerGO.transform);
             ExperimentSystem.AddSensor(c7Tracker);
         }
 
@@ -439,6 +444,20 @@ public class AugmentedFeedback2022 : GameMaster
         Debug.Log("Press Up key for EMG visualisation.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
         
+        
+        initialOrientation.Add(lowerArmTracker.GetTrackerTransform().rotation);
+        initialOrientation.Add(upperArmTracker.GetTrackerTransform().rotation);
+
+        if (fourTrackerEnable)
+        {
+            initialOrientation.Add(shoulderTracker.GetTrackerTransform().rotation);
+            initialOrientation.Add(c7Tracker.GetTrackerTransform().rotation);
+            initialPosition.Add(shoulderTracker.GetTrackerTransform().position);
+        }
+
+
+        //Debug.Log(initialTransform[0].rotation.ToString());
+
 
         Debug.Log("Press Down key to stop EMG visualisation.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
@@ -446,6 +465,10 @@ public class AugmentedFeedback2022 : GameMaster
             delsysEMG.SetZMQPusher(true);
         //if(delsysEnable)
         //delsysEMG.SetZMQPusher(false);
+
+
+        // Record initial frames
+        
 
         #region Debug the zmq communications
         /*
@@ -885,11 +908,13 @@ public class AugmentedFeedback2022 : GameMaster
     /// </summary>
     public override void HandleTaskDataLogging()
     {
+        // Test postural 
+        //Debug.Log(upperArmTracker.GetTrackerTransform().rotation.ToString());
+        PosturalFeatureExtractor.extractTrunkPose(initialOrientation[3],c7Tracker.GetTrackerTransform().rotation);
+        PosturalFeatureExtractor.extractShoulderPose(initialOrientation[3], c7Tracker.GetTrackerTransform().rotation, initialOrientation[1], upperArmTracker.GetTrackerTransform().rotation);
+
         // Add your custom data logging here
         logData += targetOrder[iterationNumber - 1] + ",";  // Make sure you always end your custom data with a comma! Using CSV for data logging.
-
-
-
 
         #region Rewrite the base method
         //
@@ -947,13 +972,8 @@ public class AugmentedFeedback2022 : GameMaster
         #endregion
 
 
-
-
-
-
         // Continue with data logging.
         //base.HandleTaskDataLogging();
-
         //HudManager.DisplayText(GameObject.Find("Bottle").transform.localEulerAngles.ToString());
     }
 
