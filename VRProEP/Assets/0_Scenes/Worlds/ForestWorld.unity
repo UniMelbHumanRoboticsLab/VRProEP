@@ -1014,7 +1014,7 @@ PrefabInstance:
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: positionDataFormat
-      value: iteration,t,x1,y1,z1,w1,qx1,qy1,qz1, x2,y2,z2,w2,qx2,qy2,qz2, x3,y3,z3,w3,qx3,qy3,qz3,
+      value: iteration,t,step,x1,y1,z1,w1,qx1,qy1,qz1, x2,y2,z2,w2,qx2,qy2,qz2, x3,y3,z3,w3,qx3,qy3,qz3,
         x4,y4,z4,w4,qx4,qy4,qz4
       objectReference: {fileID: 0}
     - target: {fileID: 3173896575985748330, guid: ba1c21b3c1f1e5c43b073568b563b679,
@@ -4173,12 +4173,12 @@ PrefabInstance:
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: delsysEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: zmqPushEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -4194,6 +4194,16 @@ PrefabInstance:
         type: 3}
       propertyPath: fourTrackerEnable
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
+        type: 3}
+      propertyPath: ablebodiedDataFormat
+      value: loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand
+      objectReference: {fileID: 0}
+    - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
+        type: 3}
+      propertyPath: performanceDataFormat
+      value: i,loc,t_f,score
       objectReference: {fileID: 0}
     - target: {fileID: 8645427431186587885, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}

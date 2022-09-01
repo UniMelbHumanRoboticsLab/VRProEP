@@ -26,7 +26,7 @@ public class AugmentedFeedback2022 : GameMaster
     // Here you can place all your Unity (GameObjects or similar)
     #region Unity objects
     [SerializeField]
-    private string ablebodiedDataFormat = "loc,t,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
+    private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
     [SerializeField]
     private string performanceDataFormat = "i,loc,t_f,score";
 
@@ -207,7 +207,7 @@ public class AugmentedFeedback2022 : GameMaster
     //
     private class AugmentedFeedbackConfigurator
     {
-        public int[] iterationsPerTarget = {10};
+        public int[] iterationsPerTarget = {2};
         public float holdingTime = 0.5f;
     }
     private AugmentedFeedbackConfigurator configurator;
@@ -441,34 +441,74 @@ public class AugmentedFeedback2022 : GameMaster
         // First flag that we are in the welcome routine
         welcomeDone = false;
         inWelcome = true;
-        Debug.Log("Press Up key for EMG visualisation.");
+        Debug.Log("Press Up key to record calibration pose.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
-        
         
         initialOrientation.Add(lowerArmTracker.GetTrackerTransform().rotation);
         initialOrientation.Add(upperArmTracker.GetTrackerTransform().rotation);
+
+        initialPosition.Add(lowerArmTracker.GetTrackerTransform().position);
+        initialPosition.Add(upperArmTracker.GetTrackerTransform().position);
 
         if (fourTrackerEnable)
         {
             initialOrientation.Add(shoulderTracker.GetTrackerTransform().rotation);
             initialOrientation.Add(c7Tracker.GetTrackerTransform().rotation);
+
             initialPosition.Add(shoulderTracker.GetTrackerTransform().position);
+            initialPosition.Add(c7Tracker.GetTrackerTransform().position);
         }
 
-
-        //Debug.Log(initialTransform[0].rotation.ToString());
-
-
-        Debug.Log("Press Down key to stop EMG visualisation.");
+        Debug.Log("Press Down key to start EMG visualisation.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
         if (delsysEnable)
             delsysEMG.SetZMQPusher(true);
-        //if(delsysEnable)
-        //delsysEMG.SetZMQPusher(false);
 
 
         // Record initial frames
         
+        welcomeDone = true;
+
+        HudManager.DisplayText("Look to the top right. Instructions will be displayed there.");
+        InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+
+        InstructionManager.DisplayText("Make sure you are standing on top of the green circle. \n\n (Press the trigger button to continue...)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+
+        InstructionManager.DisplayText("Test audio. \n\n (If you can hear the audio, press the trigger button to continue...)");
+        audio.loop = true;
+        audio.volume = 0.4f;
+        audio.Play();
+        
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        audio.loop = false;
+        audio.Stop();
+        audio.volume = 1.0f;
+        //
+        // Hud intro
+        InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me introduce you to your assistant, the Heads Up Display (HUD)." + "\n\n (Press the trigger)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        InstructionManager.DisplayText("Look at the HUD around your left eye. It's saying hi!");
+        HudManager.DisplayText("Hi! I'm HUD!" + "\n (Press trigger)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        HudManager.DisplayText("I'm here to help!" + "\n (Press trigger)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        HudManager.DisplayText("Look at the screen.", 3);
+
+
+        //
+        // Experiment overall intro
+        InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me explain what we are doing today." + "\n\n (Press the trigger)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        InstructionManager.DisplayText("Today, the experiment will require you to reach to the targets in front of you." + "\n\n (Press the trigger)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        InstructionManager.DisplayText("You will do 2 sessions, 1st 90 iterations and 2nd 270 iterations " + "\n\n (Press the trigger)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        InstructionManager.DisplayText("A 60 sec rest occurs every 35 iterations" + "\n\n (Press the trigger)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+
+
 
         #region Debug the zmq communications
         /*
@@ -530,55 +570,11 @@ public class AugmentedFeedback2022 : GameMaster
          */
         #endregion
 
-        welcomeDone = true;
 
-        HudManager.DisplayText("Look to the top right. Instructions will be displayed there.");
-        InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-        InstructionManager.DisplayText("Make sure you are standing on top of the green circle. \n\n (Press the trigger button to continue...)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-        InstructionManager.DisplayText("Test audio. \n\n (If you can hear the audio, press the trigger button to continue...)");
-        audio.loop = true;
-        audio.volume = 0.4f;
-        audio.Play();
-        
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        audio.loop = false;
-        audio.Stop();
-        audio.volume = 1.0f;
-        //
-        // Hud intro
-        InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me introduce you to your assistant, the Heads Up Display (HUD)." + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("Look at the HUD around your left eye. It's saying hi!");
-        HudManager.DisplayText("Hi! I'm HUD!" + "\n (Press trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        HudManager.DisplayText("I'm here to help!" + "\n (Press trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        HudManager.DisplayText("Look at the screen.", 3);
-
-
-        //
-        // Experiment overall intro
-        InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me explain what we are doing today." + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("Today, the experiment will require you to reach to the targets in front of you." + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("You will do 2 sessions, 1st 90 iterations and 2nd 270 iterations " + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("A 60 sec rest occurs every 35 iterations" + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-
-       
-
-       
 
         // Now that you are done, set the flag to indicate we are done.
-        
-        
+
+
 
     }
 
@@ -908,12 +904,7 @@ public class AugmentedFeedback2022 : GameMaster
     /// </summary>
     public override void HandleTaskDataLogging()
     {
-        // Test postural 
-        //Debug.Log(upperArmTracker.GetTrackerTransform().rotation.ToString());
-        PosturalFeatureExtractor.extractTrunkPose(initialOrientation[3],c7Tracker.GetTrackerTransform().rotation);
-        PosturalFeatureExtractor.extractShoulderPose(initialOrientation[3], c7Tracker.GetTrackerTransform().rotation, initialOrientation[1], upperArmTracker.GetTrackerTransform().rotation);
-
-        // Add your custom data logging here
+        // Add custom data logging here
         logData += targetOrder[iterationNumber - 1] + ",";  // Make sure you always end your custom data with a comma! Using CSV for data logging.
 
         #region Rewrite the base method
@@ -921,36 +912,23 @@ public class AugmentedFeedback2022 : GameMaster
         // Gather data while experiment is in progress
         //
         logData += taskTime.ToString();
-        // Read from all user sensors
-        foreach (ISensor sensor in AvatarSystem.GetActiveSensors())
-        {
-            float[] sensorData = sensor.GetAllProcessedData();
-            foreach (float element in sensorData)
-                logData += "," + element.ToString();
-        }
-        // Read from all experiment sensors
-        float[] zmqData = new float[] { 1 };
-        foreach (ISensor sensor in ExperimentSystem.GetActiveSensors())
-        {
-            float[] sensorData = sensor.GetAllProcessedData();
 
-            var temp = zmqData.Concat(sensorData).ToArray();
-            zmqData = new float[temp.Length];
-            temp.CopyTo(zmqData, 0);
 
-            // Append data to local data logger
-            foreach (float element in sensorData)
-            {
-                logData += "," + element.ToString();
-            }
-   
+        // Get kinematic postural features and push through zmq
+        float[] zmqData = new float[] { 1 , taskTime };
+        float[] pose = PosturalFeatureExtractor.extractTrunkPose(initialOrientation[3], c7Tracker.GetTrackerTransform().rotation);
+        var temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+        pose = PosturalFeatureExtractor.extractScapularPose(initialOrientation[2], c7Tracker.GetTrackerTransform().rotation, shoulderTracker.GetTrackerTransform().rotation, SaveSystem.ActiveUser.shoulderBreadth);
+        temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+        pose = PosturalFeatureExtractor.extractShoulderPose(c7Tracker.GetTrackerTransform().rotation, upperArmTracker.GetTrackerTransform().rotation);
+        temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
+        // Log the postural features
+        foreach (float element in zmqData.Skip(2))
+        {
+            logData += "," + element.ToString();
         }
 
-        //Debug the zmq data
-        //string debugString="";
-        //foreach (float element in zmqData)
-            //debugString += "," + element.ToString();
-        //Debug.Log(debugString);
 
         // Push data to other platform through ZMQ
         if (zmqPushEnable)
@@ -958,7 +936,28 @@ public class AugmentedFeedback2022 : GameMaster
             ZMQSystem.AddPushData(zmqPushPort, zmqData);
             //Debug.Log("ZMQ pushed");
         }
-        
+
+
+        // Read from all user sensors
+        foreach (ISensor sensor in AvatarSystem.GetActiveSensors())
+        {
+            float[] sensorData = sensor.GetAllProcessedData();
+            foreach (float element in sensorData)
+                logData += "," + element.ToString();
+        }
+
+        // Read from all experiment sensors
+        foreach (ISensor sensor in ExperimentSystem.GetActiveSensors())
+        {
+            float[] sensorData = sensor.GetAllProcessedData();
+            // Append data to local data logger
+            foreach (float element in sensorData)
+            {
+                logData += "," + element.ToString();
+            }
+   
+        }
+       
 
         //
         // Log current data and clear before next run.
@@ -971,10 +970,19 @@ public class AugmentedFeedback2022 : GameMaster
 
         #endregion
 
-
+        #region Archive 
+        //Debug the zmq data
+        //string debugString="";
+        //foreach (float element in zmqData)
+        //debugString += "," + element.ToString();
+        //Debug.Log(debugString);
         // Continue with data logging.
         //base.HandleTaskDataLogging();
         //HudManager.DisplayText(GameObject.Find("Bottle").transform.localEulerAngles.ToString());
+        //PosturalFeatureExtractor.extractScapularPose(initialPosition[3], initialPosition[2], c7Tracker.GetTrackerTransform().position, 
+        //shoulderTracker.GetTrackerTransform().position, c7Tracker.GetTrackerTransform().rotation);
+        #endregion
+
     }
 
     /// <summary>

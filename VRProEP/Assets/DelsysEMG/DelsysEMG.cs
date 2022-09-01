@@ -415,29 +415,34 @@ public class DelsysEMG
                 for (int sn = 0; sn < 16; ++sn)
                     tempEmgDataList[sn] = reader.ReadSingle();
 
+                float time = 0;
+
+                // Record the data
+                if (recording)
+                {
+                    time = (timeStampList.Count - 1) * samplingInterval;
+                    timeStampList.Add((float)time);
+                    for (int sn = 0; sn < 16; ++sn)
+                        emgDataList[sn].Add(tempEmgDataList[sn]);
+                }
+
                 if (zmqPushFlag)
                 {
                     // Send data to other platform
-                    float[] zmqData = new float[activeSensorChannels.Max()+1];
+                    float[] zmqData = new float[activeSensorChannels.Max()+2];
                     zmqData[0] = 2; // Label indicating this is emg data
+                    zmqData[1] = time; //Time stamp
                     //Debug.Log("Active Delsys Sesnors:" +activeSensorChannels.Max());
                     for (int i = 0; i < activeSensorChannels.Max(); i++)
                     {
-                        zmqData[i+1] = tempEmgDataList[activeSensorChannels[i] - 1];
+                        zmqData[i+2] = tempEmgDataList[activeSensorChannels[i] - 1];
                         //Debug.Log("Active Delsys Sesnors Channel: " + (activeSensorChannels[i] - 1) + ". Readings: " + zmqData[i]);
                     }
                     ZMQSystem.AddPushData(zmqPort, zmqData);
                     //Debug.Log("ZMQ pushed");
                 }
 
-                // Record the data
-                if (recording)
-                {
-                    double time = (timeStampList.Count-1) * samplingInterval;
-                    timeStampList.Add((float) time);
-                    for (int sn = 0; sn < 16; ++sn)
-                        emgDataList[sn].Add(tempEmgDataList[sn]);
-                }
+                
 
             }
             catch (IOException e)
