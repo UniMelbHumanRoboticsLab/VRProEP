@@ -4,7 +4,7 @@ using UnityEngine;
 using VRProEP.AdaptationCore;
 namespace VRProEP.ProsthesisCore
 {
-    public class ANNReferenceGenerator : ReferenceGenerator
+    public class MLReferenceGenerator : ReferenceGenerator
     {
         /// <summary>
         /// Updates the reference for the given channel to be tracked by a controller or device.

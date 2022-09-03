@@ -4,13 +4,10 @@ using NetMQ.Sockets;
 using UnityEngine;
 using System;
 /// <summary>
-/// Stream data to python and receive the response - now in a sync way, maybe will consider async way
+/// Stream data to python and receive the response - in a sync way
 /// </summary>
 public class ZMQRequester : RunAbleThread
 {
-    /// <summary>
-    /// 
-    /// </summary>
     private byte[] sendData;
     private byte[] receiveData;
     private bool newDataFlag = false;

@@ -30,7 +30,10 @@ public class AugmentedFeedback2022 : GameMaster
     [SerializeField]
     private string performanceDataFormat = "i,loc,t_f,score";
 
-    
+    [Header("Avatar option")]
+    [SerializeField]
+    private bool amputeeAvatar;
+
     [Header("Experiment configuration: Start position")]
     [SerializeField]
     [Tooltip("The subject's shoulder start angle in degrees.")]
@@ -93,13 +96,16 @@ public class AugmentedFeedback2022 : GameMaster
     // Push the motion tracker data to other platform through ZMQ
     [SerializeField]
     private bool zmqPushEnable;
-    //private ZMQPusher zmqPusher; // No need for response from the server
     private const int zmqPushPort = 6000;
+
+    // Pull the joint reference from e.g. Matlab
+    [SerializeField]
+    private bool zmqPullEnable;
+    private const int zmqPullPort = 7000;
 
     // Request matlab interface output through ZMQ:
     [SerializeField]
     private bool zmqReqEnable;
-    //private ZMQRequester zmqRequester;
     private const int zmqReqPort = 5900;
 
     // Target management variables
@@ -237,14 +243,36 @@ public class AugmentedFeedback2022 : GameMaster
     {
         if (debug)
         {
-            
+            //
+            // Debug using the test bot
+            //
+
             SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
-            //
-            // Debug using able-bodied configuration
-            //
+            
             Debug.Log("Load Avatar to Debug.");
-            AvatarSystem.LoadPlayer(SaveSystem.ActiveUser.type, AvatarType.AbleBodied);
-            AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.AbleBodied);
+
+            if (amputeeAvatar)
+            {
+                AvatarSystem.LoadPlayer(UserType.Ablebodied, AvatarType.Transhumeral);
+                AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.Transhumeral);
+                // Initialize prosthesis
+                GameObject prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
+                ConfigurableElbowManager elbowManager = prosthesisManagerGO.AddComponent<ConfigurableElbowManager>();
+                elbowManager.InitializeProsthesis(SaveSystem.ActiveUser.upperArmLength, (SaveSystem.ActiveUser.forearmLength + SaveSystem.ActiveUser.handLength / 2.0f));
+                // Set the reference generator to linear synergy.
+                elbowManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
+            }
+            else
+            {
+                AvatarSystem.LoadPlayer(SaveSystem.ActiveUser.type, AvatarType.AbleBodied);
+                AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.AbleBodied);
+            }
+            
+
+
+            
+
+
         }
 
     }
@@ -359,7 +387,6 @@ public class AugmentedFeedback2022 : GameMaster
         // Set the subject physiological data for grid 
         //gridManager.ConfigUserData();
        
-        //gridManager.ConfigGridPositionFactors(gridCloseDistanceFactor, gridMidDistanceFactor, gridFarDistanceFactor, gridHeightFactor);
 
         #endregion
 
@@ -401,17 +428,18 @@ public class AugmentedFeedback2022 : GameMaster
         #endregion
 
         #region  Initialize zmq communication
+
         //ZMQ
         if (zmqPushEnable)
-        {
             ZMQSystem.AddZMQSocket(zmqPushPort, ZMQSystem.SocketType.Pusher);
 
-        }
+        if (zmqPullEnable)
+            ZMQSystem.AddZMQSocket(zmqPullPort, ZMQSystem.SocketType.Puller);
 
         if (zmqReqEnable)
-        {
             ZMQSystem.AddZMQSocket(zmqReqPort, ZMQSystem.SocketType.Requester);
-        }
+
+
 
         #endregion
 
@@ -604,7 +632,7 @@ public class AugmentedFeedback2022 : GameMaster
             for (int j = 0; j < iterationsPerTarget[sessionNumber - 1]; j++)
             {
                 targetOrder.Add(i);
-                Debug.Log(targetOrder[targetOrder.Count - 1]);
+                //Debug.Log(targetOrder[targetOrder.Count - 1]);
             }
                 
         }
@@ -938,6 +966,7 @@ public class AugmentedFeedback2022 : GameMaster
         }
 
 
+        /*
         // Read from all user sensors
         foreach (ISensor sensor in AvatarSystem.GetActiveSensors())
         {
@@ -957,6 +986,7 @@ public class AugmentedFeedback2022 : GameMaster
             }
    
         }
+        */
        
 
         //
@@ -1214,19 +1244,23 @@ public class AugmentedFeedback2022 : GameMaster
     {
         base.EndExperiment();
 
+        if (zmqPullEnable)
+            ZMQSystem.CloseZMQSocket(zmqPullPort, ZMQSystem.SocketType.Puller);
+
+        if (zmqPushEnable || zmqReqEnable)
+            ZMQSystem.CloseZMQSocket(zmqPushPort,ZMQSystem.SocketType.Pusher);
+
+       
+
+        if (zmqReqEnable)
+            ZMQSystem.CloseZMQSocket(zmqReqPort, ZMQSystem.SocketType.Requester);
+
         // You can do your own end of experiment stuff here
         if (delsysEnable)
         {
             delsysEMG.StopAcquisition();
             delsysEMG.Close();
         }
-
-        if (zmqPushEnable || zmqReqEnable)
-            ZMQSystem.CloseZMQSocket(zmqPushPort,ZMQSystem.SocketType.Pusher);
-
-        if (zmqReqEnable)
-            ZMQSystem.CloseZMQSocket(zmqReqPort, ZMQSystem.SocketType.Requester);
-        
     }
 
     /// <summary>
@@ -1247,11 +1281,8 @@ public class AugmentedFeedback2022 : GameMaster
     /// <returns></returns>
     private void OnApplicationQuit()
     {
-        if (delsysEnable)
-        {
-            delsysEMG.StopAcquisition();
-            delsysEMG.Close();
-        }
+        
+        
 
         if (zmqPushEnable)
         {
@@ -1259,12 +1290,18 @@ public class AugmentedFeedback2022 : GameMaster
             ZMQSystem.CloseZMQSocket(zmqPushPort,ZMQSystem.SocketType.Pusher);
         }
 
-        if(zmqReqEnable)
+        if (zmqPullEnable)
+            ZMQSystem.CloseZMQSocket(zmqPullPort, ZMQSystem.SocketType.Puller);
+
+
+        if (zmqReqEnable)
             ZMQSystem.CloseZMQSocket(zmqReqPort,ZMQSystem.SocketType.Requester);
 
-
-
-
+        if (delsysEnable)
+        {
+            delsysEMG.StopAcquisition();
+            delsysEMG.Close();
+        }
 
         NetMQConfig.Cleanup(false);
     }

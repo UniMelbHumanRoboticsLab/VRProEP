@@ -781,7 +781,7 @@ public class DataCollection2022GM : GameMaster
         if (checkStartPosition)
         {
             //return Input.GetKey(KeyCode.UpArrow);
-            return buttonAction.GetState(SteamVR_Input_Sources.Any);
+            return (Input.GetKey(KeyCode.UpArrow) || buttonAction.GetState(SteamVR_Input_Sources.Any));
         }
 
         else
@@ -822,7 +822,7 @@ public class DataCollection2022GM : GameMaster
     /// </summary>
     public override void HandleTaskDataLogging()
     {
-        if (padAction.GetStateDown(SteamVR_Input_Sources.Any))
+        if (padAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyUp(KeyCode.RightArrow))
         {
             subStep += 1;
             Debug.Log("Substeps: " + subStep);
@@ -892,7 +892,7 @@ public class DataCollection2022GM : GameMaster
         // You can implement whatever condition you want, maybe touching an object in the virtual world or being in a certain posture.
 
         //gridManager.SelectedTouched && !hasReached
-        if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any)  && !hasReached) //Input.GetKey(KeyCode.DownArrow)
+        if ( (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyDown(KeyCode.UpArrow))  && !hasReached) //Input.GetKey(KeyCode.DownArrow)
         {
             doneTime = taskTime;
             //audio.clip = holdAudioClip;

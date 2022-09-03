@@ -4,31 +4,15 @@ using NetMQ.Sockets;
 using UnityEngine;
 using System;
 /// <summary>
-/// Stream data to python and receive the response - now in a sync way, maybe will consider async way
+/// Push data to other platform 
 /// </summary>
 public class ZMQPusher : RunAbleThread
 {
-    /// <summary>
-    /// 
-    /// </summary>
     private byte[] sendData;
     private byte[] receiveData;
     private bool newDataFlag = false;
     private int port;
-    /*
-    public byte[] SendData
-    {
-        get { return sendData; }
-        set { sendData = value; }
-    }
 
-    public byte[] ReceiveData
-    {
-        get { return receiveData; }
-        set { receiveData = value; }
-    }
-
-    */
 
     //
     // Constructor
@@ -75,25 +59,28 @@ public class ZMQPusher : RunAbleThread
     protected override void Run()
     {
         ForceDotNet.Force(); // this line is needed to prevent unity freeze after one use, not sure why yet
-        using (PushSocket client = new PushSocket())
+        using (PushSocket pusher = new PushSocket())
         {
             string addr = "tcp://localhost:" + port;
-            client.Connect(addr);
+            pusher.Connect(addr);
             while (Running)
             {
                 if (newDataFlag)
                 {
                     //Debug.Log("ZMQPusher-> Data Sent through ZMQ.");
-                    client.SendFrame(sendData);
+                    pusher.SendFrame(sendData);
                     newDataFlag = false;
 
                 }
 
             }
+            pusher.Close();
+            pusher.Dispose();
+            NetMQConfig.Cleanup(false);
 
         }
 
-        //NetMQConfig.Cleanup(); // this line is needed to prevent unity freeze after one use, not sure why yet //Do this in the monobehavior script
+        NetMQConfig.Cleanup(false); // this line is needed to prevent unity freeze after one use, not sure why yet //Do this in the monobehavior script
     }
 
     private double[] parseReceivedData(byte[] receivedData) // From python/matlab it's 64 bit float (double)
@@ -103,6 +90,21 @@ public class ZMQPusher : RunAbleThread
 
         return floatArray;
     }
+
+    /*
+    public byte[] SendData
+    {
+        get { return sendData; }
+        set { sendData = value; }
+    }
+
+    public byte[] ReceiveData
+    {
+        get { return receiveData; }
+        set { receiveData = value; }
+    }
+
+    */
 
 
 }
