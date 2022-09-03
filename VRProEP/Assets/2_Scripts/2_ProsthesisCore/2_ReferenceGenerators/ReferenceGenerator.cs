@@ -7,6 +7,7 @@ namespace VRProEP.ProsthesisCore
         PointGradient,
         Integrator,
         LinearKinematicSynergy,
+        MLKinematicSynergy,
         JacobianSynergy,
         EMGInterface,
         BoneConduction

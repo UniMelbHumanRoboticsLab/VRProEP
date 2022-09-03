@@ -42,14 +42,15 @@ public class ZMQPuller : RunAbleThread
                 data = puller.ReceiveFrameBytes();
   
                 receivedData = parseReceivedData(data);
-                
+
+                /*
                 string responseStr = null;
                 foreach (float element in receivedData)
                 {
                     responseStr += element.ToString() + ",";
                 }
                 Debug.Log("ZMQPuller<- Received: " + responseStr);
-                  
+                */
 
                 /*
                 string responseStr = null;

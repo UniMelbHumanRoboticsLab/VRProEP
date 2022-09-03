@@ -12,12 +12,12 @@ using System.Linq;
 using System.Threading;
 // Debug
 using UnityEngine;
-
+using VRProEP.GameEngineCore;
 
 public class DelsysEMG 
 {
     //private ZMQPusher zmqPusher; // No need for response from the server
-    private const int zmqPort = 6000;
+    private int zmqPort = GameMaster.ZMQ_PUSH_PORT;
     private bool zmqPushFlag = false;
     
     //example of creating a list of sensor types to keep track of various TCP streams...
@@ -30,8 +30,8 @@ public class DelsysEMG
     //For TCP/IP connections
     private TcpClient commandSocket;
     private TcpClient emgSocket;
-    private const int commandPort = 50040;  //server command port
-    private const int emgDataPort = 50043; //server emg data port
+    private readonly int commandPort = 50040;  //server command port
+    private readonly int emgDataPort = 50043; //server emg data port
 
     //The following are streams and readers/writers for communication
     private NetworkStream commandStream;
@@ -51,7 +51,7 @@ public class DelsysEMG
 
 
     //Threads for acquiring emg and acc data
-    private float samplingInterval = 0.0009f;
+    private const float samplingInterval = 0.0009f;
     private Thread emgThread;
 
 

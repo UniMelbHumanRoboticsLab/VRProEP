@@ -93,6 +93,10 @@ namespace VRProEP.ProsthesisCore
             LinearKinematicSynergy linSyn = new LinearKinematicSynergy(xBar, xMin, xMax, theta, thetaMin, thetaMax);
             inputManager.Configure("CMD_ADD_REFGEN", linSyn);
 
+            // Add a Machine Learning based Kinematic Synergy to the prosthesis, machine learaning run at other plaform such as Matlab or Python and stream results to Unity through ZMQ
+            MLKinematicSynergy mlSyn = new MLKinematicSynergy(xBar, xMin, xMax, theta, thetaMin, thetaMax);
+            inputManager.Configure("CMD_ADD_REFGEN", mlSyn);
+
             // Add a Jacobian based Kinematic Synergy
             JacobianSynergy jacSyn = new JacobianSynergy(xBar, xMin, xMax, upperArmLength, lowerArmLength);
             inputManager.Configure("CMD_ADD_REFGEN", jacSyn);

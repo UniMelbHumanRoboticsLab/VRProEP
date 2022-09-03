@@ -76,13 +76,17 @@ public abstract class GameMaster : MonoBehaviour
     public int RestIterations { get => restIterations; }
 
 
-    #region Data Logging
+    #region Data Logging / Streaming
     // Task Data logging
     protected DataStreamLogger taskDataLogger;
     [Header("Experiment configuration: Data format")]
     [SerializeField]
     protected string taskDataFormat = "";
     protected string logData = "";
+
+    public const int ZMQ_PUSH_PORT = 6000;
+    public const int ZMQ_REQ_PORT = 5900;
+
     #endregion
 
     // Subject group management

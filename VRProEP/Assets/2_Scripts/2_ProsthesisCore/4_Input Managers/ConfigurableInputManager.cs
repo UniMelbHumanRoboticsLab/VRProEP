@@ -31,6 +31,7 @@ namespace VRProEP.ProsthesisCore
         public const string VAL_REFGEN_INTEGRATOR = "VAL_REFGEN_INTEGRATOR";
         public const string VAL_REFGEN_POINTGRAD = "VAL_REFGEN_POINTGRAD";
         public const string VAL_REFGEN_EMGPROP = "VAL_REFGEN_EMGPROP";
+        public const string VAL_REFGEN_MLKINSYN = "VAL_REFGEN_MLKINSYN";
         
         /// <summary>
         /// Input manager that allows for dynamic customization of sensors and reference generators.
@@ -128,7 +129,7 @@ namespace VRProEP.ProsthesisCore
                 SensorType prevSensorType = activeSensor.GetSensorType();
                 // Get shoulder position and velocity
                 Configure("CMD_SET_ACTIVE_SENSOR", SensorType.VIVETracker);
-                float qShoulder = activeSensor.GetProcessedData(5) + Mathf.PI/2; // Offsetting to horizontal position being 0.
+                float qShoulder = activeSensor.GetProcessedData(5) + Mathf.PI / 2; // Offsetting to horizontal position being 0.
                 float qDotShoulder = activeSensor.GetProcessedData(0);
                 // Get elbow position
                 Configure("CMD_SET_ACTIVE_SENSOR", SensorType.VirtualEncoder);
@@ -174,6 +175,15 @@ namespace VRProEP.ProsthesisCore
 
                 // Generate reference
                 return activeGenerator.UpdateReference(channel, input);
+            }
+            // Machinlearning based synergy, reference are from other platform suhc as Matlab or Python
+            else if (GetActiveReferenceGeneratorType() == ReferenceGeneratorType.MLKinematicSynergy)
+            {
+                // Update enable
+                isEnabled = activeGenerator.IsEnabled();
+
+                // Generate reference
+                return activeGenerator.UpdateReference(channel, null);
             }
             else if (GetActiveReferenceGeneratorType() == ReferenceGeneratorType.EMGInterface)
             {
@@ -365,6 +375,9 @@ namespace VRProEP.ProsthesisCore
                             break;
                         case VAL_REFGEN_EMGPROP:
                             SetActiveReferenceGenerator(ReferenceGeneratorType.EMGInterface);
+                            break;
+                        case VAL_REFGEN_MLKINSYN:
+                            SetActiveReferenceGenerator(ReferenceGeneratorType.MLKinematicSynergy);
                             break;
                         default:
                             throw new System.ArgumentException("Invalid value provided.");

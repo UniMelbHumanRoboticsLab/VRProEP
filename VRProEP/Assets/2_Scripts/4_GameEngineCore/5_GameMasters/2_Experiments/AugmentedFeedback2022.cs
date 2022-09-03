@@ -30,9 +30,7 @@ public class AugmentedFeedback2022 : GameMaster
     [SerializeField]
     private string performanceDataFormat = "i,loc,t_f,score";
 
-    [Header("Avatar option")]
-    [SerializeField]
-    private bool amputeeAvatar;
+    
 
     [Header("Experiment configuration: Start position")]
     [SerializeField]
@@ -67,27 +65,14 @@ public class AugmentedFeedback2022 : GameMaster
     [SerializeField]
     private AudioClip testAudioClip;
 
-    
+    [Header("Avatar option")]
+    [SerializeField]
+    private bool amputeeAvatar;
+
     [Header("Flags")]
     [SerializeField]
     private bool fourTrackerEnable;
-    [SerializeField]
-    private bool skipXR;
-    [SerializeField]
-    private bool checkStartPosition;
-
-
-
-    #endregion
-    
-    // Additional data logging
-    private DataStreamLogger performanceDataLogger;
-    private float iterationDoneTime;
-    private float feedbackScore;
-
-    // Time to hold the final pose
-    private float holdingTime;
-
+   
     // Delsys EMG background data collection
     [SerializeField]
     private bool delsysEnable;
@@ -96,17 +81,36 @@ public class AugmentedFeedback2022 : GameMaster
     // Push the motion tracker data to other platform through ZMQ
     [SerializeField]
     private bool zmqPushEnable;
-    private const int zmqPushPort = 6000;
+    private readonly int zmqPushPort = ZMQ_PUSH_PORT;
 
     // Pull the joint reference from e.g. Matlab
     [SerializeField]
     private bool zmqPullEnable;
-    private const int zmqPullPort = 7000;
+    private readonly int zmqPullPort = MLKinematicSynergy.ZMQ_PULL_PORT;
 
     // Request matlab interface output through ZMQ:
     [SerializeField]
     private bool zmqReqEnable;
-    private const int zmqReqPort = 5900;
+    private readonly int zmqReqPort = ZMQ_REQ_PORT;
+
+    [SerializeField]
+    private bool skipXR;
+    [SerializeField]
+    private bool checkStartPosition;
+
+    #endregion
+
+    // Additional data logging
+    private DataStreamLogger performanceDataLogger;
+    private float iterationDoneTime;
+    private float feedbackScore;
+
+    // Time to hold the final pose
+    private float holdingTime;
+
+    // Prosthesis handling objects
+    private GameObject prosthesisManagerGO;
+    private ConfigurableElbowManager elbowManager;
 
     // Target management variables
     private int targetNumber = 9; // The total number of targets
@@ -119,10 +123,10 @@ public class AugmentedFeedback2022 : GameMaster
     private VIVETrackerManager c7Tracker;
     private VirtualPositionTracker handTracker;
 
-
     private List<Quaternion> initialOrientation = new List<Quaternion>();
     private List<Vector3> initialPosition = new List<Vector3>();
 
+    
 
     // Flow control
     private bool hasReached = false;
@@ -260,7 +264,11 @@ public class AugmentedFeedback2022 : GameMaster
                 ConfigurableElbowManager elbowManager = prosthesisManagerGO.AddComponent<ConfigurableElbowManager>();
                 elbowManager.InitializeProsthesis(SaveSystem.ActiveUser.upperArmLength, (SaveSystem.ActiveUser.forearmLength + SaveSystem.ActiveUser.handLength / 2.0f));
                 // Set the reference generator to linear synergy.
-                elbowManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
+                //elbowManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
+                // Set the reference generator to machine learning based synergy.
+                elbowManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
+                Debug.Log("Avatar loaded");
+
             }
             else
             {
@@ -380,13 +388,13 @@ public class AugmentedFeedback2022 : GameMaster
         TeleportToStartPosition();
         #endregion
 
-       
+
 
         #region Initialize world positioning
 
         // Set the subject physiological data for grid 
         //gridManager.ConfigUserData();
-       
+
 
         #endregion
 
@@ -395,14 +403,42 @@ public class AugmentedFeedback2022 : GameMaster
         // Add arm motion trackers for able-bodied case.
         //
         // Lower limb motion tracker
-        GameObject llMotionTrackerGO = GameObject.FindGameObjectWithTag("ForearmTracker");
-        lowerArmTracker = new VIVETrackerManager(llMotionTrackerGO.transform);
-        ExperimentSystem.AddSensor(lowerArmTracker);
+        if (!amputeeAvatar)
+        {
+            GameObject llMotionTrackerGO = GameObject.FindGameObjectWithTag("ForearmTracker");
+            lowerArmTracker = new VIVETrackerManager(llMotionTrackerGO.transform);
+            ExperimentSystem.AddSensor(lowerArmTracker);
 
-        // Upper limb motion tracker
-        GameObject ulMotionTrackerGO = AvatarSystem.AddMotionTracker();
-        upperArmTracker = new VIVETrackerManager(ulMotionTrackerGO.transform);
-        ExperimentSystem.AddSensor(upperArmTracker);
+            // Upper limb motion tracker
+            GameObject ulMotionTrackerGO = AvatarSystem.AddMotionTracker();
+            upperArmTracker = new VIVETrackerManager(ulMotionTrackerGO.transform);
+            ExperimentSystem.AddSensor(upperArmTracker);
+        }
+        else
+        {
+            // Get active sensors from avatar system and get the vive tracker being used for the UA
+            foreach (ISensor sensor in AvatarSystem.GetActiveSensors())
+            {
+                if (sensor is VIVETrackerManager)
+                    upperArmTracker = (VIVETrackerManager)sensor;
+            }
+            if (upperArmTracker == null)
+                throw new System.NullReferenceException("The residual limb tracker was not found.");
+            // Set VIVE tracker and Linear synergy as active.
+            // Get prosthesis
+            prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
+            elbowManager = prosthesisManagerGO.GetComponent<ConfigurableElbowManager>();
+            // Set the reference generator to linear synergy.
+            //elbowManager.ChangeSensor("VAL_SENSOR_VIVETRACKER");
+            elbowManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
+
+            
+        }
+       
+
+
+
+
 
         if (fourTrackerEnable)
         {
@@ -471,11 +507,14 @@ public class AugmentedFeedback2022 : GameMaster
         inWelcome = true;
         Debug.Log("Press Up key to record calibration pose.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
-        
-        initialOrientation.Add(lowerArmTracker.GetTrackerTransform().rotation);
-        initialOrientation.Add(upperArmTracker.GetTrackerTransform().rotation);
 
-        initialPosition.Add(lowerArmTracker.GetTrackerTransform().position);
+        if (amputeeAvatar ==false)
+        {
+            initialOrientation.Add(lowerArmTracker.GetTrackerTransform().rotation);
+            initialPosition.Add(lowerArmTracker.GetTrackerTransform().position);
+        }
+        
+        initialOrientation.Add(upperArmTracker.GetTrackerTransform().rotation);
         initialPosition.Add(upperArmTracker.GetTrackerTransform().position);
 
         if (fourTrackerEnable)
@@ -943,11 +982,17 @@ public class AugmentedFeedback2022 : GameMaster
 
 
         // Get kinematic postural features and push through zmq
+        int trackNum = initialOrientation.Count;
+        int offset;
+        if (amputeeAvatar) offset = 2; else offset = 1;
         float[] zmqData = new float[] { 1 , taskTime };
-        float[] pose = PosturalFeatureExtractor.extractTrunkPose(initialOrientation[3], c7Tracker.GetTrackerTransform().rotation);
+
+        float[] pose = PosturalFeatureExtractor.extractTrunkPose(initialOrientation[trackNum-offset], c7Tracker.GetTrackerTransform().rotation);
         var temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
-        pose = PosturalFeatureExtractor.extractScapularPose(initialOrientation[2], c7Tracker.GetTrackerTransform().rotation, shoulderTracker.GetTrackerTransform().rotation, SaveSystem.ActiveUser.shoulderBreadth);
+
+        pose = PosturalFeatureExtractor.extractScapularPose(initialOrientation[trackNum-offset], c7Tracker.GetTrackerTransform().rotation, shoulderTracker.GetTrackerTransform().rotation, SaveSystem.ActiveUser.shoulderBreadth);
         temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
         pose = PosturalFeatureExtractor.extractShoulderPose(c7Tracker.GetTrackerTransform().rotation, upperArmTracker.GetTrackerTransform().rotation);
         temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
 

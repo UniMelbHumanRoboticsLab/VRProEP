@@ -4291,6 +4291,11 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
+        type: 3}
+      propertyPath: amputeeAvatar
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8645427431186587885, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: m_textInfo.characterCount
