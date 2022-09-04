@@ -25,7 +25,7 @@ namespace VRProEP.ProsthesisCore
         public MLKinematicSynergy(float[] xBar, float[] xMin, float[] xMax, float[] theta, float[] thetaMin, float[] thetaMax) 
                                     : base(xBar, xMin, xMax, theta, thetaMin, thetaMax, ReferenceGeneratorType.MLKinematicSynergy)
         {
-            Debug.Log("Machine Learning Reference Generator");
+            //Debug.Log("Machine Learning Reference Generator");
         }
 
 
@@ -41,7 +41,7 @@ namespace VRProEP.ProsthesisCore
             
             xBar = ZMQSystem.GetLatestPulledData(ZMQ_PULL_PORT);
             if (xBar == null)
-                return 0;
+                return Mathf.Deg2Rad * -90.0f;
             else
             {
                 Debug.Log("ML Ref: " + xBar[0]);
@@ -60,6 +60,7 @@ namespace VRProEP.ProsthesisCore
         public override float[] UpdateAllReferences(float[] input)
         {
             xBar = ZMQSystem.GetLatestPulledData(ZMQ_PULL_PORT);
+
             Debug.Log(xBar[0]);
             return xBar;
         }

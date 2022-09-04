@@ -316,7 +316,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5890e3cad70bea64d91aef9145ba3454, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  index: 4
+  index: 5
   modelOverride: 
   shader: {fileID: 0}
   verbose: 0
@@ -450,6 +450,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -800,6 +801,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -912,7 +914,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d37c2cf88f7c59f4c8cf5d3812568143, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  index: 4
+  index: 5
   origin: {fileID: 0}
 --- !u!1 &1451517636235344
 GameObject:
@@ -1077,7 +1079,6 @@ GameObject:
   - component: {fileID: 4854539998420796}
   - component: {fileID: 20622203067934790}
   - component: {fileID: 114101567754166868}
-  - component: {fileID: 92082705877883060}
   - component: {fileID: 124045145178935384}
   m_Layer: 0
   m_Name: VRCamera
@@ -1155,14 +1156,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ad1e469d4e3e04489f9a36419f1a4f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!92 &92082705877883060
-Behaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1548989874172746}
-  m_Enabled: 1
 --- !u!124 &124045145178935384
 Behaviour:
   m_ObjectHideFlags: 0
@@ -1691,6 +1684,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -1892,7 +1886,7 @@ GameObject:
   - component: {fileID: 114859901671993752}
   - component: {fileID: 7948335414544075547}
   m_Layer: 0
-  m_Name: PlayerAbleTH
+  m_Name: PlayerPros
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -263,8 +263,6 @@ public class AugmentedFeedback2022 : GameMaster
                 GameObject prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
                 ConfigurableElbowManager elbowManager = prosthesisManagerGO.AddComponent<ConfigurableElbowManager>();
                 elbowManager.InitializeProsthesis(SaveSystem.ActiveUser.upperArmLength, (SaveSystem.ActiveUser.forearmLength + SaveSystem.ActiveUser.handLength / 2.0f));
-                // Set the reference generator to linear synergy.
-                //elbowManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
                 // Set the reference generator to machine learning based synergy.
                 elbowManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
                 Debug.Log("Avatar loaded");
@@ -429,7 +427,6 @@ public class AugmentedFeedback2022 : GameMaster
             prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
             elbowManager = prosthesisManagerGO.GetComponent<ConfigurableElbowManager>();
             // Set the reference generator to linear synergy.
-            //elbowManager.ChangeSensor("VAL_SENSOR_VIVETRACKER");
             elbowManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
 
             

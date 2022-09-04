@@ -67,7 +67,7 @@ public static class PosturalFeatureExtractor
         // Caculate shoulder angles in C7's frame
         Quaternion relativeRot = Quaternion.Inverse(qC7Tracker);
         Vector3 currentShoulderAxial = relativeRot * (qUpperarmTracker * Vector3.up);
-        Vector3 currentTrunkAxial = Vector3.up;
+        Vector3 currentTrunkAxial = -Vector3.up;
         Vector3 currentShoulderLateral = relativeRot * (qUpperarmTracker * Vector3.forward);
         Vector3 currentTrunkLateral = Vector3.right;
 
@@ -76,23 +76,23 @@ public static class PosturalFeatureExtractor
         // Shoulder Flexion / extension
         Vector2 vYZ1 = new Vector2(currentShoulderAxial.y, currentShoulderAxial.z);
         Vector2 vYZ2 = new Vector2(currentTrunkAxial.y, currentTrunkAxial.z);
-        if (vYZ1.y > 0) sgn = -1; else sgn = 1;
+        if (vYZ1.y > 0) sgn = 1; else sgn = -1;
         shoulderFE = sgn * Vector2.Angle(vYZ1, vYZ2) * Mathf.Deg2Rad;
-        //Debug.Log("Shoudler FE: " + shoulderFE);
+        //Debug.Log("Shoudler FE: " + Mathf.Rad2Deg * shoulderFE);
 
         // Shoulder Adduction / Abdictopm
         Vector2 vXY1 = new Vector2(currentShoulderAxial.x, currentShoulderAxial.y);
         Vector2 vXY2 = new Vector2(currentTrunkAxial.x, currentTrunkAxial.y);
-        if (vXY1.x > 0) sgn = -1; else sgn = 1;
+        if (vXY1.x > 0) sgn = 1; else sgn = -1;
         shoulderABD = sgn * Vector2.Angle(vXY1, vXY2) * Mathf.Deg2Rad;
-        //Debug.Log("Shoudler ABD: " + shoulderABD);
+        //Debug.Log("Shoudler ABD: " + Mathf.Rad2Deg * shoulderABD);
 
         //Shoulder Rotation
         Vector2 vXZ1 = new Vector2(currentShoulderLateral.x, currentShoulderLateral.z);
         Vector2 vXZ2 = new Vector2(currentTrunkLateral.x, currentTrunkLateral.z);
         if (vXZ1.y > 0) sgn = -1; else sgn = 1;
         shoulderR = sgn * Vector2.Angle(vXZ1, vXZ2) * Mathf.Deg2Rad;
-        //Debug.Log("Shoudler R: " + shoulderR);
+        //Debug.Log("Shoudler R: " + Mathf.Rad2Deg * shoulderR);
 
 
 
