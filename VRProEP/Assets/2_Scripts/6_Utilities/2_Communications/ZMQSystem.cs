@@ -110,7 +110,17 @@ public static class ZMQSystem
 
     public static float[] GetLatestPulledData(int port)
     {
-        ZMQPuller puller = pullerList[pullerPortList.IndexOf(port)];
-        return puller.GetReceivedData();
+        try
+        {
+            ZMQPuller puller = pullerList[pullerPortList.IndexOf(port)];
+            return puller.GetReceivedData();
+        }
+        catch (System.ArgumentOutOfRangeException e)
+        {
+            return null;
+        }
+            
+        
+        
     }
 }

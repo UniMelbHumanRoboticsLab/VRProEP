@@ -113,7 +113,7 @@ public class AugmentedFeedback2022 : GameMaster
     private ConfigurableElbowManager elbowManager;
 
     // Target management variables
-    private int targetNumber = 9; // The total number of targets
+    private int targetNumber; // The total number of targets
     private List<int> targetOrder = new List<int>(); // A list of target indexes ordered for selection over iterations in a session.
 
     // Motion tracking for experiment management and adaptation (check for start position)
@@ -505,6 +505,7 @@ public class AugmentedFeedback2022 : GameMaster
         Debug.Log("Press Up key to record calibration pose.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
 
+        // Record initial frames
         if (amputeeAvatar ==false)
         {
             initialOrientation.Add(lowerArmTracker.GetTrackerTransform().rotation);
@@ -523,13 +524,14 @@ public class AugmentedFeedback2022 : GameMaster
             initialPosition.Add(c7Tracker.GetTrackerTransform().position);
         }
 
-        Debug.Log("Press Down key to start EMG visualisation.");
+        // Start
+        Debug.Log("Press Down key to start.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
         if (delsysEnable)
             delsysEMG.SetZMQPusher(true);
 
 
-        // Record initial frames
+        
         
         welcomeDone = true;
 
@@ -650,8 +652,9 @@ public class AugmentedFeedback2022 : GameMaster
         //Spwan grid
         #region Spawn grid
         // Spawn the grid
-        gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Bottle;
-        gridManager.AddJointPose(new float[5] { 40, 0, 80, 45, 0 });
+        gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
+        gridManager.AddJointPose(new float[5] { 40, 0, 30, 90, 0 });
+        gridManager.AddJointPose(new float[5] { 40, 0, 80, 90, 0 });
         gridManager.SpawnTargetGrid();
         Debug.Log("Spawn the grid!");
         #endregion
@@ -979,33 +982,39 @@ public class AugmentedFeedback2022 : GameMaster
 
 
         // Get kinematic postural features and push through zmq
-        int trackNum = initialOrientation.Count;
-        int offset;
-        if (amputeeAvatar) offset = 2; else offset = 1;
-        float[] zmqData = new float[] { 1 , taskTime };
-
-        float[] pose = PosturalFeatureExtractor.extractTrunkPose(initialOrientation[trackNum-offset], c7Tracker.GetTrackerTransform().rotation);
-        var temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
-
-        pose = PosturalFeatureExtractor.extractScapularPose(initialOrientation[trackNum-offset], c7Tracker.GetTrackerTransform().rotation, shoulderTracker.GetTrackerTransform().rotation, SaveSystem.ActiveUser.shoulderBreadth);
-        temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
-
-        pose = PosturalFeatureExtractor.extractShoulderPose(c7Tracker.GetTrackerTransform().rotation, upperArmTracker.GetTrackerTransform().rotation);
-        temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
-
-        // Log the postural features
-        foreach (float element in zmqData.Skip(2))
+        if (fourTrackerEnable)
         {
-            logData += "," + element.ToString();
-        }
+            int trackNum = initialOrientation.Count;
+            int offset;
+            if (amputeeAvatar) offset = 2; else offset = 1;
+            float[] zmqData = new float[] { 1, taskTime };
+
+            float[] pose = PosturalFeatureExtractor.extractTrunkPose(initialOrientation[trackNum - offset], c7Tracker.GetTrackerTransform().rotation);
+            var temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
+            pose = PosturalFeatureExtractor.extractScapularPose(initialOrientation[trackNum - offset], c7Tracker.GetTrackerTransform().rotation, shoulderTracker.GetTrackerTransform().rotation, SaveSystem.ActiveUser.shoulderBreadth);
+            temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
+            pose = PosturalFeatureExtractor.extractShoulderPose(c7Tracker.GetTrackerTransform().rotation, upperArmTracker.GetTrackerTransform().rotation);
+            temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
+            // Log the postural features
+            foreach (float element in zmqData.Skip(2))
+            {
+                logData += "," + element.ToString();
+            }
 
 
-        // Push data to other platform through ZMQ
-        if (zmqPushEnable)
-        {
-            ZMQSystem.AddPushData(zmqPushPort, zmqData);
-            //Debug.Log("ZMQ pushed");
+            // Push data to other platform through ZMQ
+            if (zmqPushEnable)
+            {
+                ZMQSystem.AddPushData(zmqPushPort, zmqData);
+                //Debug.Log("ZMQ pushed");
+            }
         }
+       
+
+        
 
 
         /*

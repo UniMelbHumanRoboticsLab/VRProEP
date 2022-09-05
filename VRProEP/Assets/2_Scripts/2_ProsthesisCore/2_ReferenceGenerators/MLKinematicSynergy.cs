@@ -38,7 +38,7 @@ namespace VRProEP.ProsthesisCore
         /// <returns>The updated reference.</returns>
         public override float UpdateReference(int channel, float[] input)
         {
-            
+
             xBar = ZMQSystem.GetLatestPulledData(ZMQ_PULL_PORT);
             if (xBar == null)
                 return Mathf.Deg2Rad * -90.0f;
