@@ -20,7 +20,14 @@ public static class PosturalFeatureExtractor
     private static float scapularDE = 0; // Scapular depression elevation, Postivie: upward
     private static float scapularPR = 0; // Scapular protraction retraction, Postivie: forward
 
+
     private static float sgn = 1;
+
+    public static float getShoulderFE()
+    {
+        return shoulderFE;
+    }
+
 
     public static float[] extractTrunkPose(Quaternion qC7TrackerRef, Quaternion qC7Tracker)
     {
@@ -38,21 +45,21 @@ public static class PosturalFeatureExtractor
         Vector2 vYZ2 = new Vector2(initialTrunkAxial.y, initialTrunkAxial.z);
         if (vYZ1.y > 0) sgn = -1; else sgn = 1;
         trunkFE = sgn * Vector2.Angle(vYZ1, vYZ2) * Mathf.Deg2Rad;
-        //Debug.Log("Trunk FE: " + trunkFE);
+        //Debug.Log("Trunk FE: " + Mathf.Rad2Deg * trunkFE);
 
         // Trunk Left right bending
         Vector2 vXY1 = new Vector2(currentTrunkLateral.x, currentTrunkLateral.y);
         Vector2 vXY2 = new Vector2(initialTrunkLateral.x, initialTrunkLateral.y);
         if (vXY1.y > 0) sgn = -1; else sgn = 1;
         trunkLRB = sgn * Vector2.Angle(vXY1, vXY2) * Mathf.Deg2Rad;
-        //Debug.Log("Trunk LRB: " + trunkLRB);
+        //Debug.Log("Trunk LRB: " + Mathf.Rad2Deg * trunkLRB);
 
         // Trunk Rotation
         Vector2 vXZ1 = new Vector2(currentTrunkLateral.x, currentTrunkLateral.z);
         Vector2 vXZ2 = new Vector2(initialTrunkLateral.x, initialTrunkLateral.z);
         if (vXZ1.y > 0) sgn = -1; else sgn = 1;
         trunkR = sgn * Vector2.Angle(vXZ1, vXZ2) * Mathf.Deg2Rad;
-        //Debug.Log("Trunk R: " + trunkR);
+        //Debug.Log("Trunk R: " + Mathf.Rad2Deg * trunkR);
         
 
 

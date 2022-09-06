@@ -182,8 +182,18 @@ namespace VRProEP.ProsthesisCore
                 // Update enable
                 isEnabled = activeGenerator.IsEnabled();
 
+                // Get elbow position
+                Configure("CMD_SET_ACTIVE_SENSOR", SensorType.VirtualEncoder);
+                float qElbowFE = activeSensor.GetProcessedData(0);
+
+                // Get shoulder flexion/extension position
+                float qShoulderFE = PosturalFeatureExtractor.getShoulderFE();
+
+                //Combine input
+                float[] input = { qShoulderFE, -qElbowFE }; 
+
                 // Generate reference
-                return activeGenerator.UpdateReference(channel, null);
+                return activeGenerator.UpdateReference(channel, input);
             }
             else if (GetActiveReferenceGeneratorType() == ReferenceGeneratorType.EMGInterface)
             {

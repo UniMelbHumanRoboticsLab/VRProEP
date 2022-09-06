@@ -26,7 +26,8 @@ public class AugmentedFeedback2022 : GameMaster
     // Here you can place all your Unity (GameObjects or similar)
     #region Unity objects
     [SerializeField]
-    private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
+    //private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
+    private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr";
     [SerializeField]
     private string performanceDataFormat = "i,loc,t_f,score";
 
@@ -985,8 +986,8 @@ public class AugmentedFeedback2022 : GameMaster
         if (fourTrackerEnable)
         {
             int trackNum = initialOrientation.Count;
-            int offset;
-            if (amputeeAvatar) offset = 2; else offset = 1;
+            int offset = 1;
+            //if (amputeeAvatar) offset = 1; else offset = 1;
             float[] zmqData = new float[] { 1, taskTime };
 
             float[] pose = PosturalFeatureExtractor.extractTrunkPose(initialOrientation[trackNum - offset], c7Tracker.GetTrackerTransform().rotation);
@@ -1086,11 +1087,10 @@ public class AugmentedFeedback2022 : GameMaster
         if (gridManager.SelectedTouched && !hasReached)
         {
             iterationDoneTime = taskTime;
+            StartCoroutine(EndTaskCoroutine());
             audio.clip = holdAudioClip;
             audio.Play();
 
-            
-            StartCoroutine(EndTaskCoroutine());
             Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + iterationDoneTime.ToString() + ".");
         } 
         return taskComplete;
@@ -1332,8 +1332,7 @@ public class AugmentedFeedback2022 : GameMaster
     /// <returns></returns>
     private void OnApplicationQuit()
     {
-        
-        
+        ExperimentSystem.CloseAllExperimentLoggers();
 
         if (zmqPushEnable)
         {
