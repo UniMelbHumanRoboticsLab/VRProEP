@@ -124,7 +124,7 @@ SphereCollider:
   m_GameObject: {fileID: 4347830396968728482}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
@@ -418,11 +418,27 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3900194632808980364}
     m_Modifications:
+    - target: {fileID: 1011353099484506, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1058940015095344, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
       propertyPath: m_Name
       value: ACESHand_R
       objectReference: {fileID: 0}
+    - target: {fileID: 1063115693358972, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1148639304437202, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1813325682600496, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1988070635504510, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}

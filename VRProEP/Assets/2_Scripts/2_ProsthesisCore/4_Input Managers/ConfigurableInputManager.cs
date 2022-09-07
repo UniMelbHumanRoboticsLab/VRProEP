@@ -179,8 +179,7 @@ namespace VRProEP.ProsthesisCore
             // Machinlearning based synergy, reference are from other platform suhc as Matlab or Python
             else if (GetActiveReferenceGeneratorType() == ReferenceGeneratorType.MLKinematicSynergy)
             {
-                // Update enable
-                isEnabled = activeGenerator.IsEnabled();
+                
 
                 // Get elbow position
                 Configure("CMD_SET_ACTIVE_SENSOR", SensorType.VirtualEncoder);
@@ -190,7 +189,10 @@ namespace VRProEP.ProsthesisCore
                 float qShoulderFE = PosturalFeatureExtractor.getShoulderFE();
 
                 //Combine input
-                float[] input = { qShoulderFE, -qElbowFE }; 
+                float[] input = { qShoulderFE, -qElbowFE };
+
+                // Update enable
+                isEnabled = activeGenerator.IsEnabled();
 
                 // Generate reference
                 return activeGenerator.UpdateReference(channel, input);

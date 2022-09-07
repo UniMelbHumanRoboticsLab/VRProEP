@@ -140,6 +140,9 @@ public class AugmentedFeedback2022 : GameMaster
     // Audio
     AudioSource audio;
 
+    // Communication constants
+    public const float PUSH_ENABLE = -1.0f;
+    public const float ITE_RESET = -2.0f;
     
 
     #region Private methods
@@ -264,8 +267,12 @@ public class AugmentedFeedback2022 : GameMaster
                 GameObject prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
                 ConfigurableElbowManager elbowManager = prosthesisManagerGO.AddComponent<ConfigurableElbowManager>();
                 elbowManager.InitializeProsthesis(SaveSystem.ActiveUser.upperArmLength, (SaveSystem.ActiveUser.forearmLength + SaveSystem.ActiveUser.handLength / 2.0f));
-                // Set the reference generator to machine learning based synergy.
-                elbowManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
+                if (zmqPullEnable) //
+                    // Set the reference generator to machine learning based synergy.
+                    elbowManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
+                else
+                    // Set the reference generator to machine learning based synergy.
+                    elbowManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
                 Debug.Log("Avatar loaded");
 
             }
@@ -427,8 +434,15 @@ public class AugmentedFeedback2022 : GameMaster
             // Get prosthesis
             prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
             elbowManager = prosthesisManagerGO.GetComponent<ConfigurableElbowManager>();
-            // Set the reference generator to linear synergy.
-            elbowManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
+            if (zmqPullEnable)
+                // Set the reference generator to linear synergy.
+                elbowManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
+            else
+            {
+                elbowManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
+                elbowManager.SetSynergy(45.0f/60.0f);
+            }
+                
 
             
         }
@@ -468,7 +482,11 @@ public class AugmentedFeedback2022 : GameMaster
             ZMQSystem.AddZMQSocket(zmqPushPort, ZMQSystem.SocketType.Pusher);
 
         if (zmqPullEnable)
+        {
             ZMQSystem.AddZMQSocket(zmqPullPort, ZMQSystem.SocketType.Puller);
+            ZMQSystem.AddPushData(zmqPushPort, new float[] { PUSH_ENABLE }); // Tell the pusher the puller is ready
+        }
+            
 
         if (zmqReqEnable)
             ZMQSystem.AddZMQSocket(zmqReqPort, ZMQSystem.SocketType.Requester);
@@ -654,8 +672,9 @@ public class AugmentedFeedback2022 : GameMaster
         #region Spawn grid
         // Spawn the grid
         gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
-        gridManager.AddJointPose(new float[5] { 40, 0, 30, 90, 0 });
-        gridManager.AddJointPose(new float[5] { 40, 0, 80, 90, 0 });
+        gridManager.AddJointPose(new float[5] { 60, 0, 30, 90, 0 });
+        gridManager.AddJointPose(new float[5] { 60, 0, 55, 90, 0 });
+        gridManager.AddJointPose(new float[5] { 60, 0, 80, 90, 0 });
         gridManager.SpawnTargetGrid();
         Debug.Log("Spawn the grid!");
         #endregion
@@ -993,8 +1012,13 @@ public class AugmentedFeedback2022 : GameMaster
             float[] pose = PosturalFeatureExtractor.extractTrunkPose(initialOrientation[trackNum - offset], c7Tracker.GetTrackerTransform().rotation);
             var temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
 
-            pose = PosturalFeatureExtractor.extractScapularPose(initialOrientation[trackNum - offset], c7Tracker.GetTrackerTransform().rotation, shoulderTracker.GetTrackerTransform().rotation, SaveSystem.ActiveUser.shoulderBreadth);
+            //pose = PosturalFeatureExtractor.extractScapularPose(initialOrientation[trackNum - offset-1], c7Tracker.GetTrackerTransform().rotation, shoulderTracker.GetTrackerTransform().rotation, SaveSystem.ActiveUser.shoulderBreadth);
+
+            pose = PosturalFeatureExtractor.extractScapularPose(initialPosition[trackNum - offset], initialPosition[trackNum - offset - 1], 
+                                                                c7Tracker.GetTrackerTransform().position, shoulderTracker.GetTrackerTransform().position, c7Tracker.GetTrackerTransform().rotation);
             temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
+
 
             pose = PosturalFeatureExtractor.extractShoulderPose(c7Tracker.GetTrackerTransform().rotation, upperArmTracker.GetTrackerTransform().rotation);
             temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
@@ -1108,7 +1132,7 @@ public class AugmentedFeedback2022 : GameMaster
         // Signal the subject that the task is done
         HudManager.DisplayText("Hold on for a while!!");
         HudManager.colour = HUDManager.HUDColour.Green;
-        HudManager.colour = HUDManager.HUDColour.Green;
+        //HudManager.colour = HUDManager.HUDColour.Green;
        
         yield return new WaitForSecondsRealtime(holdingTime);
         taskComplete = true;
@@ -1138,8 +1162,8 @@ public class AugmentedFeedback2022 : GameMaster
         audio.clip = returnAudioClip;
         audio.Play();
 
-        //
-        
+        // Update the pusher the next iteration happen;
+        ZMQSystem.AddPushData(zmqPushPort, new float[] { ITE_RESET });
 
     }
 
@@ -1151,10 +1175,10 @@ public class AugmentedFeedback2022 : GameMaster
     {
         analysisDone = false;
         // Do some analysis
-        StartCoroutine(HandleResultAnalysisCoroutine());
-        Debug.Log("Try feedback");
+        //StartCoroutine(HandleResultAnalysisCoroutine());
+        //Debug.Log("Try feedback");
 
-        string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + iterationDoneTime.ToString() + "," + feedbackScore.ToString();
+        string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + iterationDoneTime.ToString(); //+ "," + feedbackScore.ToString();
 
         // Log results
         performanceDataLogger.AppendData(iterationResults);

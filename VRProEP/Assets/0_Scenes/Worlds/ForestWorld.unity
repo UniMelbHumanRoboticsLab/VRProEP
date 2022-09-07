@@ -1146,6 +1146,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Fence (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 1132358800049900, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4656556047404114, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.25
@@ -1645,6 +1649,10 @@ PrefabInstance:
     - target: {fileID: 1919012471076396, guid: 55776efecb0cd134ea5f418c2f97a705, type: 3}
       propertyPath: m_Name
       value: SlimePBR
+      objectReference: {fileID: 0}
+    - target: {fileID: 1919012471076396, guid: 55776efecb0cd134ea5f418c2f97a705, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4023215848608658, guid: 55776efecb0cd134ea5f418c2f97a705, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2299,6 +2307,10 @@ PrefabInstance:
     - target: {fileID: 1132358800049900, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_Name
       value: Fence
+      objectReference: {fileID: 0}
+    - target: {fileID: 1132358800049900, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4656556047404114, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3403,6 +3415,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Fence (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 1132358800049900, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4656556047404114, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2.21
@@ -4254,7 +4270,7 @@ PrefabInstance:
     - target: {fileID: 8311324623452099690, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -4274,7 +4290,7 @@ PrefabInstance:
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: delsysEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -4320,6 +4336,11 @@ PrefabInstance:
         type: 3}
       propertyPath: amputeeAvatar
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
+        type: 3}
+      propertyPath: zmqReqEnable
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8645427431186587885, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -6006,7 +6027,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1386438476
 Transform:
   m_ObjectHideFlags: 0
@@ -6114,6 +6135,10 @@ PrefabInstance:
     - target: {fileID: 1132358800049900, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_Name
       value: Fence (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 1132358800049900, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4656556047404114, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_LocalPosition.x

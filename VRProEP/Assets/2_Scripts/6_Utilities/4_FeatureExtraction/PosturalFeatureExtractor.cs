@@ -50,14 +50,14 @@ public static class PosturalFeatureExtractor
         // Trunk Left right bending
         Vector2 vXY1 = new Vector2(currentTrunkLateral.x, currentTrunkLateral.y);
         Vector2 vXY2 = new Vector2(initialTrunkLateral.x, initialTrunkLateral.y);
-        if (vXY1.y > 0) sgn = -1; else sgn = 1;
+        if (vXY1.y > 0) sgn = 1; else sgn = -1;
         trunkLRB = sgn * Vector2.Angle(vXY1, vXY2) * Mathf.Deg2Rad;
         //Debug.Log("Trunk LRB: " + Mathf.Rad2Deg * trunkLRB);
 
         // Trunk Rotation
         Vector2 vXZ1 = new Vector2(currentTrunkLateral.x, currentTrunkLateral.z);
         Vector2 vXZ2 = new Vector2(initialTrunkLateral.x, initialTrunkLateral.z);
-        if (vXZ1.y > 0) sgn = -1; else sgn = 1;
+        if (vXZ1.y > 0) sgn = 1; else sgn = -1;
         trunkR = sgn * Vector2.Angle(vXZ1, vXZ2) * Mathf.Deg2Rad;
         //Debug.Log("Trunk R: " + Mathf.Rad2Deg * trunkR);
         
@@ -76,28 +76,28 @@ public static class PosturalFeatureExtractor
         Vector3 currentShoulderAxial = relativeRot * (qUpperarmTracker * Vector3.up);
         Vector3 currentTrunkAxial = -Vector3.up;
         Vector3 currentShoulderLateral = relativeRot * (qUpperarmTracker * Vector3.forward);
-        Vector3 currentTrunkLateral = Vector3.right;
+        Vector3 currentTrunkLateral = -Vector3.right;
 
         // Debug.Log(currentShoulderAxial);
 
         // Shoulder Flexion / extension
         Vector2 vYZ1 = new Vector2(currentShoulderAxial.y, currentShoulderAxial.z);
         Vector2 vYZ2 = new Vector2(currentTrunkAxial.y, currentTrunkAxial.z);
-        if (vYZ1.y > 0) sgn = 1; else sgn = -1;
+        if (vYZ1.y > 0) sgn = -1; else sgn = 1;
         shoulderFE = sgn * Vector2.Angle(vYZ1, vYZ2) * Mathf.Deg2Rad;
         //Debug.Log("Shoudler FE: " + Mathf.Rad2Deg * shoulderFE);
 
         // Shoulder Adduction / Abdictopm
         Vector2 vXY1 = new Vector2(currentShoulderAxial.x, currentShoulderAxial.y);
         Vector2 vXY2 = new Vector2(currentTrunkAxial.x, currentTrunkAxial.y);
-        if (vXY1.x > 0) sgn = 1; else sgn = -1;
+        if (vXY1.x > 0) sgn = -1; else sgn = 1;
         shoulderABD = sgn * Vector2.Angle(vXY1, vXY2) * Mathf.Deg2Rad;
         //Debug.Log("Shoudler ABD: " + Mathf.Rad2Deg * shoulderABD);
 
         //Shoulder Rotation
         Vector2 vXZ1 = new Vector2(currentShoulderLateral.x, currentShoulderLateral.z);
         Vector2 vXZ2 = new Vector2(currentTrunkLateral.x, currentTrunkLateral.z);
-        if (vXZ1.y > 0) sgn = -1; else sgn = 1;
+        if (vXZ1.y > 0) sgn = 1; else sgn = -1;
         shoulderR = sgn * Vector2.Angle(vXZ1, vXZ2) * Mathf.Deg2Rad;
         //Debug.Log("Shoudler R: " + Mathf.Rad2Deg * shoulderR);
 
@@ -122,11 +122,11 @@ public static class PosturalFeatureExtractor
 
         // Scapular depression / elevation
         scapularDE = - diff.y;
-        Debug.Log("Scapular DE Vec: " + 100* scapularDE);
+        //Debug.Log("Scapular DE Vec: " + 100* scapularDE);
 
         // Scapular protraction / retraction
-        scapularPR = - diff.z;
-        Debug.Log("Scapular PR Vec: " + 100* scapularPR);
+        scapularPR = diff.z;
+        //Debug.Log("Scapular PR Vec: " + 100* scapularPR);
 
         float[] pose = new float[2] { scapularDE, scapularPR };
         return pose;
@@ -150,7 +150,7 @@ public static class PosturalFeatureExtractor
         float angleDE = Vector2.Angle(vXY1, vXY2);
         scapularDE = sgn * (shoulderBreadth / 2.0f) * Mathf.Sin(angleDE * Mathf.Deg2Rad);
         //Debug.Log(angleDE);
-        //Debug.Log("Scapular DE Quat: " + 100 * scapularDE);
+        Debug.Log("Scapular DE Quat: " + 100 * scapularDE);
 
         // Scapular protraction / retraction
         Vector2 vXZ1 = new Vector2(currentAcromionAxial.x, currentAcromionAxial.z);
@@ -159,7 +159,7 @@ public static class PosturalFeatureExtractor
         float anglePR = Vector2.Angle(vXZ1, vXZ2);
         scapularPR = sgn * (shoulderBreadth / 2.0f) * Mathf.Sin(anglePR * Mathf.Deg2Rad);
         //Debug.Log(anglePR);
-        //Debug.Log("Scapular PR Quat: " + 100 * scapularPR);
+        Debug.Log("Scapular PR Quat: " + 100 * scapularPR);
 
 
         float[] pose = new float[2] { scapularDE, scapularPR };

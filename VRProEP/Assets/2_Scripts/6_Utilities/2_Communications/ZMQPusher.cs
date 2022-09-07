@@ -69,6 +69,7 @@ public class ZMQPusher : RunAbleThread
                 {
                     //Debug.Log("ZMQPusher-> Data Sent through ZMQ.");
                     pusher.SendFrame(sendData);
+                    sendData = null;
                     newDataFlag = false;
 
                 }

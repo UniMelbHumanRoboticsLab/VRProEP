@@ -44,13 +44,17 @@ namespace VRProEP.ProsthesisCore
         /// <returns>The updated reference.</returns>
         public override float UpdateReference(int channel, float[] input)
         {
-            if(channel == 0) // Only get data at the first update request
+            if(channel == 0) 
                 xBar = ZMQSystem.GetLatestPulledData(ZMQ_PULL_PORT);
 
             if (xBar == null)
                 return - Mathf.Deg2Rad * INI_ELBOW;
             else  
             {
+                //Debug.Log("ML Ref:" + Mathf.Rad2Deg * xBar[channel]);
+                return -xBar[channel];
+
+                /*
                 float elbowRef = xBar[channel]; //Elbow ref in rad
                 float currentShoulderFE = input[0]; 
                 float currentElbowFE = input[1]; //current elbow in rad
@@ -73,7 +77,7 @@ namespace VRProEP.ProsthesisCore
                 Debug.Log("Elbow ref" + Mathf.Rad2Deg * tempxBar);
                 // Return the reference value
                 return -tempxBar;
-
+                */
 
 
                 /*
