@@ -132,16 +132,14 @@ public static class PosturalFeatureExtractor
         return pose;
     }
 
-    
 
-   
-
-    public static float[] extractScapularPose(Quaternion qShoulderTrackerRef, Quaternion qC7Tracker, Quaternion qShoulderTracker,float shoulderBreadth)
+    public static float[] extractScapularPose(Quaternion qC7TrackerRef, Quaternion qShoulderTrackerRef, Quaternion qC7Tracker, Quaternion qShoulderTracker, float shoulderBreadth)
     {
         // Convert to C7 frame
         Quaternion relativeRot = Quaternion.Inverse(qC7Tracker);
+        Quaternion relativeRotInit = Quaternion.Inverse(qC7TrackerRef);
         Vector3 currentAcromionAxial = relativeRot * (qShoulderTracker * Vector3.up); // Vector along c7 to shoulder acromion
-        Vector3 initialAcromionAxial = relativeRot * (qShoulderTrackerRef * Vector3.up);
+        Vector3 initialAcromionAxial = relativeRotInit * (qShoulderTrackerRef * Vector3.up);
 
         // Scapular depression / elevation
         Vector2 vXY1 = new Vector2(currentAcromionAxial.x, currentAcromionAxial.y);
@@ -150,20 +148,22 @@ public static class PosturalFeatureExtractor
         float angleDE = Vector2.Angle(vXY1, vXY2);
         scapularDE = sgn * (shoulderBreadth / 2.0f) * Mathf.Sin(angleDE * Mathf.Deg2Rad);
         //Debug.Log(angleDE);
-        Debug.Log("Scapular DE Quat: " + 100 * scapularDE);
+        //Debug.Log("Scapular DE Quat: " + 100 * scapularDE);
 
         // Scapular protraction / retraction
         Vector2 vXZ1 = new Vector2(currentAcromionAxial.x, currentAcromionAxial.z);
         Vector2 vXZ2 = new Vector2(initialAcromionAxial.x, initialAcromionAxial.z);
         if (vXZ1.y > vXZ2.y) sgn = -1; else sgn = 1;
         float anglePR = Vector2.Angle(vXZ1, vXZ2);
-        scapularPR = sgn * (shoulderBreadth / 2.0f) * Mathf.Sin(anglePR * Mathf.Deg2Rad);
+        scapularPR =  sgn * (shoulderBreadth / 2.0f) * Mathf.Sin(anglePR * Mathf.Deg2Rad);
         //Debug.Log(anglePR);
-        Debug.Log("Scapular PR Quat: " + 100 * scapularPR);
+        //Debug.Log("Scapular PR Quat: " + 100 * scapularPR);
 
 
         float[] pose = new float[2] { scapularDE, scapularPR };
         return pose;
     }
+
+
 
 }

@@ -124,8 +124,12 @@ public class AugmentedFeedback2022 : GameMaster
     private VIVETrackerManager c7Tracker;
     private VirtualPositionTracker handTracker;
 
-    private List<Quaternion> initialOrientation = new List<Quaternion>();
-    private List<Vector3> initialPosition = new List<Vector3>();
+    private Quaternion c7InitOrient;
+    private Vector3 c7InitPos;
+    private Quaternion shInitOrient;
+    private Vector3 shInitPos;
+    //private List<Quaternion> initialOrientation = new List<Quaternion>();
+    //private List<Vector3> initialPosition = new List<Vector3>();
 
     
 
@@ -525,23 +529,11 @@ public class AugmentedFeedback2022 : GameMaster
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
 
         // Record initial frames
-        if (amputeeAvatar ==false)
-        {
-            initialOrientation.Add(lowerArmTracker.GetTrackerTransform().rotation);
-            initialPosition.Add(lowerArmTracker.GetTrackerTransform().position);
-        }
-        
-        initialOrientation.Add(upperArmTracker.GetTrackerTransform().rotation);
-        initialPosition.Add(upperArmTracker.GetTrackerTransform().position);
+        c7InitOrient = c7Tracker.GetTrackerTransform().rotation;
+        c7InitPos = c7Tracker.GetTrackerTransform().position;
 
-        if (fourTrackerEnable)
-        {
-            initialOrientation.Add(shoulderTracker.GetTrackerTransform().rotation);
-            initialOrientation.Add(c7Tracker.GetTrackerTransform().rotation);
-
-            initialPosition.Add(shoulderTracker.GetTrackerTransform().position);
-            initialPosition.Add(c7Tracker.GetTrackerTransform().position);
-        }
+        shInitOrient = shoulderTracker.GetTrackerTransform().rotation;
+        shInitPos = shoulderTracker.GetTrackerTransform().position;
 
         // Start
         Debug.Log("Press Down key to start.");
@@ -1004,18 +996,14 @@ public class AugmentedFeedback2022 : GameMaster
         // Get kinematic postural features and push through zmq
         if (fourTrackerEnable)
         {
-            int trackNum = initialOrientation.Count;
-            int offset = 1;
-            //if (amputeeAvatar) offset = 1; else offset = 1;
             float[] zmqData = new float[] { 1, taskTime };
 
-            float[] pose = PosturalFeatureExtractor.extractTrunkPose(initialOrientation[trackNum - offset], c7Tracker.GetTrackerTransform().rotation);
+            float[] pose = PosturalFeatureExtractor.extractTrunkPose(c7InitOrient, c7Tracker.GetTrackerTransform().rotation);
             var temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
 
-            //pose = PosturalFeatureExtractor.extractScapularPose(initialOrientation[trackNum - offset-1], c7Tracker.GetTrackerTransform().rotation, shoulderTracker.GetTrackerTransform().rotation, SaveSystem.ActiveUser.shoulderBreadth);
-
-            pose = PosturalFeatureExtractor.extractScapularPose(initialPosition[trackNum - offset], initialPosition[trackNum - offset - 1], 
-                                                                c7Tracker.GetTrackerTransform().position, shoulderTracker.GetTrackerTransform().position, c7Tracker.GetTrackerTransform().rotation);
+            pose = PosturalFeatureExtractor.extractScapularPose(c7InitOrient, shInitOrient, c7Tracker.GetTrackerTransform().rotation, shoulderTracker.GetTrackerTransform().rotation, SaveSystem.ActiveUser.shoulderBreadth);
+            //pose = PosturalFeatureExtractor.extractScapularPose(initialPosition[trackNum - offset], initialPosition[trackNum - offset - 1], 
+                                                                //c7Tracker.GetTrackerTransform().position, shoulderTracker.GetTrackerTransform().position, c7Tracker.GetTrackerTransform().rotation);
             temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
 
 
