@@ -71,6 +71,10 @@ public class AugmentedFeedback2022 : GameMaster
     private bool amputeeAvatar;
 
     [Header("Flags")]
+    // If allow using controller to complete tasks
+    [SerializeField]
+    private bool dummyControlEnable;
+
     [SerializeField]
     private bool fourTrackerEnable;
    
@@ -538,17 +542,21 @@ public class AugmentedFeedback2022 : GameMaster
         Debug.Log("Press Up key to record calibration pose.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
 
-        // Record initial frames
-        c7InitOrient = c7Tracker.GetTrackerTransform().rotation;
-        c7InitPos = c7Tracker.GetTrackerTransform().position;
+        if (fourTrackerEnable)
+        {
+            // Record initial frames
+            c7InitOrient = c7Tracker.GetTrackerTransform().rotation;
+            c7InitPos = c7Tracker.GetTrackerTransform().position;
 
-        shInitOrient = shoulderTracker.GetTrackerTransform().rotation;
-        shInitPos = shoulderTracker.GetTrackerTransform().position;
+            shInitOrient = shoulderTracker.GetTrackerTransform().rotation;
+            shInitPos = shoulderTracker.GetTrackerTransform().position;
+        }
+        
 
         // Start
         Debug.Log("Press Down key to start.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
-        if (delsysEnable)
+        if (delsysEnable & zmqPushEnable)
             delsysEMG.SetZMQPusher(true);
 
 
@@ -674,9 +682,14 @@ public class AugmentedFeedback2022 : GameMaster
         #region Spawn grid
         // Spawn the grid
         gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
+
         gridManager.AddJointPose(new float[5] { 60, 0, 30, 90, 0 });
         gridManager.AddJointPose(new float[5] { 60, 0, 55, 90, 0 });
-        gridManager.AddJointPose(new float[5] { 60, 0, 80, 90, 0 });
+        gridManager.AddJointPose(new float[5] { 50, 0, 80, 90, 0 });
+        gridManager.AddJointPose(new float[5] { 40, 0, 80, 90, 0 });
+        gridManager.AddJointPose(new float[5] { 30, 0, 80, 90, 0 });
+        gridManager.AddJointPose(new float[5] { 20, 0, 80, 90, 0 });
+
         gridManager.SpawnTargetGrid();
         Debug.Log("Spawn the grid!");
         #endregion
@@ -955,7 +968,12 @@ public class AugmentedFeedback2022 : GameMaster
 
         }
 
-            return true;
+        if (dummyControlEnable)
+        {
+            return (Input.GetKey(KeyCode.UpArrow) || buttonAction.GetState(SteamVR_Input_Sources.Any));
+        }
+
+        return true;
 
     
     }
@@ -1105,16 +1123,22 @@ public class AugmentedFeedback2022 : GameMaster
     public override bool IsTaskDone()
     {
         // You can implement whatever condition you want, maybe touching an object in the virtual world or being in a certain posture.
-       
-        if (gridManager.SelectedTouched && !hasReached)
+        bool tempCompleteFlag = false;
+
+        if (dummyControlEnable)
+            tempCompleteFlag = buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyDown(KeyCode.UpArrow); //Input.GetKey(KeyCode.DownArrow)
+        else
+            tempCompleteFlag = gridManager.SelectedTouched;
+
+        if (tempCompleteFlag && !hasReached)
         {
             iterationDoneTime = taskTime;
             StartCoroutine(EndTaskCoroutine());
             audio.clip = holdAudioClip;
             audio.Play();
-
             Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + iterationDoneTime.ToString() + ".");
-        } 
+        }
+
         return taskComplete;
     }
 
@@ -1161,7 +1185,8 @@ public class AugmentedFeedback2022 : GameMaster
         audio.Play();
 
         // Update the pusher the next iteration happen;
-        ZMQSystem.AddPushData(zmqPushPort, new float[] { ITE_RESET });
+        if(zmqPushEnable)
+            ZMQSystem.AddPushData(zmqPushPort, new float[] { ITE_RESET });
 
     }
 
@@ -1218,6 +1243,7 @@ public class AugmentedFeedback2022 : GameMaster
     public override void HandleIterationInitialisation()
     {
         //StartCoroutine(HandleIterationInitialisationCoroutine());
+        Debug.Log("Target pose number: " + targetOrder[iterationNumber - 1]);
         base.HandleIterationInitialisation();
         
     }
