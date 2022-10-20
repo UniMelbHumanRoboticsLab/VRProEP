@@ -114,6 +114,7 @@ public class AugmentedFeedback2022 : GameMaster
     private ConfigurableElbowManager elbowManager;
 
     // Target management variables
+    private float[][] poseSet;
     private int targetNumber; // The total number of targets
     private List<int> targetOrder = new List<int>(); // A list of target indexes ordered for selection over iterations in a session.
 
@@ -227,6 +228,7 @@ public class AugmentedFeedback2022 : GameMaster
     {
         public int[] iterationsPerTarget = {2};
         public float holdingTime = 0.5f;
+        public float[][] poseSet;
     }
     private AugmentedFeedbackConfigurator configurator;
 
@@ -328,10 +330,17 @@ public class AugmentedFeedback2022 : GameMaster
     /// </summary>
     public override void ConfigureExperiment()
     {
-        // First call the base method to load the file
-        base.ConfigureExperiment();
+        string expCode = "";
+        if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
+            expCode = "_A";
+        else if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+            expCode = "_P";
 
-        //configAsset = Resources.Load<TextAsset>("Experiments/" + ExperimentSystem.ActiveExperimentID);
+        if (debug)
+            configAsset = Resources.Load<TextAsset>("Experiments/" + this.gameObject.name + expCode);
+        else
+            configAsset = Resources.Load<TextAsset>("Experiments/" + ExperimentSystem.ActiveExperimentID + expCode);
+
 
         // Convert configuration file to configuration class.
         configurator = JsonUtility.FromJson<AugmentedFeedbackConfigurator>(configAsset.text);
@@ -339,6 +348,7 @@ public class AugmentedFeedback2022 : GameMaster
         // Load from config file
         holdingTime = configurator.holdingTime;
         iterationsPerTarget = configurator.iterationsPerTarget;
+        poseSet = configurator.poseSet;
         // Load from config file
         for (int i = 0; i <= iterationsPerTarget.Length - 1; i++)
         {
