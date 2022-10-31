@@ -393,7 +393,7 @@ public class AugmentedFeedback2022 : GameMaster
         // Make sure flow control is initialised
         sessionNumber = 1;
         iterationNumber = 1;
-
+        
         //
         // Create the default data loggers
         //
@@ -689,6 +689,10 @@ public class AugmentedFeedback2022 : GameMaster
         gridManager.AddJointPose(new float[5] { 40, 0, 80, 90, 0 });
         gridManager.AddJointPose(new float[5] { 30, 0, 80, 90, 0 });
         gridManager.AddJointPose(new float[5] { 20, 0, 80, 90, 0 });
+        gridManager.AddJointPose(new float[5] { 25, 0, 80, 90, 0 });
+        gridManager.AddJointPose(new float[5] { 15, 0, 80, 90, 0 });
+        gridManager.AddJointPose(new float[5] { 10, 0, 80, 90, 0 });
+        gridManager.AddJointPose(new float[5] { 5, 0, 80, 90, 0 });
 
         gridManager.SpawnTargetGrid();
         Debug.Log("Spawn the grid!");
@@ -697,7 +701,7 @@ public class AugmentedFeedback2022 : GameMaster
         #region Iteration settings
         // Set iterations variables for flow control.
         targetNumber = gridManager.TargetNumber;
-        Debug.Log("Target number: " + targetNumber);
+        Debug.Log("Total target number: " + targetNumber);
         iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget[sessionNumber-1];
 
         // Create the list of target indexes and shuffle it.
@@ -711,7 +715,9 @@ public class AugmentedFeedback2022 : GameMaster
                 
         }
         targetOrder.Shuffle();
-        
+        Debug.Log("Current target pose number: " + targetOrder[iterationNumber - 1]);
+
+
         #endregion
     }
 
@@ -1243,7 +1249,7 @@ public class AugmentedFeedback2022 : GameMaster
     public override void HandleIterationInitialisation()
     {
         //StartCoroutine(HandleIterationInitialisationCoroutine());
-        Debug.Log("Target pose number: " + targetOrder[iterationNumber - 1]);
+        Debug.Log("Current target pose number: " + targetOrder[iterationNumber - 1]);
         base.HandleIterationInitialisation();
         
     }
