@@ -39,9 +39,9 @@ public class ZMQPuller : RunAbleThread
             while (Running)
             {
                 byte[] data = null;
-                data = puller.ReceiveFrameBytes();
-  
-                receivedData = parseReceivedData(data);
+                var receiveFlag = puller.TryReceiveFrameBytes(out data);
+                if (receiveFlag)
+                    receivedData = parseReceivedData(data);
 
                 /*
                 string responseStr = null;

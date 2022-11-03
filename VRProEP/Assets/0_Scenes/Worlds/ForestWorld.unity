@@ -1148,7 +1148,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1132358800049900, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4656556047404114, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1652,7 +1652,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1919012471076396, guid: 55776efecb0cd134ea5f418c2f97a705, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4023215848608658, guid: 55776efecb0cd134ea5f418c2f97a705, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2310,7 +2310,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1132358800049900, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4656556047404114, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2383,7 +2383,7 @@ PrefabInstance:
     - target: {fileID: 2329904988688339725, guid: c8fe5c5a59bb85d45b008cf820727fcf,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2329904988688339726, guid: c8fe5c5a59bb85d45b008cf820727fcf,
         type: 3}
@@ -3417,7 +3417,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1132358800049900, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4656556047404114, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -4270,7 +4270,7 @@ PrefabInstance:
     - target: {fileID: 8311324623452099690, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -4290,12 +4290,12 @@ PrefabInstance:
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: delsysEnable
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: zmqPushEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -4335,7 +4335,7 @@ PrefabInstance:
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: amputeeAvatar
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -4345,7 +4345,7 @@ PrefabInstance:
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: dummyControlEnable
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8645427431186587885, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -6032,7 +6032,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1386438476
 Transform:
   m_ObjectHideFlags: 0
@@ -6143,7 +6143,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1132358800049900, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4656556047404114, guid: ff0889a60f92af3469f83eb2dc39f4d8, type: 3}
       propertyPath: m_LocalPosition.x
