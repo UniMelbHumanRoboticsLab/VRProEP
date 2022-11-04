@@ -36,9 +36,9 @@ namespace VRProEP.GameEngineCore
             LoadSocket(avatarData.socketType);
             LoadElbow(avatarData.elbowType, userData.upperArmLength);
             LoadForearm(avatarData.forearmType, userData.upperArmLength, userData.forearmLength);
-            LoadHand(avatarData.handType, userData.upperArmLength, userData.forearmLength, userData.handLength, userData.lefty);
+            //LoadHand(avatarData.handType, userData.upperArmLength, userData.forearmLength, userData.handLength, userData.lefty);
+            LoadWristNHand("WristHandCustom", userData.upperArmLength, userData.forearmLength, userData.handLength, userData.lefty);
 
-            
             // Deactivate rendering of the markers
             // First get the objects
             GameObject shoulderMarkerGO = GameObject.Find("ShoulderJointMarker");
@@ -419,6 +419,70 @@ namespace VRProEP.GameEngineCore
             forearmGO.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
 
             return forearmGO;
+        }
+
+
+
+        /// <summary>
+        /// Loads and instantiates a hand with wrist joint avatar prefab from Resources/Avatars/Wrists.
+        /// The prefab must include the tag "Hand". Loads by name.
+        /// Use this in Transhumeral avatars.
+        /// </summary>
+        /// <param name="handType">The name of the prefab forearm avatar to be loaded.</param>
+        /// <param name="upperArmLength">The user's upper-arm length.</param>
+        /// <param name="lowerArmLength">The user's lower-arm length.</param>
+        /// <param name="handLength">The user's hand length.</param>
+        /// <returns>The instantiated hand GameObject.</returns>
+        private static GameObject LoadWristNHand(string handType, float upperArmLength, float lowerArmLength, float handLength, bool lefty)
+        {
+            string side = "R";
+            float sign = 1.0f;
+            if (lefty)
+            {
+                side = "L";
+                sign = -1.0f;
+            }
+
+            // Need to attach to Forearm, so find that first and get its Rigidbody.
+            GameObject forearmGO = GameObject.FindGameObjectWithTag("Forearm");
+            Rigidbody forearmRB = forearmGO.GetComponent<Rigidbody>();
+
+            // Load hand from avatar folder and check whether successfully loaded.
+            GameObject handPrefab = Resources.Load<GameObject>("Avatars/Wrists/" + handType + "_" + side);
+            if (handPrefab == null)
+                throw new System.Exception("The requested hand prefab was not found.");
+
+            // Get parent prosthesis manager
+            GameObject prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
+
+            // Load hand object info
+            //string objectPath = resourcesDataPath + "/Hands/" + handType + ".json";
+            //string objectDataAsJson = File.ReadAllText(objectPath);
+            string objectPath = "Avatars/Wrists/" + handType + "_" + side;
+            string objectDataAsJson = Resources.Load<TextAsset>(objectPath).text;
+            activeHandData = JsonUtility.FromJson<AvatarObjectData>(objectDataAsJson);
+            if (activeHandData == null)
+                throw new System.Exception("The requested hand information was not found.");
+
+            // Instantiate with prosthesis manager as parent.
+            float handOffset = upperArmLength + lowerArmLength + (activeHandData.dimensions.x / 2.0f);
+            GameObject handGO = Object.Instantiate(handPrefab, new Vector3(handPrefab.transform.localPosition.x, -handOffset, handPrefab.transform.localPosition.z), handPrefab.transform.localRotation, prosthesisManagerGO.transform);
+
+            // Scale hand to fit user's hand
+            float scaleFactor = handLength / activeHandData.dimensions.x;
+            handGO.transform.localScale = new Vector3(sign * scaleFactor, sign * scaleFactor, sign * scaleFactor);
+
+            // Attach the socket to the residual limb through a fixed joint. 
+            GameObject wristGO = GameObject.FindGameObjectWithTag("Wrist");
+            FixedJoint wristFixedJoint = wristGO.GetComponent<FixedJoint>();
+           
+            // If no fixed joint was found, then add it.
+            if (wristFixedJoint == null)
+                wristFixedJoint = handGO.AddComponent<FixedJoint>();
+            // Connect
+            wristFixedJoint.connectedBody = forearmRB;
+
+            return handGO;
         }
 
 

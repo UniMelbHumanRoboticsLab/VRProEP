@@ -115,7 +115,7 @@ public class AugmentedFeedback2022 : GameMaster
 
     // Prosthesis handling objects
     private GameObject prosthesisManagerGO;
-    private ConfigurableElbowManager elbowManager;
+    private ConfigurableMultiJointManager elbowManager;
 
     // Target management variables
     private float[][] poseSet;
@@ -275,14 +275,15 @@ public class AugmentedFeedback2022 : GameMaster
                 AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.Transhumeral);
                 // Initialize prosthesis
                 GameObject prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
-                ConfigurableElbowManager elbowManager = prosthesisManagerGO.AddComponent<ConfigurableElbowManager>();
-                elbowManager.InitializeProsthesis(SaveSystem.ActiveUser.upperArmLength, (SaveSystem.ActiveUser.forearmLength + SaveSystem.ActiveUser.handLength / 2.0f));
+                ConfigurableMultiJointManager multiJointManager = prosthesisManagerGO.AddComponent<ConfigurableMultiJointManager>();
+                //ConfigurableElbowManager elbowManager = prosthesisManagerGO.AddComponent<ConfigurableElbowManager>();
+                multiJointManager.InitializeProsthesis(SaveSystem.ActiveUser.upperArmLength, (SaveSystem.ActiveUser.forearmLength + SaveSystem.ActiveUser.handLength / 2.0f));
                 if (zmqPullEnable) //
                     // Set the reference generator to machine learning based synergy.
-                    elbowManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
+                    multiJointManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
                 else
                     // Set the reference generator to machine learning based synergy.
-                    elbowManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
+                    multiJointManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
                 Debug.Log("Avatar loaded");
 
             }
@@ -451,7 +452,7 @@ public class AugmentedFeedback2022 : GameMaster
             // Set VIVE tracker and Linear synergy as active.
             // Get prosthesis
             prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
-            elbowManager = prosthesisManagerGO.GetComponent<ConfigurableElbowManager>();
+            elbowManager = prosthesisManagerGO.GetComponent<ConfigurableMultiJointManager>();
             if (zmqPullEnable)
                 // Set the reference generator to linear synergy.
                 elbowManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
@@ -681,7 +682,7 @@ public class AugmentedFeedback2022 : GameMaster
         //Spwan grid
         #region Spawn grid
         // Spawn the grid
-        gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
+        //gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
 
         gridManager.AddJointPose(new float[5] { 60, 0, 30, 45, 0 });
         /*

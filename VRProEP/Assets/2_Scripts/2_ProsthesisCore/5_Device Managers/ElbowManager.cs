@@ -1,4 +1,5 @@
 ﻿//======= Copyright (c) Melbourne Robotics Lab, All rights reserved. ===============
+//======= Likely to be deprecated ========//
 using UnityEngine;
 
 namespace VRProEP.ProsthesisCore

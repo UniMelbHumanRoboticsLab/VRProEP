@@ -36,6 +36,9 @@ TagManager:
   - UpperarmTracker
   - SATracker
   - C7Tracker
+  - Wrist
+  - WristPronator
+  - WristFlexer
   layers:
   - Default
   - TransparentFX

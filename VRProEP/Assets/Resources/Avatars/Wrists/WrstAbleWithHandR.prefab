@@ -536,12 +536,17 @@ PrefabInstance:
     - target: {fileID: 54988436631265482, guid: 39555b5a47553dc43920e36acb72c4e5,
         type: 3}
       propertyPath: m_IsKinematic
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 54988436631265482, guid: 39555b5a47553dc43920e36acb72c4e5,
         type: 3}
       propertyPath: m_CollisionDetection
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 138552803602157468, guid: 39555b5a47553dc43920e36acb72c4e5,
+        type: 3}
+      propertyPath: m_ConnectedBody
+      value: 
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
