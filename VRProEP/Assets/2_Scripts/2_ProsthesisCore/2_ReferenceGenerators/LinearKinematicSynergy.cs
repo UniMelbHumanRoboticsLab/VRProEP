@@ -11,6 +11,7 @@ namespace VRProEP.ProsthesisCore
     /// </summary>
     public class LinearKinematicSynergy : AdaptiveGenerator
     {
+
         private bool enableRequested = false;
         private float leftySign = 1.0f;
         
@@ -47,7 +48,7 @@ namespace VRProEP.ProsthesisCore
                 throw new System.ArgumentOutOfRangeException("The channel number should be greater or equal to 0.");
 
             // Check validity of the provided input
-            if (!IsInputValid(input))
+            if (input.Length!=2)
                 throw new System.ArgumentOutOfRangeException("The length of the parameters does not match the number of reference channels.");
 
             // Extract input

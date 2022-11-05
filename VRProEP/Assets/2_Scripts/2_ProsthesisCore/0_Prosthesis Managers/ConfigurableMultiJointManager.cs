@@ -17,15 +17,17 @@ namespace VRProEP.ProsthesisCore
 
 
         private float elbowState = 0.0f;
+        private float wristPronState = 0.0f;
+        private float wristFlexState = 0.0f;
 
         private bool isConfigured = false;
         private bool isEnabled = false;
 
         public bool IsEnabled { get => isEnabled; }
 
-        private float[] xBar = { Mathf.Deg2Rad * -90.0f };
-        private float[] xMin = { Mathf.Deg2Rad * -145.0f };
-        private float[] xMax = { Mathf.Deg2Rad * -0.1f };
+        private float[] xBar = { Mathf.Deg2Rad * -90.0f, Mathf.Deg2Rad * 0.0f, Mathf.Deg2Rad * 0.0f };
+        private float[] xMin = { Mathf.Deg2Rad * -145.0f, Mathf.Deg2Rad * -90.0f, Mathf.Deg2Rad * 0.0f };
+        private float[] xMax = { Mathf.Deg2Rad * -0.1f, Mathf.Deg2Rad * 90.0f, Mathf.Deg2Rad * 0.0f };
 
 
         /// <summary>
@@ -41,11 +43,11 @@ namespace VRProEP.ProsthesisCore
             GameObject residualLimbTrackerGO = GameObject.FindGameObjectWithTag("ResidualLimbTracker");
             // Create a VIVETracker with the obtained transform
             VIVETrackerManager trackerManager = new VIVETrackerManager(residualLimbTrackerGO.transform);
-            
             // Create a basic reference generator: Integrator.
             IntegratorReferenceGenerator integratorRG = new IntegratorReferenceGenerator(xBar, xMin, xMax);
             // Create configurable input manager with the created sensor and RG.
             inputManager = new ConfigurableInputManager(trackerManager, integratorRG);
+
 
             //
             // ElbowManager
@@ -116,9 +118,9 @@ namespace VRProEP.ProsthesisCore
             // Reference generators
             //
             // Add a Linear Kinematic Synergy to the prosthesis
-            float[] theta = { -synValue };
-            float[] thetaMin = { -3.5f };
-            float[] thetaMax = { -0.1f };
+            float[] theta = { -synValue, -synValue, -synValue };
+            float[] thetaMin = { -3.5f, -3.5f, -3.5f };
+            float[] thetaMax = { -0.1f, -0.1f, -0.1f };
             LinearKinematicSynergy linSyn = new LinearKinematicSynergy(xBar, xMin, xMax, theta, thetaMin, thetaMax);
             inputManager.Configure("CMD_ADD_REFGEN", linSyn);
 
@@ -126,6 +128,7 @@ namespace VRProEP.ProsthesisCore
             MLKinematicSynergy mlSyn = new MLKinematicSynergy(xBar, xMin, xMax, theta, thetaMin, thetaMax);
             inputManager.Configure("CMD_ADD_REFGEN", mlSyn);
 
+            /*
             // Add a Jacobian based Kinematic Synergy
             JacobianSynergy jacSyn = new JacobianSynergy(xBar, xMin, xMax, upperArmLength, lowerArmLength);
             inputManager.Configure("CMD_ADD_REFGEN", jacSyn);
@@ -136,11 +139,6 @@ namespace VRProEP.ProsthesisCore
             emgGains.Add(0.015f);
             EMGInterfaceReferenceGenerator emgRG = new EMGInterfaceReferenceGenerator(xBar, xMin, xMax, emgGains, EMGInterfaceType.dualSiteProportional);
             inputManager.Configure("CMD_ADD_REFGEN", emgRG);
-
-            // Add ANN reference generator
-            /*
-            Initiate the ANN reference generator object here
-            Configure the input manager
             */
 
             // Enable
@@ -155,10 +153,12 @@ namespace VRProEP.ProsthesisCore
             {
                 // Update references
                 elbowState = inputManager.GenerateReference(0);
+                wristPronState = inputManager.GenerateReference(1);
+                wristFlexState = inputManager.GenerateReference(2);
                 // Update device state
                 elbowManager.UpdateState(0, elbowState);
-                wristPronManager.UpdateState(0, 0); ;
-                wristFlexManager.UpdateState(0, 0); ;
+                wristPronManager.UpdateState(0, wristPronState); ;
+                wristFlexManager.UpdateState(0, wristFlexState); ;
                 isEnabled = inputManager.IsEnabled();
             }
         }

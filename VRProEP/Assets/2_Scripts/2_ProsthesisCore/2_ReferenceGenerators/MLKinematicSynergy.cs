@@ -10,10 +10,10 @@ namespace VRProEP.ProsthesisCore
     public class MLKinematicSynergy : AdaptiveGenerator
     {
         public const int ZMQ_PULL_PORT = 7000;
-        public const float INI_ELBOW = 90.0f;
+        public static readonly float[] INI_POSE = { 90.0f, 0.0f, 0.0f };
 
         private float prevShoulderFE = 0;
-        private float prevElbowFE = INI_ELBOW;
+        private float prevElbowFE = INI_POSE[0];
 
         private float theta = 1.0f;
         private float alpha = 0.5f;
@@ -44,16 +44,22 @@ namespace VRProEP.ProsthesisCore
         /// <returns>The updated reference.</returns>
         public override float UpdateReference(int channel, float[] input)
         {
-            if(channel == 0) 
-                xBar = ZMQSystem.GetLatestPulledData(ZMQ_PULL_PORT);
+            if (channel >= channelSize)
+                throw new System.ArgumentOutOfRangeException("The requested channel number is greater than the available number of channels.");
+            else if (channel < 0)
+                throw new System.ArgumentOutOfRangeException("The channel number should be greater or equal to 0.");
+
+           
+            xBar = ZMQSystem.GetLatestPulledData(ZMQ_PULL_PORT);
 
             if (xBar == null)
-                return - Mathf.Deg2Rad * INI_ELBOW;
+                return - Mathf.Deg2Rad * INI_POSE[channel];
             else  
             {
                 //Debug.Log("ML Ref:" + Mathf.Rad2Deg * xBar[channel]);
                 return -xBar[channel];
 
+                #region old version
                 /*
                 float elbowRef = xBar[channel]; //Elbow ref in rad
                 float currentShoulderFE = input[0]; 
@@ -99,6 +105,8 @@ namespace VRProEP.ProsthesisCore
                 //Debug.Log("Ref" +  elbowRef);
                 //Debug.Log("Current EFE" + Mathf.Rad2Deg * currentElbowFE);
                 //Debug.Log("Current SFE" + Mathf.Rad2Deg * currentShoulderFE);
+                #endregion 
+
 
             }
 

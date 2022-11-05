@@ -465,7 +465,7 @@ namespace VRProEP.GameEngineCore
                 throw new System.Exception("The requested hand information was not found.");
 
             // Instantiate with prosthesis manager as parent.
-            float handOffset = upperArmLength + lowerArmLength + (activeHandData.dimensions.x / 2.0f);
+            float handOffset = upperArmLength + lowerArmLength; // + (activeHandData.dimensions.x / 2.0f);
             GameObject handGO = Object.Instantiate(handPrefab, new Vector3(handPrefab.transform.localPosition.x, -handOffset, handPrefab.transform.localPosition.z), handPrefab.transform.localRotation, prosthesisManagerGO.transform);
 
             // Scale hand to fit user's hand

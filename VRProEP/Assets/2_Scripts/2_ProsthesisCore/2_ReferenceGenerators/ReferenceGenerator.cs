@@ -2,6 +2,8 @@
 
 namespace VRProEP.ProsthesisCore
 {
+
+
     public enum ReferenceGeneratorType
     {
         PointGradient,

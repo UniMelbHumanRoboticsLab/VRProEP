@@ -6,8 +6,8 @@ namespace VRProEP.ProsthesisCore
     public class IdealJointManager : BasicDeviceManager
     {
         // sensor and controllers unnecessary for this elbow device.
-        private HingeJoint elbowJoint;
-        private JointSpring eJointSpring;
+        private HingeJoint joint;
+        private JointSpring jointSpring;
         /// <summary>
         /// Manager for a virtual elbow prosthetic device with ideal tracking.
         /// </summary>
@@ -17,14 +17,34 @@ namespace VRProEP.ProsthesisCore
             if (elbowJoint == null)
                 throw new System.ArgumentNullException("The provided HingeJoint object is empty.");
 
-            this.elbowJoint = elbowJoint;
+            this.joint = elbowJoint;
 
             // Configure spring
-            eJointSpring = this.elbowJoint.spring;
-            eJointSpring.spring = 1000.0f;
-            eJointSpring.damper = 30.0f;
-            this.elbowJoint.useSpring = true;
-            this.elbowJoint.spring = eJointSpring;
+            jointSpring = this.joint.spring;
+            jointSpring.spring = 1000.0f;
+            jointSpring.damper = 30.0f;
+            this.joint.useSpring = true;
+            this.joint.spring = jointSpring;
+        }
+
+        /// <summary>
+        /// Manager for a virtual elbow prosthetic device with ideal tracking
+        /// Spring and damper customisabel
+        /// </summary>
+        /// <param name="sensor">The Unity HingeJoint for the elbow.</param>
+        public IdealJointManager(HingeJoint elbowJoint, float spring, float damper)
+        {
+            if (elbowJoint == null)
+                throw new System.ArgumentNullException("The provided HingeJoint object is empty.");
+
+            this.joint = elbowJoint;
+
+            // Configure spring
+            jointSpring = this.joint.spring;
+            jointSpring.spring = spring;
+            jointSpring.damper = damper;
+            this.joint.useSpring = true;
+            this.joint.spring = jointSpring;
         }
 
         /// <summary>
@@ -40,8 +60,8 @@ namespace VRProEP.ProsthesisCore
             if (channel != 0)
                 throw new System.ArgumentException("Only channel 0 available since 1DOF.");
 
-            eJointSpring.targetPosition = (float)System.Math.Round(Mathf.Rad2Deg*reference, 1);
-            elbowJoint.spring = eJointSpring;
+            jointSpring.targetPosition = (float)System.Math.Round(Mathf.Rad2Deg*reference, 1);
+            joint.spring = jointSpring;
         }
 
         /// <summary>
