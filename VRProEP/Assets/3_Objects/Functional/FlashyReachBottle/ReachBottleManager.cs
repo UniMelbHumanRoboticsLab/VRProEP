@@ -62,7 +62,7 @@ public class ReachBottleManager : MonoBehaviour
     {
         bottleInHand = GameObject.FindGameObjectWithTag("Bottle");
         bottleRenderer = GetComponent<Renderer>();
-        Debug.Log(bottleRenderer.ToString());
+        //Debug.Log(bottleRenderer.ToString());
         allRenderer = GetComponentsInChildren<Renderer>();
         //bottleRenderer = allRenderer[0];
         baseRenderer = allRenderer[0];

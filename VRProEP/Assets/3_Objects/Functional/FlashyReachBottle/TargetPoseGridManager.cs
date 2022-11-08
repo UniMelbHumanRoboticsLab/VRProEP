@@ -6,13 +6,26 @@ using VRProEP.GameEngineCore;
 
 public class TargetPoseGridManager : MonoBehaviour
 {
-    public const string ADD_SFE_POSE = "ADD_SFE_POSE";
-    public const string ADD_EFE_POSE = "ADD_EFE_POSE";
-    public const string ADD_WPS_POSE = "ADD_WPS_POSE";
-    public const string ADD_WFE_POSE = "ADD_WFE_POSE";
+    public const string SFE_POSE = "ADD_SFE_POSE";
+    public const string SAA_POSE = "ADD_SAA_POSE";
+    public const string SR_POSE = "ADD_SR_POSE";
+    public const string EFE_POSE = "ADD_EFE_POSE";
+    public const string WPS_POSE = "ADD_WPS_POSE";
+    public const string WFE_POSE = "ADD_WFE_POSE";
+    public const string WAA_POSE = "ADD_WAA_POSE";
+
+    private const int SFE_DOF = 0;
+    private const int SAA_DOF = 1;
+    private const int SR_DOF = 2;
+    private const int EFE_DOF = 3;
+    private const int WPS_DOF = 4;
+    private const int WFE_DOF = 5;
+    private const int WAA_DOF = 6;
+
+    private const int MAX_DOF = 7;
 
     // Config variables
-    public enum TargetType { Bottle, Ball}
+    public enum TargetType { Bottle, Ball }
 
     [Header("Objects")]
     [SerializeField]
@@ -73,13 +86,8 @@ public class TargetPoseGridManager : MonoBehaviour
 
 
     // Target pose list
-    
-    private List<float> qShoulderFlexionExtension = new List<float>();
-    private List<float> qElbowFlexionExtension = new List<float>();
-    private List<float> qWristPronationSupination = new List<float>();
-    private List<float> qWristFlexionExtension = new List<float>();
+    private List<List<float>> qJoints = new List<List<float>>();
     private List<float[]> qUpperLimb = new List<float[]>();
-
 
 
     // Postion of rotations of the bottles in the grid
@@ -87,12 +95,11 @@ public class TargetPoseGridManager : MonoBehaviour
     private List<Vector3> elbowPositions = new List<Vector3>();// List of the elbow postions
     private List<Vector3> wristPositions = new List<Vector3>();// List of the wrist postions
     private List<Quaternion> targetRotations = new List<Quaternion>();// List of the target rotations
-    private List<float[]> targetPoseList = new List<float[]>();// List of the target poses
 
     [Header("Bottle Offsets")]
-    [SerializeField] [Range(-0.1f, 0.1f)] private float xOffestBottle; 
-    [SerializeField] [Range(-0.1f, 0.1f)] private float yOffestBottle; 
-    [SerializeField] [Range(-0.1f, 0.1f)] private float zOffestBottle; 
+    [SerializeField] [Range(-0.1f, 0.1f)] private float xOffestBottle;
+    [SerializeField] [Range(-0.1f, 0.1f)] private float yOffestBottle;
+    [SerializeField] [Range(-0.1f, 0.1f)] private float zOffestBottle;
 
 
 
@@ -102,7 +109,7 @@ public class TargetPoseGridManager : MonoBehaviour
     private bool selectedTouched = false;
 
     // Subject information
-    
+
     [Header("Height to acromion")]
     [SerializeField]
     private float subjectHeight2SA;
@@ -149,7 +156,7 @@ public class TargetPoseGridManager : MonoBehaviour
             else
                 return bottles.Count;
         }
-                             }
+    }
     public TargetType CurrentTargetType { get => targetType; set => targetType = value; }
 
 
@@ -213,6 +220,10 @@ public class TargetPoseGridManager : MonoBehaviour
     {
 
         ConfigUserData();
+        // Initialise the joint pose list
+        for (int i = 1; i <= MAX_DOF; i++)
+            qJoints.Add(new List<float>());
+
         // Debug
         if (debug)
         {
@@ -221,20 +232,12 @@ public class TargetPoseGridManager : MonoBehaviour
             AddJointPose("ADD_EFE_POSE", new float[4] { 0, 30, 60, 90 });
             AddJointPose("ADD_WPS_POSE", new float[3] { 0, 70, -70});
             */
-            //AddJointPose(new float[4] {30, 0, 45, -70});
-            //AddJointPose(new float[4] { 80, 0, 130, 0 });
 
-            //AddJointPose(new float[4] { 10, 0, 70, 0 });
-            //AddJointPose(new float[4] { 80, 0, 10, -70 });
-            //AddJointPose(new float[4] { 40, 0, 30, 0 }); AddJointPose(new float[4] { 60, 0, 30, 0 }); AddJointPose(new float[4] { 80, 0, 30, 0 });
-            //AddJointPose(new float[4] { 40, 0, 55, 0 }); AddJointPose(new float[4] { 60, 0, 55, 0 }); AddJointPose(new float[4] { 80, 0, 55, 0 });
-            //AddJointPose(new float[4] { 40, 0, 80, 0 }); AddJointPose(new float[4] { 60, 0, 80, 0 }); AddJointPose(new float[4] { 80, 0, 80, 0 });
-
-            AddJointPose(new float[5] { 40, 0, 60, 60, 0 });
+            //AddUpperLimbPose(new float[5] { 40, 0, 60, 60, 0 });
             //GenerateTargetLocations();
-            SpawnTargetGrid();
-            InitialiseLimb();
-            SelectTarget(0);
+            //SpawnTargetGrid();
+            //InitialiseLimb();
+            //SelectTarget(0);
         }
 
     }
@@ -250,15 +253,26 @@ public class TargetPoseGridManager : MonoBehaviour
             GenerateTargetLocations(); // Update the locations if there is any change in the offset
             ShowLimbPose(selectedIndex);
         }
-        if (Input.GetKeyDown(KeyCode.F2)) //Update the grid parameters and select the next target
+        if (Input.GetKeyDown(KeyCode.F2)) //select the next target
         {
             selectedIndex = selectedIndex + 1;
-            if (selectedIndex > balls.Count - 1)
-                selectedIndex = 0;
-            UpdateUserData();
-            GenerateTargetLocations(); // Update the locations if there is any change in the offset
+            switch (targetType)
+            {
+                case TargetType.Ball:
+                    if (selectedIndex > balls.Count - 1)
+                    selectedIndex = 0;
+                    break;
+                case TargetType.Bottle:
+                    if ( selectedIndex > bottles.Count - 1)
+                    selectedIndex = 0;
+                    break;
+            }
+            
+            //UpdateUserData();
+            //GenerateTargetLocations(); // Update the locations if there is any change in the offset
             SelectTarget(selectedIndex);
-                
+            Debug.Log(selectedIndex);
+
         }
         if (Input.GetKeyDown(KeyCode.F3)) //Restore the grid parameters 
         {
@@ -268,7 +282,7 @@ public class TargetPoseGridManager : MonoBehaviour
 
         }
         //}
-
+    
 
         // Check if the selected bottle is reached or not
         CheckReached();
@@ -284,7 +298,7 @@ public class TargetPoseGridManager : MonoBehaviour
     /// <returns bool reached>
     private void CheckReached()
     {
-      
+
         // Check if the selected ball has been touched
 
         if (hasSelected)
@@ -305,7 +319,7 @@ public class TargetPoseGridManager : MonoBehaviour
                         selectedTouched = false;
                     break;
             }
-            
+
         }
         //Debug.Log(this.bottles[selectedIndex].BottleState.ToString());
     }
@@ -329,74 +343,38 @@ public class TargetPoseGridManager : MonoBehaviour
 
         Vector3 shoulderCentre = shoulderCentreLoc.position;
 
-        #region Depreacted
-        /*
-       foreach (float qSfe in qShoulderFlexionExtension)
-       {
-           foreach (float qEfe in qElbowFlexionExtension)
-           {
-               foreach (float qWps in qWristPronationSupination)
-               { 
-                   Vector3 target = new Vector3();
-                   Vector3 elbow = new Vector3();
-                   Vector3 wrist = new Vector3();
-
-                   elbow.x = shoulderCentre.x + subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe);
-                   elbow.y = shoulderCentre.y - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qSfe);
-                   elbow.z = shoulderCentre.z;
-                   AddElbowLocation(elbow);
-
-                   wrist.x = elbow.x + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
-                   wrist.y = elbow.y - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
-                   wrist.z = shoulderCentre.z;
-                   AddWristLocation(wrist);
-
-                   target.x = elbow.x + (subjectFALength + subjectHandLength) * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
-                   target.y = elbow.y - (subjectFALength + subjectHandLength) * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
-                   target.z = shoulderCentre.z + this.sagittalOffset;
-                   AddTargetLocation(target);
-
-                   targetPoseList.Add(new float[]{qSfe,qEfe,qWps});
-               }
-           }
-
-       }
-       */
-        #endregion
-
 
         foreach (float[] qUA in qUpperLimb)
         {
-            float qSfe = qUA[0];
-            float qSaa = qUA[1];
-            float qEfe = qUA[2];
-            float qWps = qUA[3];
-            float qWfe = qUA[4];
+            float qSfe = qUA[SFE_DOF];
+            float qSaa = qUA[SAA_DOF];
+            float qEfe = qUA[EFE_DOF];
+            float qWps = qUA[WPS_DOF];
+            float qWfe = qUA[WFE_DOF];
 
             Vector3 target = new Vector3();
             Vector3 elbow = new Vector3();
             Vector3 wrist = new Vector3();
 
-            elbow.z = shoulderCentre.z + subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe); 
+            elbow.z = shoulderCentre.z + subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe);
             elbow.y = shoulderCentre.y - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qSfe);
             elbow.x = shoulderCentre.x;
             AddElbowLocation(elbow);
 
-            wrist.z = elbow.z + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe)); 
+            wrist.z = elbow.z + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
             wrist.y = elbow.y - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
             wrist.x = shoulderCentre.x;
-            //wrist = Quaternion.Euler(0, -90, 0) * wrist;
             AddWristLocation(wrist);
-            
+
             Vector3 tempX = wrist - elbow;
             tempX.Normalize();
 
 
             GameObject tempGO = new GameObject("TargetPoint"); // temp gamobject describes hand orientation
             tempGO.transform.position = wrist;
-            tempGO.transform.rotation = Quaternion.LookRotation(tempX,Vector3.left);
+            tempGO.transform.rotation = Quaternion.LookRotation(tempX, Vector3.left);
 
-            tempGO.transform.localRotation *= Quaternion.Euler(0, 0, qWps);
+            tempGO.transform.localRotation *= Quaternion.Euler(0, 0, qWps + 90.0f);
             tempGO.transform.localRotation *= Quaternion.Euler(0, qWfe, 0);
             tempGO.transform.Translate(new Vector3(0, 0, subjectHandLength), Space.Self);
 
@@ -404,10 +382,8 @@ public class TargetPoseGridManager : MonoBehaviour
             AddTargetLocation(tempGO.transform.position);
             AddTargetRotation(tempGO.transform.rotation);
 
-            targetPoseList.Add(new float[] { qSfe, qEfe, qWps, qWfe});
 
             Destroy(tempGO);
-
         }
 
     }
@@ -419,7 +395,6 @@ public class TargetPoseGridManager : MonoBehaviour
     /// <returns 
     private void ClearTargetLocations()
     {
-        targetPoseList.Clear();
         targetPositions.Clear();
         targetRotations.Clear();
         elbowPositions.Clear();
@@ -509,7 +484,7 @@ public class TargetPoseGridManager : MonoBehaviour
         upperarmGO = Instantiate(upperArmPrefab);
         upperarmGO.GetComponentInChildren<LimbFollower>().enabled = false;
         foreach (MeshRenderer renderer in upperarmGO.GetComponentsInChildren<MeshRenderer>())
-           renderer.sharedMaterial = mMaterial;
+            renderer.sharedMaterial = mMaterial;
 
         forearmGO = Instantiate(foreArmPrefab);
         forearmGO.GetComponent<LimbFollower>().enabled = false;
@@ -526,7 +501,7 @@ public class TargetPoseGridManager : MonoBehaviour
             wristHandGO = Instantiate(wrisHandLPrefab);
         wristHandGO.transform.Find("ACESHand_" + side).gameObject.GetComponent<MeshRenderer>().sharedMaterial = mMaterial;
 
-        
+
 
         //
         // Scale the 3D model
@@ -557,8 +532,8 @@ public class TargetPoseGridManager : MonoBehaviour
         forearmGO.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
 
         scaleFactor = subjectHandLength / activeHandData.dimensions.x;
-        wristHandGO.transform.Find("ACESHand_"+side).gameObject.transform.localScale = new Vector3(sign * scaleFactor, sign * scaleFactor, sign * scaleFactor);
-        
+        wristHandGO.transform.Find("ACESHand_" + side).gameObject.transform.localScale = new Vector3(sign * scaleFactor, sign * scaleFactor, sign * scaleFactor);
+
 
         //
         //Initial display
@@ -585,15 +560,16 @@ public class TargetPoseGridManager : MonoBehaviour
             for (int i = 0; i <= targetPositions.Count - 1; i++)
             {
                 bottles[i].transform.position = targetPositions[i];
+                bottles[i].transform.Translate(new Vector3(xOffestBottle, yOffestBottle, zOffestBottle), Space.Self);
                 bottles[i].transform.rotation = targetRotations[i];
                 bottles[i].transform.localRotation *= Quaternion.Euler(0, 0, 180);
                 bottles[i].transform.localRotation *= Quaternion.Euler(0, -90, 0);
-                bottles[i].transform.Translate(new Vector3(xOffestBottle, yOffestBottle, zOffestBottle), Space.Self);
+                
             }
-     
+
         }
-            
-        
+
+
 
         //Display the limb as lines
         uaLine.SetPosition(0, shoulderCentreLoc.position);
@@ -631,51 +607,177 @@ public class TargetPoseGridManager : MonoBehaviour
 
     #region public methods
     /// <summary>
-    /// Add the joint pose
+    /// Add the joint pose, by dof name and angle value
     /// </summary>
     /// <param >
     /// <returns 
     public void AddJointPose(string type, float[] angle)
     {
-        
+
         switch (type)
         {
-            case ADD_SFE_POSE:
+            case SFE_POSE:
                 foreach (float value in angle)
-                {
-                    qShoulderFlexionExtension.Add(value);
-                }
+                    qJoints[SFE_DOF].Add(value);
                 break;
-            case ADD_EFE_POSE:
+            case SAA_POSE:
                 foreach (float value in angle)
-                {
-                    qElbowFlexionExtension.Add(value);
-                }
+                    qJoints[SAA_DOF].Add(value);
                 break;
-            case ADD_WPS_POSE:
+            case SR_POSE:
                 foreach (float value in angle)
-                {
-                    qWristPronationSupination.Add(value);
-                }
+                    qJoints[SR_DOF].Add(value);
                 break;
-
-            case ADD_WFE_POSE:
+            case EFE_POSE:
                 foreach (float value in angle)
-                {
-                    qWristFlexionExtension.Add(value);
-                }
+                    qJoints[EFE_DOF].Add(value);
+                break;
+            case WPS_POSE:
+                foreach (float value in angle)
+                    qJoints[WPS_DOF].Add(value);
                 break;
 
+            case WFE_POSE:
+                foreach (float value in angle)
+                    qJoints[WFE_DOF].Add(value);
+                break;
+
+            case WAA_POSE:
+                foreach (float value in angle)
+                    qJoints[WAA_DOF].Add(value);
+                break;
         }
-        
+
 
     }
 
-    public void AddJointPose(float[] angle)
+
+    /// <summary>
+    /// Add the joint pose, by joint angles in serial
+    /// </summary>
+    /// <param >
+    /// <returns 
+    public void AddUpperLimbPose(float[] angle)
     {
         qUpperLimb.Add(angle);
     }
 
+
+    /// <summary>
+    /// Generate combinations of the potential joint poses and save in a upper limb pose list.
+    /// </summary>
+    /// <param >
+    /// <returns 
+    public void CombJointPose(string[] dof)
+    {
+        // Active DoF
+        List<int> t_dof = new List<int>();
+        foreach (string element in dof)
+        {
+            switch (element)
+            {
+                case SFE_POSE:
+                    t_dof.Add(SFE_DOF);
+                    break;
+                case SAA_POSE:
+                    t_dof.Add(SAA_DOF);
+                    break;
+                case SR_POSE:
+                    t_dof.Add(SR_DOF);
+                    break;
+                case EFE_POSE:
+                    t_dof.Add(EFE_DOF);
+                    break;
+                case WPS_POSE:
+                    t_dof.Add(WPS_DOF);
+                    break;
+                case WFE_POSE:
+                    t_dof.Add(WFE_DOF);
+                    break;
+                case WAA_POSE:
+                    t_dof.Add(WAA_DOF);
+                    break;
+            }
+        }
+
+        // How many DoFs
+        int nDof = t_dof.Count;
+        // Track the indices in each DoF's list
+        int[] indices = new int[nDof];
+        // Initialise with the first element
+        for (int i = 0; i < nDof; i++)
+            indices[i] = 0;
+
+       
+        /*
+        float[] temp = new float[MAX_DOF];
+
+        foreach (var element in t_dof)
+            temp[element] = qJoints[element][0];
+        Debug.Log("Upper limb pose:" + ":" + string.Join(",", temp));
+        qUpperLimb.Add(temp);
+        */
+
+        
+        while (true)
+        {
+            // Current combination
+            float[] temp = new float[MAX_DOF];
+            for (int i = 0; i < nDof; i++)
+                temp[t_dof[i]] = qJoints[t_dof[i]][indices[i]];
+
+            AddUpperLimbPose(temp);
+            //Debug.Log("Upper limb pose:" + ":" + string.Join(",", temp));
+
+
+            // Find the rightmost array
+            // that has more elements
+            // left after the current
+            // element in that array
+            int next = nDof - 1;
+            while (next >= 0 &&
+                  (indices[next] + 1 >=
+                   qJoints[t_dof[next]].Count))
+                next--;
+
+            // No such array is found
+            // so no more combinations left
+            if (next < 0)
+            {
+                Debug.Log("Total number of poses: " + qUpperLimb.Count);
+                return;
+                
+            }
+                
+
+            // If found move to next
+            // element in that array
+            indices[next]++;
+
+            // For all arrays to the right
+            // of this array current index
+            // again points to first element
+            for (int i = next + 1; i < nDof; i++)
+                indices[i] = 0;
+        }
+        
+        
+
+
+    }
+
+
+    /// <summary>
+    /// Generate combinations of the potential joint poses and save in a upper limb pose list.
+    /// </summary>
+    /// <param >
+    /// <returns 
+    public List<int> RandomiseTargets()
+    {
+        List<int> targetOrder = new List<int>();
+
+        return targetOrder;
+    }
 
 
     /// <summary>
@@ -686,7 +788,6 @@ public class TargetPoseGridManager : MonoBehaviour
     public void SpawnTargetGrid()
     {
         GenerateTargetLocations();
-        
         for (int i = 0; i <= targetPositions.Count-1; i++)
         {
 
@@ -707,29 +808,24 @@ public class TargetPoseGridManager : MonoBehaviour
             }
 
             // Only bottle will use rotation requirements
-            for (int j = 0; j <= targetPositions.Count-1; j++)
+            if (targetType == TargetType.Bottle)
             {
+                // Spawn a new bottle with this as parent
+                GameObject target = Instantiate(reachBottlePrefab, this.transform);
+                // Move the local position of the ball.
+                target.transform.position = targetPositions[i];
+                target.transform.rotation = targetRotations[i];
 
-                if (targetType == TargetType.Bottle)
-                {
-                    // Spawn a new bottle with this as parent
-                    GameObject target = Instantiate(reachBottlePrefab, this.transform);
-                    // Move the local position of the ball.
-                    target.transform.position = targetPositions[i];
-                    target.transform.rotation = targetRotations[i];
+                // Add bottle to collection
+                ReachBottleManager manager = target.GetComponent<ReachBottleManager>();
+                bottles.Add(manager);
 
-                    // Add bottle to collection
-                    ReachBottleManager manager = target.GetComponent<ReachBottleManager>();
-                    bottles.Add(manager);
-
-                    // Eable the in hand bottle
-                    bottleInHand.SetActive(true);
-                    manager.SetBottlInHand(this.bottleInHand); // Set in hand bottle gameobject 
-                }
+                // Eable the in hand bottle
+                bottleInHand.SetActive(true);
+                manager.SetBottlInHand(this.bottleInHand); // Set in hand bottle gameobject 
+            }
 
                 
- 
-            }
         }
 
         InitialiseLimb();

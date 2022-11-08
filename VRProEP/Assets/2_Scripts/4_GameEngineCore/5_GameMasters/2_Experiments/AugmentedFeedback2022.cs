@@ -683,19 +683,12 @@ public class AugmentedFeedback2022 : GameMaster
         #region Spawn grid
         // Spawn the grid
         //gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
+        gridManager.AddJointPose(TargetPoseGridManager.SFE_POSE, new float[3] {40, 60, 80});
+        gridManager.AddJointPose(TargetPoseGridManager.EFE_POSE, new float[3] {30,30,30});
+        gridManager.AddJointPose(TargetPoseGridManager.WPS_POSE, new float[3] {-45, 0, 45});
+        gridManager.AddJointPose(TargetPoseGridManager.WFE_POSE, new float[3] {0, 0, 0 });
+        gridManager.CombJointPose(new string[] { TargetPoseGridManager.SFE_POSE, TargetPoseGridManager.EFE_POSE, TargetPoseGridManager.WPS_POSE });
 
-        gridManager.AddJointPose(new float[5] { 60, 0, 30, 45, 0 });
-        /*
-        gridManager.AddJointPose(new float[5] { 60, 0, 55, 90, 0 });
-        gridManager.AddJointPose(new float[5] { 50, 0, 80, 90, 0 });
-        gridManager.AddJointPose(new float[5] { 40, 0, 80, 90, 0 });
-        gridManager.AddJointPose(new float[5] { 30, 0, 80, 90, 0 });
-        gridManager.AddJointPose(new float[5] { 20, 0, 80, 90, 0 });
-        gridManager.AddJointPose(new float[5] { 25, 0, 80, 90, 0 });
-        gridManager.AddJointPose(new float[5] { 15, 0, 80, 90, 0 });
-        gridManager.AddJointPose(new float[5] { 10, 0, 80, 90, 0 });
-        gridManager.AddJointPose(new float[5] { 5, 0, 80, 90, 0 });
-        */
         gridManager.SpawnTargetGrid();
         Debug.Log("Spawn the grid!");
         #endregion
