@@ -111,7 +111,7 @@ namespace VRProEP.GameEngineCore
         /// </summary>
         /// <param name="userData">The user's data to be used for avatar loading.</param>
         /// <param name="avatarType">The type of avatar to load.</param>
-        public static void LoadAvatar(UserData userData, AvatarType avatarType, bool isNew = true)
+        public static void LoadAvatar(UserData userData, AvatarType avatarType, bool isNew = true, bool useController = true)
         {
             if (!IsPlayerAvailable)
                 throw new System.Exception("Player object has not been loaded. First load the player object.");
@@ -152,7 +152,7 @@ namespace VRProEP.GameEngineCore
             else if (avatarType == AvatarType.AbleBodied)
             {
                 activeAvatarType = AvatarType.AbleBodied;
-                AvatarSpawner.SpawnAbleBodiedAvatar(userData, activeAvatarData, isNew);
+                AvatarSpawner.SpawnAbleBodiedAvatar(userData, activeAvatarData, isNew, useController);
             }
 
             isAvatarAvaiable = true;

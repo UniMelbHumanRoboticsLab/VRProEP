@@ -69,6 +69,8 @@ public class AugmentedFeedback2022 : GameMaster
     [Header("Avatar option")]
     [SerializeField]
     private bool amputeeAvatar;
+    [SerializeField]
+    private bool controlllerHand;
 
     [Header("Flags")]
     // If allow using controller to complete tasks
@@ -221,6 +223,8 @@ public class AugmentedFeedback2022 : GameMaster
 
     #endregion
 
+    private int selectIdx = 0;
+
 
     #region Dynamic configuration
 
@@ -243,7 +247,22 @@ public class AugmentedFeedback2022 : GameMaster
 
     protected override void FixedUpdate()
     {
+
+        // Manully select targets, for debug only
+        if (debug)
+        {
+            if (Input.GetKeyDown(KeyCode.F4))
+            {
+                Debug.Log(selectIdx);
+                gridManager.SelectTarget(targetOrder[selectIdx]);
+                selectIdx++;
+                if (selectIdx >= targetOrder.Count)
+                    selectIdx = 0;
+            }
+        }
        
+           
+
         // Override fixed update to start the emg recording when the start performing the task
         if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK && delsysEnable && !emgIsRecording )
         {
@@ -290,7 +309,7 @@ public class AugmentedFeedback2022 : GameMaster
             else
             {
                 AvatarSystem.LoadPlayer(SaveSystem.ActiveUser.type, AvatarType.AbleBodied);
-                AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.AbleBodied);
+                AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.AbleBodied,true,controlllerHand);
             }
             
 
@@ -683,10 +702,10 @@ public class AugmentedFeedback2022 : GameMaster
         #region Spawn grid
         // Spawn the grid
         //gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
-        gridManager.AddJointPose(TargetPoseGridManager.SFE_POSE, new float[3] {40, 60, 80});
-        gridManager.AddJointPose(TargetPoseGridManager.EFE_POSE, new float[3] {30,30,30});
-        gridManager.AddJointPose(TargetPoseGridManager.WPS_POSE, new float[3] {-45, 0, 45});
-        gridManager.AddJointPose(TargetPoseGridManager.WFE_POSE, new float[3] {0, 0, 0 });
+        gridManager.AddJointPose(TargetPoseGridManager.SFE_POSE, new float[3] {40,60,80});
+        gridManager.AddJointPose(TargetPoseGridManager.EFE_POSE, new float[3] {30,60,90});
+        gridManager.AddJointPose(TargetPoseGridManager.WPS_POSE, new float[3] {-45, 0,45});
+        gridManager.AddJointPose(TargetPoseGridManager.WFE_POSE, new float[3] { 0, 0 ,0 });
         gridManager.CombJointPose(new string[] { TargetPoseGridManager.SFE_POSE, TargetPoseGridManager.EFE_POSE, TargetPoseGridManager.WPS_POSE });
 
         gridManager.SpawnTargetGrid();
@@ -700,16 +719,19 @@ public class AugmentedFeedback2022 : GameMaster
         iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget[sessionNumber-1];
 
         // Create the list of target indexes and shuffle it.
+        List<int> tempOrder = new List<int>();
         for (int i = 0; i < targetNumber; i++)
         {
             for (int j = 0; j < iterationsPerTarget[sessionNumber - 1]; j++)
             {
-                targetOrder.Add(i);
-                //Debug.Log(targetOrder[targetOrder.Count - 1]);
-            }
+                tempOrder.Add(i);
                 
+            }
         }
-        targetOrder.Shuffle();
+        
+        int batchSize = 3;
+        targetOrder = gridManager.SequentialRandomise(tempOrder, batchSize);
+        Debug.Log("Total trials:" + targetOrder.Count);
         Debug.Log("Current target pose number: " + targetOrder[iterationNumber - 1]);
 
 
@@ -1027,17 +1049,24 @@ public class AugmentedFeedback2022 : GameMaster
         {
             float[] zmqData = new float[] { 1, taskTime };
 
-            float[] pose = PosturalFeatureExtractor.extractTrunkPose(c7InitOrient, c7Tracker.GetTrackerTransform().rotation);
+            float[] pose = PosturalFeatureExtractor.ExtractTrunkPose(c7InitOrient, c7Tracker.GetTrackerTransform().rotation);
             var temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
 
-            pose = PosturalFeatureExtractor.extractScapularPose(c7InitOrient, shInitOrient, c7Tracker.GetTrackerTransform().rotation, shoulderTracker.GetTrackerTransform().rotation, SaveSystem.ActiveUser.shoulderBreadth);
+            pose = PosturalFeatureExtractor.ExtractScapularPose(c7InitOrient, shInitOrient, c7Tracker.GetTrackerTransform().rotation, shoulderTracker.GetTrackerTransform().rotation, SaveSystem.ActiveUser.shoulderBreadth);
             //pose = PosturalFeatureExtractor.extractScapularPose(initialPosition[trackNum - offset], initialPosition[trackNum - offset - 1], 
                                                                 //c7Tracker.GetTrackerTransform().position, shoulderTracker.GetTrackerTransform().position, c7Tracker.GetTrackerTransform().rotation);
             temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
 
 
 
-            pose = PosturalFeatureExtractor.extractShoulderPose(c7Tracker.GetTrackerTransform().rotation, upperArmTracker.GetTrackerTransform().rotation);
+            pose = PosturalFeatureExtractor.ExtractShoulderPose(c7Tracker.GetTrackerTransform().rotation, upperArmTracker.GetTrackerTransform().rotation);
+            temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
+
+            pose = PosturalFeatureExtractor.ExtractElbowPose(upperArmTracker.GetTrackerTransform().rotation, lowerArmTracker.GetTrackerTransform().rotation);
+            temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
+            pose = PosturalFeatureExtractor.ExtractWristPose(upperArmTracker.GetTrackerTransform().rotation, lowerArmTracker.GetTrackerTransform().rotation);
             temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
 
             // Log the postural features

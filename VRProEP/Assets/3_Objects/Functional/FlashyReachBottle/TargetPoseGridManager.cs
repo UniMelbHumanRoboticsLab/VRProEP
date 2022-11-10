@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using VRProEP.GameEngineCore;
 
+using System.Linq;
+using VRProEP.Utilities;
 
 public class TargetPoseGridManager : MonoBehaviour
 {
@@ -88,13 +90,17 @@ public class TargetPoseGridManager : MonoBehaviour
     // Target pose list
     private List<List<float>> qJoints = new List<List<float>>();
     private List<float[]> qUpperLimb = new List<float[]>();
+    private List<float[]> targetPoseList = new List<float[]>();
 
+    // Required dofs
+    private List<int> dofList = new List<int>();
 
     // Postion of rotations of the bottles in the grid
     private List<Vector3> targetPositions = new List<Vector3>();// List of the target postions
     private List<Vector3> elbowPositions = new List<Vector3>();// List of the elbow postions
     private List<Vector3> wristPositions = new List<Vector3>();// List of the wrist postions
     private List<Quaternion> targetRotations = new List<Quaternion>();// List of the target rotations
+
 
     [Header("Bottle Offsets")]
     [SerializeField] [Range(-0.1f, 0.1f)] private float xOffestBottle;
@@ -700,6 +706,8 @@ public class TargetPoseGridManager : MonoBehaviour
             }
         }
 
+        dofList.AddRange(t_dof);
+
         // How many DoFs
         int nDof = t_dof.Count;
         // Track the indices in each DoF's list
@@ -708,15 +716,6 @@ public class TargetPoseGridManager : MonoBehaviour
         for (int i = 0; i < nDof; i++)
             indices[i] = 0;
 
-       
-        /*
-        float[] temp = new float[MAX_DOF];
-
-        foreach (var element in t_dof)
-            temp[element] = qJoints[element][0];
-        Debug.Log("Upper limb pose:" + ":" + string.Join(",", temp));
-        qUpperLimb.Add(temp);
-        */
 
         
         while (true)
@@ -772,19 +771,150 @@ public class TargetPoseGridManager : MonoBehaviour
     /// </summary>
     /// <param >
     /// <returns 
-    public List<int> RandomiseTargets()
+    public List<int> SequentialRandomise(List<int> targetOrder, int batchSize)
     {
-        List<int> targetOrder = new List<int>();
+        // The order list to return
+        List<int> shuffledTargetOrder = new List<int>();
 
-        return targetOrder;
+
+      
+        // temp order list
+        List<int> t_targetOrder = new List<int>();
+        Debug.Log("Original target order: " + string.Join(",", targetOrder));
+
+
+        // Totla number
+        int N = targetOrder.Count;
+        //Initially select a random target
+        int idx = Random.Range(0, targetOrder.Count);
+
+        // Generate the sequential randomised target order list
+        while (true)
+        {
+
+            // Add the target to the temp order list
+            Debug.Log("Add pose: " + targetOrder[idx]);
+            t_targetOrder.Add(targetOrder[idx]);
+           
+
+
+            // Batch size is full?
+            if (t_targetOrder.Count >= batchSize)
+            {
+                shuffledTargetOrder.AddRange(t_targetOrder);
+                t_targetOrder.Clear();
+                idx = Random.Range(0, targetOrder.Count);
+                continue;
+            }
+
+
+            // If reach the maximum, return the order list
+            if (shuffledTargetOrder.Count >= N)
+            {
+                
+                break;
+
+            }
+
+
+            // Remove the previous one from the input list
+            targetOrder.RemoveAt(idx);
+
+
+            // Search the next
+            // Current target pose
+            //Debug.Log(t_targetOrder.Last());
+
+            //List<float> t_pose = qUpperLimb[t_targetOrder.Last()].ToList<float>();
+            // Find a different pose
+            List<int> range = targetOrder.Distinct().ToList();
+            range.Shuffle();
+            Debug.Log(string.Join(",", range));
+
+
+            int i;
+            int j;
+            for (i = 0; i <= range.Count - 1; i++)
+            {
+
+                float[] t_pose = new float[dofList.Count];
+                float[] pose = new float[dofList.Count];
+                for (j = 0; j <= dofList.Count - 1; j++)
+                {
+                    t_pose[j] = qUpperLimb[t_targetOrder.Last()][dofList[j]];
+                    pose[j] = qUpperLimb[range[i]][dofList[j]];
+
+                    if (t_pose[j] == pose[j])
+                        break;
+                }
+
+                if (j == dofList.Count)
+                {
+
+                    Debug.Log("Next Pose: " + string.Join(",", pose));
+                    break;
+                }
+
+
+            }
+
+            if (i > range.Count - 1)
+                i = range.Count - 1;
+
+                //List<float> pose = qUpperLimb[range[i]].ToList();
+                //List<float> duplicates = t_pose.Intersect(pose).ToList();
+                //Debug.Log("Duplicates: " + string.Join(",", duplicates));
+                //if (duplicates.All(x => x == 0))
+                //Debug.Log("Next Pose: " + string.Join(",", pose));
+                //break;
+                //}
+
+
+
+
+                // Update the idx
+                //Debug.Log(range[i]);
+                idx = targetOrder.LastIndexOf(range[i]);
+
+
+
+                //idx = Random.Range(0, targetOrder.Count);
+        
+        }
+
+
+        // Debug
+        //shuffledTargetOrder.Sort();
+        List<int> temp = shuffledTargetOrder;
+        Debug.Log("Shuffled target order: " + string.Join(",", temp));
+        return shuffledTargetOrder;
+
+
     }
+
+    /// <summary>
+    /// Spawn the boottle grid
+    /// </summary>
+    /// <param >
+    private void SortWithIndex(List<float> list, out List<float> sortedList, out List<int> sortedIndex)
+    {
+        var sorted = list
+                        .Select((x, i) => new KeyValuePair<float, int>(x, i))
+                        .OrderBy(x => x.Key)
+                        .ToList();
+
+        sortedList = sorted.Select(x => x.Key).ToList();
+        sortedIndex = sorted.Select(x => x.Value).ToList();
+    }
+  
+
 
 
     /// <summary>
     /// Spawn the boottle grid
     /// </summary>
     /// <param >
-    /// <returns bool reached>
+    /// <returns void>
     public void SpawnTargetGrid()
     {
         GenerateTargetLocations();

@@ -85,11 +85,23 @@ namespace VRProEP.GameEngineCore
         /// </summary>
         /// <param name="userData"></param>
         /// <param name="avatarData"></param>
-        public static void SpawnAbleBodiedAvatar(UserData userData, AvatarData avatarData, bool isNew = true)
+        public static void SpawnAbleBodiedAvatar(UserData userData, AvatarData avatarData, bool isNew = true, bool useController = true)
         {
-            LoadAbleHand(userData.lefty, userData.handLength);
-            LoadAbleForearm(userData.forearmLength, isNew);
+            if (useController)
+            {
+                LoadAbleHand(userData.lefty, userData.handLength);
+                LoadAbleForearm(userData.forearmLength, isNew);
+            }
+            // If not using controller for hand tracking
+            else
+            {
+                //LoadAbleHand(userData.lefty, userData.handLength);
+                LoadAbleForearmNHand(userData.lefty, userData.forearmLength, userData.handLength, isNew);
+            }
+            
         }
+
+
 
         /// <summary>
         /// Loads an able-bodied hand avatar compatible with the VRProEP interaction system.
@@ -419,6 +431,98 @@ namespace VRProEP.GameEngineCore
             forearmGO.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
 
             return forearmGO;
+        }
+
+        /// <summary>
+        /// Loads and instantiates a forearm with wrist and hand avatar prefab from Resources/Avatars
+        /// The forearm prefab must include the tag "Forearm". Loads by name.
+        /// The hand prefab must include the tag "Hand". Loads by name.
+        /// Use this for able bodied case when not using controller to track hand.
+        /// </summary>
+        /// <param> </param>
+        /// <returns>The instantiated forearm GameObject.</returns>
+        private static GameObject LoadAbleForearmNHand(bool lefty, float lowerArmLength, float handLength, bool newTracker = true)
+        {
+            string side = "R";
+            float sign = 1.0f;
+            if (lefty)
+            {
+                side = "L";
+                sign = -1.0f;
+            }
+
+            #region Forearm
+
+            // Add motion tracker and assign as forearm tracker, use as parent
+            //GameObject llMotionTrackerGO = AvatarSystem.AddMotionTracker();
+            GameObject llMotionTrackerGO = SpawnMotionTracker(newTracker);
+            llMotionTrackerGO.tag = "ForearmTracker";
+            llMotionTrackerGO.transform.GetChild(1).gameObject.SetActive(false); // Disable marker
+
+            // Load forearm from avatar folder and check whether successfully loaded.
+            GameObject forearmPrefab = Resources.Load<GameObject>("Avatars/Forearms/ForearmAble");
+            if (forearmPrefab == null)
+                throw new System.Exception("The requested socket prefab was not found.");
+
+            // Get parent prosthesis manager
+            GameObject prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
+
+            // Load forearm object info
+            //string objectPath = resourcesDataPath + "/Forearms/ForearmAble.json";
+            //string objectDataAsJson = File.ReadAllText(objectPath);
+            string objectPath = "Avatars/Forearms/ForearmAble";
+            string objectDataAsJson = Resources.Load<TextAsset>(objectPath).text;
+            activeForearmData = JsonUtility.FromJson<AvatarObjectData>(objectDataAsJson);
+            if (activeForearmData == null)
+                throw new System.Exception("The requested forearm information was not found.");
+
+            // Instantiate with tracker as parent.
+            float trackerBeltOffset = 0.02f;
+            Vector3 forearmOffset = new Vector3(0, - handLength + activeForearmData.dimensions.y / 2.0f, -trackerBeltOffset);
+            GameObject forearmGO = Object.Instantiate(forearmPrefab, forearmOffset, forearmPrefab.transform.rotation * Quaternion.Euler(180.0f,0,0), llMotionTrackerGO.transform);
+            Collider collider = forearmGO.GetComponent<Collider>();
+            collider.isTrigger = true;
+            //follower.enabled = false;
+            // Make sure the loaded forearm has a the follower script and correct setting
+            LimbFollower follower = forearmGO.GetComponent<LimbFollower>();
+            if (follower != null)
+                follower.enabled = false;
+
+            /*
+            // If it wasn't found, then add it.
+            if (follower == null)
+                follower = forearmGO.AddComponent<LimbFollower>();
+
+            follower.avatarType = AvatarType.AbleBodied;
+            */
+
+            // Scale forearm to fit user's hand
+            float scaleFactor = lowerArmLength / (2 * activeForearmData.dimensions.x);
+            forearmGO.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+            #endregion
+
+            #region Hand which follows forearm
+            // Load hand from avatar folder and check whether successfully loaded.
+            GameObject handPrefab = Resources.Load<GameObject>("Avatars/Wrists/WristHandAble_" + side);
+            if (handPrefab == null)
+                throw new System.Exception("The requested hand prefab was not found.");
+
+            // Load hand object info
+            objectPath = "Avatars/Wrists/WristHandAble_" + side;
+            objectDataAsJson = Resources.Load<TextAsset>(objectPath).text;
+            activeHandData = JsonUtility.FromJson<AvatarObjectData>(objectDataAsJson);
+            if (activeHandData == null)
+                throw new System.Exception("The requested hand information was not found.");
+
+            // Instantiate with prosthesis manager as parent.
+            Vector3 handOffset = new Vector3( 0, - handLength /2.0f, -trackerBeltOffset);
+            GameObject handGO = Object.Instantiate(handPrefab, handOffset, handPrefab.transform.localRotation * Quaternion.Euler(180.0f, 180.0f, 0), llMotionTrackerGO.transform);
+            // Scale hand to fit user's hand
+            scaleFactor = handLength / activeHandData.dimensions.x;
+            handGO.transform.localScale = new Vector3(sign * scaleFactor, sign * scaleFactor, sign * scaleFactor);
+            #endregion
+
+            return handGO;
         }
 
 

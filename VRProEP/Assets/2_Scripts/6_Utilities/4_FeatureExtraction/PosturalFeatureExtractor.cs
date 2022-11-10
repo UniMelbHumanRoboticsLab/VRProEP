@@ -20,6 +20,12 @@ public static class PosturalFeatureExtractor
     private static float scapularDE = 0; // Scapular depression elevation, Postivie: upward
     private static float scapularPR = 0; // Scapular protraction retraction, Postivie: forward
 
+    private static float elbowFE = 0; //Elbow flexion and extension, Positive: towards body, Zero: fully relax
+
+    private static float wristPS = 0; // Wrist pronation supination, Positive: inner rotation towards body, Zero: neutral pose
+    private static float wristFE = 0; // Currently not available
+    private static float wristAA = 0; // Currently not availabel
+
 
     private static float sgn = 1;
 
@@ -29,7 +35,7 @@ public static class PosturalFeatureExtractor
     }
 
 
-    public static float[] extractTrunkPose(Quaternion qC7TrackerRef, Quaternion qC7Tracker)
+    public static float[] ExtractTrunkPose(Quaternion qC7TrackerRef, Quaternion qC7Tracker)
     {
 
         Vector3 initialTrunkAxial = qC7TrackerRef * Vector3.up;
@@ -68,7 +74,7 @@ public static class PosturalFeatureExtractor
         //Quaternion relativeRot = qC7Tracker * Quaternion.Inverse(qC7TrackerRef);
     }
 
-    public static float[] extractShoulderPose(Quaternion qC7Tracker, Quaternion qUpperarmTracker)
+    public static float[] ExtractShoulderPose(Quaternion qC7Tracker, Quaternion qUpperarmTracker)
     {   
 
         // Caculate shoulder angles in C7's frame
@@ -110,7 +116,7 @@ public static class PosturalFeatureExtractor
 
 
 
-    public static float[] extractScapularPose(Vector3 c7TrackerRef, Vector3 shoulderTrackerRef, Vector3 c7Tracker,  Vector3 shoulderTracker, Quaternion qC7Tracker)
+    public static float[] ExtractScapularPose(Vector3 c7TrackerRef, Vector3 shoulderTrackerRef, Vector3 c7Tracker,  Vector3 shoulderTracker, Quaternion qC7Tracker)
     {
         Vector3 initialAcromion = shoulderTrackerRef - c7TrackerRef;
         Vector3 currrentAcromion = shoulderTracker - c7Tracker;
@@ -133,7 +139,7 @@ public static class PosturalFeatureExtractor
     }
 
 
-    public static float[] extractScapularPose(Quaternion qC7TrackerRef, Quaternion qShoulderTrackerRef, Quaternion qC7Tracker, Quaternion qShoulderTracker, float shoulderBreadth)
+    public static float[] ExtractScapularPose(Quaternion qC7TrackerRef, Quaternion qShoulderTrackerRef, Quaternion qC7Tracker, Quaternion qShoulderTracker, float shoulderBreadth)
     {
         // Convert to C7 frame
         Quaternion relativeRot = Quaternion.Inverse(qC7Tracker);
@@ -163,6 +169,58 @@ public static class PosturalFeatureExtractor
         float[] pose = new float[2] { scapularDE, scapularPR };
         return pose;
     }
+
+
+    public static float[] ExtractElbowPose(Quaternion qUpperarmTracker, Quaternion qForearmTracker)
+    {
+
+        // Caculate elbow angles in upperarm's frame
+        Quaternion relativeRot = Quaternion.Inverse(qUpperarmTracker);
+        Vector3 currentForearmrAxial = relativeRot * (qForearmTracker * Vector3.up);
+        Vector3 currentShoulderAxial = -Vector3.up;
+        Vector3 currentForearmLateral = relativeRot * (qForearmTracker * Vector3.forward);
+        Vector3 currentShoulderLateral = Vector3.forward;
+
+        // Elbow Flexion / extension
+        Vector2 vYZ1 = new Vector2(currentForearmrAxial.x, currentForearmrAxial.y);
+        Vector2 vYZ2 = new Vector2(currentShoulderAxial.x, currentShoulderAxial.y);
+        elbowFE = Vector2.Angle(vYZ1, vYZ2) * Mathf.Deg2Rad;
+        //Debug.Log("Elbow FE: " + Mathf.Rad2Deg * elbowFE);
+
+
+        float[] pose = { elbowFE };
+        return pose;
+    }
+
+
+    public static float[] ExtractWristPose(Quaternion qUpperarmTracker, Quaternion qHandTracker)
+    {
+        // Need a dummy tracker which is on the real forearm rigid body not on the hand
+        Quaternion qForearmTracker = qUpperarmTracker * Quaternion.Euler(0, 0, elbowFE * Mathf.Rad2Deg);
+
+        // Caculate elbow angles in upperarm's frame
+        Quaternion relativeRot = Quaternion.Inverse(qForearmTracker);
+
+        Vector3 currentHandAxial = relativeRot * (qHandTracker * Vector3.up);
+        Vector3 currentForearmAxial = -Vector3.up;
+
+        Vector3 currentHandLateral = relativeRot * (qHandTracker * Vector3.forward);
+        Vector3 currentForearmLateral = Vector3.forward;
+
+        // Wrist pronation /supination
+        Vector2 vXZ1 = new Vector2(currentHandLateral.x, currentHandLateral.z);
+        Vector2 vXZ2 = new Vector2(currentForearmLateral.x, currentForearmLateral.z);
+        if (vXZ1.x > 0) sgn = -1; else sgn = 1;
+        wristPS = sgn * Vector2.Angle(vXZ1, vXZ2) * Mathf.Deg2Rad;
+
+        //Debug.Log("Wrist PS: " + Mathf.Rad2Deg * wristPS);
+
+
+        float[] pose = { wristPS };
+        return pose;
+    }
+
+
 
 
 

@@ -32,11 +32,12 @@ namespace VRProEP.GameEngineCore
             }
             if (avatarType == AvatarType.AbleBodied)
             {
-                // Get the shoulder location object and initialize
+                // Get the foerarm location object and initialize
                 GameObject limbTracker = GameObject.FindGameObjectWithTag("ForearmTracker");
                 trackerTransform = limbTracker.transform;
                 offset = transform.GetChild(0).transform.position;
                 angularOffset = transform.GetChild(0).transform.eulerAngles;
+               
             }
             //offset = new Vector3(0.0f, -transform.localScale.y, 0.0f);
         }
