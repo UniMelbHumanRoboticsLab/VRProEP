@@ -154,7 +154,8 @@ public class TargetPoseGridManager : MonoBehaviour
 
     // Accessor
     public bool SelectedTouched { get => selectedTouched; }
-    public int TargetNumber {
+    public int TargetNumber
+    {
         get
         {
             if (targetType == TargetType.Ball)
@@ -266,14 +267,14 @@ public class TargetPoseGridManager : MonoBehaviour
             {
                 case TargetType.Ball:
                     if (selectedIndex > balls.Count - 1)
-                    selectedIndex = 0;
+                        selectedIndex = 0;
                     break;
                 case TargetType.Bottle:
-                    if ( selectedIndex > bottles.Count - 1)
-                    selectedIndex = 0;
+                    if (selectedIndex > bottles.Count - 1)
+                        selectedIndex = 0;
                     break;
             }
-            
+
             //UpdateUserData();
             //GenerateTargetLocations(); // Update the locations if there is any change in the offset
             SelectTarget(selectedIndex);
@@ -288,7 +289,7 @@ public class TargetPoseGridManager : MonoBehaviour
 
         }
         //}
-    
+
 
         // Check if the selected bottle is reached or not
         CheckReached();
@@ -570,7 +571,7 @@ public class TargetPoseGridManager : MonoBehaviour
                 bottles[i].transform.rotation = targetRotations[i];
                 bottles[i].transform.localRotation *= Quaternion.Euler(0, 0, 180);
                 bottles[i].transform.localRotation *= Quaternion.Euler(0, -90, 0);
-                
+
             }
 
         }
@@ -608,6 +609,9 @@ public class TargetPoseGridManager : MonoBehaviour
 
 
     }
+
+
+
     #endregion
 
 
@@ -717,7 +721,7 @@ public class TargetPoseGridManager : MonoBehaviour
             indices[i] = 0;
 
 
-        
+
         while (true)
         {
             // Current combination
@@ -745,9 +749,9 @@ public class TargetPoseGridManager : MonoBehaviour
             {
                 Debug.Log("Total number of poses: " + qUpperLimb.Count);
                 return;
-                
+
             }
-                
+
 
             // If found move to next
             // element in that array
@@ -759,8 +763,8 @@ public class TargetPoseGridManager : MonoBehaviour
             for (int i = next + 1; i < nDof; i++)
                 indices[i] = 0;
         }
-        
-        
+
+
 
 
     }
@@ -777,7 +781,7 @@ public class TargetPoseGridManager : MonoBehaviour
         List<int> shuffledTargetOrder = new List<int>();
 
 
-      
+
         // temp order list
         List<int> t_targetOrder = new List<int>();
         Debug.Log("Original target order: " + string.Join(",", targetOrder));
@@ -795,7 +799,7 @@ public class TargetPoseGridManager : MonoBehaviour
             // Add the target to the temp order list
             Debug.Log("Add pose: " + targetOrder[idx]);
             t_targetOrder.Add(targetOrder[idx]);
-           
+
 
 
             // Batch size is full?
@@ -811,7 +815,7 @@ public class TargetPoseGridManager : MonoBehaviour
             // If reach the maximum, return the order list
             if (shuffledTargetOrder.Count >= N)
             {
-                
+
                 break;
 
             }
@@ -861,25 +865,25 @@ public class TargetPoseGridManager : MonoBehaviour
             if (i > range.Count - 1)
                 i = range.Count - 1;
 
-                //List<float> pose = qUpperLimb[range[i]].ToList();
-                //List<float> duplicates = t_pose.Intersect(pose).ToList();
-                //Debug.Log("Duplicates: " + string.Join(",", duplicates));
-                //if (duplicates.All(x => x == 0))
-                //Debug.Log("Next Pose: " + string.Join(",", pose));
-                //break;
-                //}
+            //List<float> pose = qUpperLimb[range[i]].ToList();
+            //List<float> duplicates = t_pose.Intersect(pose).ToList();
+            //Debug.Log("Duplicates: " + string.Join(",", duplicates));
+            //if (duplicates.All(x => x == 0))
+            //Debug.Log("Next Pose: " + string.Join(",", pose));
+            //break;
+            //}
 
 
 
 
-                // Update the idx
-                //Debug.Log(range[i]);
-                idx = targetOrder.LastIndexOf(range[i]);
+            // Update the idx
+            //Debug.Log(range[i]);
+            idx = targetOrder.LastIndexOf(range[i]);
 
 
 
-                //idx = Random.Range(0, targetOrder.Count);
-        
+            //idx = Random.Range(0, targetOrder.Count);
+
         }
 
 
@@ -906,7 +910,7 @@ public class TargetPoseGridManager : MonoBehaviour
         sortedList = sorted.Select(x => x.Key).ToList();
         sortedIndex = sorted.Select(x => x.Value).ToList();
     }
-  
+
 
 
 
@@ -918,7 +922,7 @@ public class TargetPoseGridManager : MonoBehaviour
     public void SpawnTargetGrid()
     {
         GenerateTargetLocations();
-        for (int i = 0; i <= targetPositions.Count-1; i++)
+        for (int i = 0; i <= targetPositions.Count - 1; i++)
         {
 
             if (targetType == TargetType.Ball)
@@ -955,7 +959,7 @@ public class TargetPoseGridManager : MonoBehaviour
                 manager.SetBottlInHand(this.bottleInHand); // Set in hand bottle gameobject 
             }
 
-                
+
         }
 
         InitialiseLimb();
@@ -973,14 +977,22 @@ public class TargetPoseGridManager : MonoBehaviour
         ResetTargetSelection();
 
         selectedIndex = index;
-        
 
+        MeshRenderer[] renderer;
         switch (targetType)
         {
+            
             case TargetType.Bottle:
+                renderer = bottles[index].gameObject.GetComponentsInChildren<MeshRenderer>();
+                foreach (MeshRenderer element in renderer)
+                    element.enabled = true;
                 bottles[index].SetSelected();
+
                 break;
             case TargetType.Ball:
+                renderer = balls[index].gameObject.GetComponentsInChildren<MeshRenderer>();
+                foreach (MeshRenderer element in renderer)
+                    element.enabled = true;
                 balls[index].SetSelected();
                 break;
         }
@@ -990,29 +1002,45 @@ public class TargetPoseGridManager : MonoBehaviour
         ShowLimbPose(index);
     }
 
+
+
+
     /// <summary>
-    /// Clears the ball selection
+    /// Clears the current traget selection
     /// </summary>
     public void ResetTargetSelection()
     {
+        MeshRenderer[] renderer;
         switch (targetType)
         {
             case TargetType.Bottle:
                 foreach (ReachBottleManager bottle in bottles)
                 {
                     bottle.ClearSelection();
+                    renderer = bottle.gameObject.GetComponentsInChildren<MeshRenderer>();
+                    foreach (MeshRenderer element in renderer)
+                        element.enabled = false;
                 }
                 break;
             case TargetType.Ball:
                 foreach (TouchyBallManager ball in balls)
                 {
                     ball.ClearSelection();
+                    renderer = ball.gameObject.GetComponentsInChildren<MeshRenderer>();
+                    foreach (MeshRenderer element in renderer)
+                        element.enabled = false;
                 }
                 break;
         }
-               
+
         hasSelected = false;
         selectedTouched = false;
     }
+
+
+
+
     #endregion
 }
+
+

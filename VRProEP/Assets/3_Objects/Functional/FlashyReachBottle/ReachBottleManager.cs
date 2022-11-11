@@ -142,7 +142,7 @@ public class ReachBottleManager : MonoBehaviour
 
         Quaternion bottleInHandRotation = bottleInHand.transform.localRotation;
 
-        float rotationError = Quaternion.Angle(targetRotation, bottleInHandRotation);
+        float rotationError = Quaternion.Angle(targetRotation, bottleInHandRotation) / 2.0f;
 
         if (Mathf.Abs(postionError.x) < positionTolerance.x && Mathf.Abs(postionError.y) < positionTolerance.y && Mathf.Abs(postionError.z) < positionTolerance.z )
             positionReached = true;  

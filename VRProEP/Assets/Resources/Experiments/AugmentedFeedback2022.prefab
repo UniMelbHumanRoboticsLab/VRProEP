@@ -547,20 +547,22 @@ MonoBehaviour:
   iterationsPerSession: 
   trainingPerSession: 
   taskDataFormat: 
-  ablebodiedDataFormat: loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand
+  ablebodiedDataFormat: loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB
   performanceDataFormat: i,loc,t_f,score
   startShoulderAngle: -90
   startElbowAngle: 90
   startTolerance: 15
   gridManager: {fileID: 4055313623165390998}
   iterationsPerTarget: 
+  iterationBatchSize: 0
   startPosPhoto: {fileID: 9025509897340019074}
   holdAudioClip: {fileID: 8300000, guid: 520a431cc0f99e7478b4a53a290c28ff, type: 3}
   returnAudioClip: {fileID: 8300000, guid: 3cde4d34aa934b545aef79f2da842faf, type: 3}
   testAudioClip: {fileID: 8300000, guid: 7298cdd19e7244a4f9a880e0058b5c8c, type: 3}
   amputeeAvatar: 0
+  controlllerHand: 0
   dummyControlEnable: 0
-  fourTrackerEnable: 1
+  fullTrackerEnable: 0
   delsysEnable: 1
   zmqPushEnable: 1
   zmqPullEnable: 1
@@ -913,6 +915,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3173896575985748330}
     m_Modifications:
+    - target: {fileID: 79321099659537777, guid: 3bed2d0015ddc484da5f5dfb2fe20aed,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1429280688406888873, guid: 3bed2d0015ddc484da5f5dfb2fe20aed,
         type: 3}
       propertyPath: m_UseGravity

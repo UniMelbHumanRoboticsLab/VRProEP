@@ -189,7 +189,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bottleInHand: {fileID: 0}
-  positionTolerance: {x: 0.03, y: 0.03, z: 0.03}
+  positionTolerance: {x: 0.02, y: 0.02, z: 0.02}
   rotationTolerance: {x: 8, y: 30, z: 30}
   rotationToleranceAngle: 5
   idleColor: {r: 1, g: 1, b: 1, a: 0}

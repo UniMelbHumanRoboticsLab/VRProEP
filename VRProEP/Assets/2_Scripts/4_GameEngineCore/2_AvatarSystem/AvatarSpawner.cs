@@ -29,9 +29,11 @@ namespace VRProEP.GameEngineCore
         /// </summary>
         /// <param name="userData">The user's physical data.</param>
         /// <param name="avatarData">The user's avatar configuration data.</param>
+        /// Currently this method for Able-bodied subjects using Transhumeral avatar
         public static void SpawnTranshumeralAvatar(UserData userData, AvatarData avatarData)
         {
             // Load the different parts of the avatar
+            LoadAbleForearm(userData.forearmLength, true, false);
             LoadResidualLimb(avatarData.residualLimbType, AvatarType.Transhumeral);
             LoadSocket(avatarData.socketType);
             LoadElbow(avatarData.elbowType, userData.upperArmLength);
@@ -90,13 +92,14 @@ namespace VRProEP.GameEngineCore
             if (useController)
             {
                 LoadAbleHand(userData.lefty, userData.handLength);
-                LoadAbleForearm(userData.forearmLength, isNew);
+                LoadAbleForearm(userData.forearmLength, isNew, true);
             }
             // If not using controller for hand tracking
             else
             {
-                //LoadAbleHand(userData.lefty, userData.handLength);
                 LoadAbleForearmNHand(userData.lefty, userData.forearmLength, userData.handLength, isNew);
+                // Hand on the other side
+                //LoadAbleHand(userData.lefty, userData.handLength);
             }
             
         }
@@ -185,6 +188,8 @@ namespace VRProEP.GameEngineCore
 
             follower.avatarType = avatarType;
             follower.offset = new Vector3(0.0f, -activeResidualLimbData.dimensions.x / 1.0f, 0.0f);
+
+            motionTrackerNumber++;
 
             return residualLimbGO;
         }
@@ -390,47 +395,56 @@ namespace VRProEP.GameEngineCore
         /// </summary>
         /// <param name="forearmType">The name of the prefab forearm avatar to be loaded.</param>
         /// <returns>The instantiated forearm GameObject.</returns>
-        private static GameObject LoadAbleForearm(float lowerArmLength, bool newTracker = true)
+        private static GameObject LoadAbleForearm(float lowerArmLength, bool newTracker = true, bool showAvatar = true)
         {
             // Add motion tracker and assign as forearm tracker, use as parent
             //GameObject llMotionTrackerGO = AvatarSystem.AddMotionTracker();
             GameObject llMotionTrackerGO = SpawnMotionTracker(newTracker);
             llMotionTrackerGO.tag = "ForearmTracker";
-            llMotionTrackerGO.transform.GetChild(1).gameObject.SetActive(false); // Disable marker
+            
 
-            // Load forearm from avatar folder and check whether successfully loaded.
-            GameObject forearmPrefab = Resources.Load<GameObject>("Avatars/Forearms/ForearmAble");
-            if (forearmPrefab == null)
-                throw new System.Exception("The requested socket prefab was not found.");
+            if (showAvatar)
+            {
+                llMotionTrackerGO.transform.GetChild(1).gameObject.SetActive(false); // Disable marker
+                // Load forearm from avatar folder and check whether successfully loaded.
+                GameObject forearmPrefab = Resources.Load<GameObject>("Avatars/Forearms/ForearmAble");
+                if (forearmPrefab == null)
+                    throw new System.Exception("The requested socket prefab was not found.");
 
-            // Get parent prosthesis manager
-            GameObject prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
+                // Get parent prosthesis manager
+                GameObject prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
 
-            // Load forearm object info
-            //string objectPath = resourcesDataPath + "/Forearms/ForearmAble.json";
-            //string objectDataAsJson = File.ReadAllText(objectPath);
-            string objectPath = "Avatars/Forearms/ForearmAble";
-            string objectDataAsJson = Resources.Load<TextAsset>(objectPath).text;
-            activeForearmData = JsonUtility.FromJson<AvatarObjectData>(objectDataAsJson);
-            if (activeForearmData == null)
-                throw new System.Exception("The requested forearm information was not found.");
+                // Load forearm object info
+                //string objectPath = resourcesDataPath + "/Forearms/ForearmAble.json";
+                //string objectDataAsJson = File.ReadAllText(objectPath);
+                string objectPath = "Avatars/Forearms/ForearmAble";
+                string objectDataAsJson = Resources.Load<TextAsset>(objectPath).text;
+                activeForearmData = JsonUtility.FromJson<AvatarObjectData>(objectDataAsJson);
+                if (activeForearmData == null)
+                    throw new System.Exception("The requested forearm information was not found.");
 
-            // Instantiate with tracker as parent.
-            GameObject forearmGO = Object.Instantiate(forearmPrefab, Vector3.zero, forearmPrefab.transform.rotation, llMotionTrackerGO.transform);
+                // Instantiate with tracker as parent.
+                GameObject forearmGO = Object.Instantiate(forearmPrefab, Vector3.zero, forearmPrefab.transform.rotation, llMotionTrackerGO.transform);
 
-            // Make sure the loaded forearm has a the follower script and correct setting
-            LimbFollower follower = forearmGO.GetComponent<LimbFollower>();
-            // If it wasn't found, then add it.
-            if (follower == null)
-                follower = forearmGO.AddComponent<LimbFollower>();
+                // Make sure the loaded forearm has a the follower script and correct setting
+                LimbFollower follower = forearmGO.GetComponent<LimbFollower>();
+                // If it wasn't found, then add it.
+                if (follower == null)
+                    follower = forearmGO.AddComponent<LimbFollower>();
 
-            follower.avatarType = AvatarType.AbleBodied;
+                follower.avatarType = AvatarType.AbleBodied;
 
-            // Scale forearm to fit user's hand
-            float scaleFactor = lowerArmLength / (2 * activeForearmData.dimensions.x);
-            forearmGO.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+                // Scale forearm to fit user's hand
+                float scaleFactor = lowerArmLength / (2 * activeForearmData.dimensions.x);
+                forearmGO.transform.localScale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
 
-            return forearmGO;
+                return forearmGO;
+            }
+            else
+            {
+                return llMotionTrackerGO;
+            }
+            
         }
 
         /// <summary>
@@ -724,7 +738,7 @@ namespace VRProEP.GameEngineCore
             if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
                 motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 + 2); // Set hardware device index to follow, -1 if headset is conneted through wires not wifi.
             else
-                motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 5 - 1 + 2); // Set hardware device index to follow
+                motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 + 2); // Set hardware device index to follow
             motionTrackerConfig.origin = playerGO.transform; 
             if(newTracker)
                 motionTrackerNumber++; 

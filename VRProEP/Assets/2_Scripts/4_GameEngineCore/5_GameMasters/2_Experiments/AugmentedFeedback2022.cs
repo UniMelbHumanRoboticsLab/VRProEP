@@ -27,7 +27,9 @@ public class AugmentedFeedback2022 : GameMaster
     #region Unity objects
     [SerializeField]
     //private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
-    private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr";
+    private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
+    [SerializeField]
+    private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pEfe,pWps";
     [SerializeField]
     private string performanceDataFormat = "i,loc,t_f,score";
 
@@ -55,6 +57,9 @@ public class AugmentedFeedback2022 : GameMaster
     private TargetPoseGridManager gridManager;
     [SerializeField]
     private int[] iterationsPerTarget;
+    [SerializeField]
+    private int iterationBatchSize;
+
 
     [Header("Media")]
     [SerializeField]
@@ -78,7 +83,7 @@ public class AugmentedFeedback2022 : GameMaster
     private bool dummyControlEnable;
 
     [SerializeField]
-    private bool fourTrackerEnable;
+    private bool fullTrackerEnable;
    
     // Delsys EMG background data collection
     [SerializeField]
@@ -117,10 +122,12 @@ public class AugmentedFeedback2022 : GameMaster
 
     // Prosthesis handling objects
     private GameObject prosthesisManagerGO;
-    private ConfigurableMultiJointManager elbowManager;
+    private ConfigurableMultiJointManager multiJointManager;
 
     // Target management variables
-    private float[][] poseSet;
+    private float[] sfePose;
+    private float[] efePose;
+    private float[] wpsPose;
     private int targetNumber; // The total number of targets
     private List<int> targetOrder = new List<int>(); // A list of target indexes ordered for selection over iterations in a session.
 
@@ -235,8 +242,11 @@ public class AugmentedFeedback2022 : GameMaster
     private class AugmentedFeedbackConfigurator
     {
         public int[] iterationsPerTarget = {2};
+        public int iterationBatchSize = 3;
         public float holdingTime = 0.5f;
-        public float[][] poseSet;
+        public float[] sfePose;
+        public float[] efePose;
+        public float[] wpsPose;
     }
     private AugmentedFeedbackConfigurator configurator;
 
@@ -269,6 +279,18 @@ public class AugmentedFeedback2022 : GameMaster
             
             delsysEMG.StartRecording(ConfigEMGFilePath());
             emgIsRecording = true;
+        }
+
+        if (Input.GetKeyDown(KeyCode.UpArrow)  && fullTrackerEnable )
+        {
+            // Record initial frames
+            c7InitOrient = c7Tracker.GetTrackerTransform().rotation;
+            c7InitPos = c7Tracker.GetTrackerTransform().position;
+
+            shInitOrient = shoulderTracker.GetTrackerTransform().rotation;
+            shInitPos = shoulderTracker.GetTrackerTransform().position;
+
+            Debug.Log("Recalibrated the poses!");
         }
 
         base.FixedUpdate();
@@ -372,7 +394,10 @@ public class AugmentedFeedback2022 : GameMaster
         // Load from config file
         holdingTime = configurator.holdingTime;
         iterationsPerTarget = configurator.iterationsPerTarget;
-        poseSet = configurator.poseSet;
+        iterationBatchSize = configurator.iterationBatchSize;
+        sfePose = configurator.sfePose;
+        efePose = configurator.efePose;
+        wpsPose = configurator.wpsPose;
         // Load from config file
         for (int i = 0; i <= iterationsPerTarget.Length - 1; i++)
         {
@@ -391,7 +416,10 @@ public class AugmentedFeedback2022 : GameMaster
     {
 
         // Set data format
-        taskDataFormat = ablebodiedDataFormat;
+        if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
+            taskDataFormat = ablebodiedDataFormat;
+        else if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+            taskDataFormat = transhumeralDataFormat;
 
         // Lefty sign
         /*
@@ -447,7 +475,7 @@ public class AugmentedFeedback2022 : GameMaster
         // Add arm motion trackers for able-bodied case.
         //
         // Lower limb motion tracker
-        if (!amputeeAvatar)
+        if (AvatarSystem.AvatarType != AvatarType.Transhumeral)
         {
             GameObject llMotionTrackerGO = GameObject.FindGameObjectWithTag("ForearmTracker");
             lowerArmTracker = new VIVETrackerManager(llMotionTrackerGO.transform);
@@ -460,6 +488,10 @@ public class AugmentedFeedback2022 : GameMaster
         }
         else
         {
+            GameObject llMotionTrackerGO = GameObject.FindGameObjectWithTag("ForearmTracker");
+            lowerArmTracker = new VIVETrackerManager(llMotionTrackerGO.transform);
+            ExperimentSystem.AddSensor(lowerArmTracker);
+
             // Get active sensors from avatar system and get the vive tracker being used for the UA
             foreach (ISensor sensor in AvatarSystem.GetActiveSensors())
             {
@@ -468,17 +500,18 @@ public class AugmentedFeedback2022 : GameMaster
             }
             if (upperArmTracker == null)
                 throw new System.NullReferenceException("The residual limb tracker was not found.");
+            ExperimentSystem.AddSensor(upperArmTracker);
             // Set VIVE tracker and Linear synergy as active.
             // Get prosthesis
             prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
-            elbowManager = prosthesisManagerGO.GetComponent<ConfigurableMultiJointManager>();
+            multiJointManager = prosthesisManagerGO.GetComponent<ConfigurableMultiJointManager>();
             if (zmqPullEnable)
                 // Set the reference generator to linear synergy.
-                elbowManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
+                multiJointManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
             else
             {
-                elbowManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
-                elbowManager.SetSynergy(45.0f/60.0f);
+                multiJointManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
+                multiJointManager.SetSynergy(45.0f/60.0f);
             }
                 
 
@@ -490,7 +523,7 @@ public class AugmentedFeedback2022 : GameMaster
 
 
 
-        if (fourTrackerEnable)
+        if (fullTrackerEnable)
         {
             // Shoulder acromium head tracker
             GameObject shMotionTrackerGO = AvatarSystem.AddMotionTracker();
@@ -507,9 +540,12 @@ public class AugmentedFeedback2022 : GameMaster
         //
         // Hand tracking sensor
         //
+        /*
         GameObject handGO = GameObject.FindGameObjectWithTag("Hand");
         handTracker = new VirtualPositionTracker(handGO.transform);
         ExperimentSystem.AddSensor(handTracker);
+        */
+
 
         #endregion
 
@@ -559,10 +595,16 @@ public class AugmentedFeedback2022 : GameMaster
         // First flag that we are in the welcome routine
         welcomeDone = false;
         inWelcome = true;
+
+        //
+        // Calibration
+        InstructionManager.DisplayText("Before start, we need to do some clibration" + "\n\n (Press the trigger)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        InstructionManager.DisplayText("Please stand upright and relax your upper limb.");
         Debug.Log("Press Up key to record calibration pose.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
 
-        if (fourTrackerEnable)
+        if (fullTrackerEnable)
         {
             // Record initial frames
             c7InitOrient = c7Tracker.GetTrackerTransform().rotation;
@@ -571,7 +613,7 @@ public class AugmentedFeedback2022 : GameMaster
             shInitOrient = shoulderTracker.GetTrackerTransform().rotation;
             shInitPos = shoulderTracker.GetTrackerTransform().position;
         }
-        
+
 
         // Start
         Debug.Log("Press Down key to start.");
@@ -579,12 +621,12 @@ public class AugmentedFeedback2022 : GameMaster
         if (delsysEnable & zmqPushEnable)
             delsysEMG.SetZMQPusher(true);
 
+        InstructionManager.DisplayText("All done! Thanks!");
 
-        
-        
         welcomeDone = true;
 
-        HudManager.DisplayText("Look to the top right. Instructions will be displayed there.");
+
+        HudManager.DisplayText("Look to the top left. Instructions will be displayed there.");
         InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
@@ -600,6 +642,7 @@ public class AugmentedFeedback2022 : GameMaster
         audio.loop = false;
         audio.Stop();
         audio.volume = 1.0f;
+
         //
         // Hud intro
         InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me introduce you to your assistant, the Heads Up Display (HUD)." + "\n\n (Press the trigger)");
@@ -611,20 +654,18 @@ public class AugmentedFeedback2022 : GameMaster
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
         HudManager.DisplayText("Look at the screen.", 3);
 
-
         //
         // Experiment overall intro
         InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me explain what we are doing today." + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("Today, the experiment will require you to reach to the targets in front of you." + "\n\n (Press the trigger)");
+        InstructionManager.DisplayText("Today, the experiment will require you to match the position and orientation of the bottles in front of you" + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("You will do 2 sessions, 1st 90 iterations and 2nd 270 iterations " + "\n\n (Press the trigger)");
+        InstructionManager.DisplayText("You will do 2 sessions which woudl take about an hour " + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("A 60 sec rest occurs every 35 iterations" + "\n\n (Press the trigger)");
+        InstructionManager.DisplayText("A 60 sec rest occurs every 27 iterations" + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-
-
+        
         #region Debug the zmq communications
         /*
         Debug.Log("Press Up key.");
@@ -689,9 +730,9 @@ public class AugmentedFeedback2022 : GameMaster
 
         // Now that you are done, set the flag to indicate we are done.
 
-
-
     }
+
+
 
     /// <summary>
     /// Performs initialisation procedures for the experiment. Sets variables to their zero state.
@@ -702,10 +743,12 @@ public class AugmentedFeedback2022 : GameMaster
         #region Spawn grid
         // Spawn the grid
         //gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
-        gridManager.AddJointPose(TargetPoseGridManager.SFE_POSE, new float[3] {40,60,80});
-        gridManager.AddJointPose(TargetPoseGridManager.EFE_POSE, new float[3] {30,60,90});
-        gridManager.AddJointPose(TargetPoseGridManager.WPS_POSE, new float[3] {-45, 0,45});
-        gridManager.AddJointPose(TargetPoseGridManager.WFE_POSE, new float[3] { 0, 0 ,0 });
+        //gridManager.AddJointPose(TargetPoseGridManager.WFE_POSE, new float[3] { 0, 0 ,0 });
+
+        gridManager.AddJointPose(TargetPoseGridManager.SFE_POSE, sfePose);
+        gridManager.AddJointPose(TargetPoseGridManager.EFE_POSE, efePose);
+        gridManager.AddJointPose(TargetPoseGridManager.WPS_POSE, wpsPose);
+        
         gridManager.CombJointPose(new string[] { TargetPoseGridManager.SFE_POSE, TargetPoseGridManager.EFE_POSE, TargetPoseGridManager.WPS_POSE });
 
         gridManager.SpawnTargetGrid();
@@ -729,8 +772,7 @@ public class AugmentedFeedback2022 : GameMaster
             }
         }
         
-        int batchSize = 3;
-        targetOrder = gridManager.SequentialRandomise(tempOrder, batchSize);
+        targetOrder = gridManager.SequentialRandomise(tempOrder, iterationBatchSize);
         Debug.Log("Total trials:" + targetOrder.Count);
         Debug.Log("Current target pose number: " + targetOrder[iterationNumber - 1]);
 
@@ -755,23 +797,21 @@ public class AugmentedFeedback2022 : GameMaster
         instructionsDone = true;
 
         //Instructions
-        if (sessionNumber == 1) // first session
+        if (AvatarSystem.AvatarType == AvatarType.AbleBodied) // Able-bodied session
         {
             InstructionManager.DisplayText("Alright, the sphere targets should have spawned for you." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("In the 1st session, you will need to reach to the spheres using your index finger." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("In the 1st session, you will need to match the position and oriention of the bottles in front of you with the bottle in your hand." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
         }
-        else if (sessionNumber == 2) // second session
+        else if (AvatarSystem.AvatarType == AvatarType.Transhumeral) // second session
         {
             InstructionManager.DisplayText("You've finished the 1st session, well done. Let's start the second session" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("The sphere targets have been replaced by bottle targets and a bottle has been placed in your hand." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("In the 2nd session, you will need to match bothe the target locations and orientations ." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("Now, you need to complete the same task, but the virtual forearm will not follow yours but controlled by some algorithm ." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -801,7 +841,7 @@ public class AugmentedFeedback2022 : GameMaster
 
         trainingDone = true;
 
-        if (sessionNumber == 1)
+        if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
         {
 
             InstructionManager.DisplayText("Let's start training then!" + "\n\n (Press the trigger)");
@@ -927,7 +967,7 @@ public class AugmentedFeedback2022 : GameMaster
             InstructionManager.DisplayText("Otherwise, you look ready to go! Good luck!" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
         }
-        if (sessionNumber == 2)
+        if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
         {
             InstructionManager.DisplayText("Let's start training then!" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -1010,6 +1050,7 @@ public class AugmentedFeedback2022 : GameMaster
         // Here you can do stuff like preparing objects/assets, like setting a different colour to the object
 
         // Select target
+        gridManager.ResetTargetSelection();
         gridManager.SelectTarget(targetOrder[iterationNumber - 1]);
 
     }
@@ -1045,7 +1086,7 @@ public class AugmentedFeedback2022 : GameMaster
 
 
         // Get kinematic postural features and push through zmq
-        if (fourTrackerEnable)
+        if (fullTrackerEnable)
         {
             float[] zmqData = new float[] { 1, taskTime };
 
@@ -1096,7 +1137,7 @@ public class AugmentedFeedback2022 : GameMaster
             foreach (float element in sensorData)
                 logData += "," + element.ToString();
         }
-
+        */
         // Read from all experiment sensors
         foreach (ISensor sensor in ExperimentSystem.GetActiveSensors())
         {
@@ -1108,8 +1149,16 @@ public class AugmentedFeedback2022 : GameMaster
             }
    
         }
-        */
+
+
+        // If in transhumeral prosthesis mode add prosthetic elbow and wrist states
+        if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+        {
+            logData += "," + multiJointManager.ElbowState;
+            logData += "," + multiJointManager.WristPronState;
+        }
        
+
 
         //
         // Log current data and clear before next run.

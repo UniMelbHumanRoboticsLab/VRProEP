@@ -1,1 +1,1 @@
-{"iterationsPerTarget": [3], "holdingTime": 1.0, "poseSet": [ [60, 0, 30, 90, 0], [60, 0, 55, 90, 0], [30, 0, 80, 90, 0] ,[10, 0, 30, 90, 0],[20, 0, 30, 90, 0],[40, 0, 30, 90, 0],[50, 0, 30, 90, 0],[55, 0, 30, 90, 0],[70, 0, 30, 90, 0],[75, 0, 30, 90, 0]] }
+{"iterationsPerTarget": [3], "iterationBatchSize": 3, "holdingTime": 1.0, "sfePose": [ 40,60,80], "efePose": [ 30,60,90], "wpsPose": [ -45,0,45] }

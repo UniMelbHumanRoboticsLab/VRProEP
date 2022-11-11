@@ -16,9 +16,9 @@ namespace VRProEP.ProsthesisCore
         private IdealJointManager wristFlexManager;
 
 
-        private float elbowState = 0.0f;
-        private float wristPronState = 0.0f;
-        private float wristFlexState = 0.0f;
+        public float ElbowState { get; set; }
+        public float WristPronState { get; set; }
+        public float WristFlexState { get; set; }
 
         private bool isConfigured = false;
         private bool isEnabled = false;
@@ -152,13 +152,13 @@ namespace VRProEP.ProsthesisCore
             if (isConfigured)
             {
                 // Update references
-                elbowState = inputManager.GenerateReference(0);
-                wristPronState = inputManager.GenerateReference(1);
-                wristFlexState = inputManager.GenerateReference(2);
+                ElbowState = inputManager.GenerateReference(0);
+                WristPronState = inputManager.GenerateReference(1);
+                WristFlexState = inputManager.GenerateReference(2);
                 // Update device state
-                elbowManager.UpdateState(0, elbowState);
-                wristPronManager.UpdateState(0, wristPronState); ;
-                wristFlexManager.UpdateState(0, wristFlexState); ;
+                elbowManager.UpdateState(0, ElbowState);
+                wristPronManager.UpdateState(0, WristPronState); ;
+                wristFlexManager.UpdateState(0, WristFlexState); ;
                 isEnabled = inputManager.IsEnabled();
             }
         }
@@ -228,7 +228,7 @@ namespace VRProEP.ProsthesisCore
         /// <returns></returns>
         public float GetElbowAngle()
         {
-            return elbowState;
+            return ElbowState;
         }
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace VRProEP.ProsthesisCore
                 throw new System.ArgumentOutOfRangeException("The provided elbow angle is out of the allowed range.");
 
             inputManager.Configure("CMD_SET_REFERENCE", elbowAngle);
-            elbowState = elbowAngle;
+            ElbowState = elbowAngle;
         }
     }
 }
