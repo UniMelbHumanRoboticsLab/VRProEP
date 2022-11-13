@@ -69,6 +69,8 @@ public class AugmentedFeedback2022 : GameMaster
     [SerializeField]
     private AudioClip returnAudioClip;
     [SerializeField]
+    private AudioClip nextAudioClip;
+    [SerializeField]
     private AudioClip testAudioClip;
 
     [Header("Avatar option")]
@@ -1212,10 +1214,27 @@ public class AugmentedFeedback2022 : GameMaster
         if (tempCompleteFlag && !hasReached)
         {
             iterationDoneTime = taskTime;
-            StartCoroutine(EndTaskCoroutine());
             audio.clip = holdAudioClip;
             audio.Play();
+
+            bool skipStateMachine = iterationBatchSize > 1 && (iterationNumber % iterationBatchSize) != 0;
+            if (skipStateMachine)
+            {
+                StartCoroutine(EndTaskCoroutine(skipStateMachine));
+
+                // Because this iteration is still in the batch
+                // Skip the gamemaster flow control, but initialise next iteration
+                AltHandleTaskCompletion();
+                AltHandleResultAnalysis();
+                HandleIterationInitialisation();
+                PrepareForStart();
+            }
+            else
+            { 
+                StartCoroutine(EndTaskCoroutine(skipStateMachine));
+            }
             Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + iterationDoneTime.ToString() + ".");
+
         }
 
         return taskComplete;
@@ -1227,7 +1246,7 @@ public class AugmentedFeedback2022 : GameMaster
     /// after the subject touches the selected sphere.
     /// </summary>
     /// <returns></returns>
-    private IEnumerator EndTaskCoroutine()
+    private IEnumerator EndTaskCoroutine(bool skipStateMachine)
     {
         hasReached = true;
         // Signal the subject that the task is done
@@ -1236,7 +1255,11 @@ public class AugmentedFeedback2022 : GameMaster
         //HudManager.colour = HUDManager.HUDColour.Green;
        
         yield return new WaitForSecondsRealtime(holdingTime);
-        taskComplete = true;
+
+        if(skipStateMachine)
+            taskComplete = false;
+        else
+            taskComplete = true;
     }
 
     /// <summary>
@@ -1269,7 +1292,36 @@ public class AugmentedFeedback2022 : GameMaster
 
     }
 
-    
+    /// <summary>
+    /// Handles procedures that occur as soon as the task is completed.
+    /// This method is not in the GameMaster state machine flow control
+    /// </summary>
+    private void AltHandleTaskCompletion()
+    {
+        // Stop EMG reading and save data
+        if (delsysEnable)
+        {
+            delsysEMG.StopRecording();
+            emgIsRecording = false;
+        }
+
+        // Save log data
+        taskDataLogger.SaveLog();
+
+        // Reset flags
+        hasReached = false;
+        taskComplete = false;
+
+        // Play return audio
+        audio.clip = nextAudioClip;
+        audio.Play();
+
+        // Update the pusher the next iteration happen;
+        if (zmqPushEnable)
+            ZMQSystem.AddPushData(zmqPushPort, new float[] { ITE_RESET });
+    }
+
+
     /// <summary>
     /// Handles the procedures performed when analysing results.
     /// </summary>
@@ -1289,6 +1341,17 @@ public class AugmentedFeedback2022 : GameMaster
         analysisDone = true;
     }
 
+    /// <summary>
+    /// Handles the procedures performed when analysing results.
+    /// </summary>
+    private void AltHandleResultAnalysis()
+    {
+        string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + iterationDoneTime.ToString(); //+ "," + feedbackScore.ToString();
+
+        // Log results
+        performanceDataLogger.AppendData(iterationResults);
+        performanceDataLogger.SaveLog();
+    }
 
     /// <summary>
     /// Handles the coroutine need to be done after task completion
@@ -1326,6 +1389,7 @@ public class AugmentedFeedback2022 : GameMaster
         base.HandleIterationInitialisation();
         
     }
+
 
     /*
     /// <summary>

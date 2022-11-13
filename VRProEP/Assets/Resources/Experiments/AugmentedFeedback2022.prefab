@@ -548,6 +548,7 @@ MonoBehaviour:
   trainingPerSession: 
   taskDataFormat: 
   ablebodiedDataFormat: loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB
+  transhumeralDataFormat: loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pEfe,pWps
   performanceDataFormat: i,loc,t_f,score
   startShoulderAngle: -90
   startElbowAngle: 90
@@ -558,6 +559,7 @@ MonoBehaviour:
   startPosPhoto: {fileID: 9025509897340019074}
   holdAudioClip: {fileID: 8300000, guid: 520a431cc0f99e7478b4a53a290c28ff, type: 3}
   returnAudioClip: {fileID: 8300000, guid: 3cde4d34aa934b545aef79f2da842faf, type: 3}
+  nextAudioClip: {fileID: 8300000, guid: 64f6ec8f208df0b4683c89d42f38ad46, type: 3}
   testAudioClip: {fileID: 8300000, guid: 7298cdd19e7244a4f9a880e0058b5c8c, type: 3}
   amputeeAvatar: 0
   controlllerHand: 0
