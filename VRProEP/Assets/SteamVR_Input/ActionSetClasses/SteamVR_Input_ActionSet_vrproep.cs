@@ -89,6 +89,14 @@ namespace Valve.VR
             }
         }
         
+        public virtual SteamVR_Action_Boolean AuxInteractButton
+        {
+            get
+            {
+                return SteamVR_Actions.vrproep_AuxInteractButton;
+            }
+        }
+        
         public virtual SteamVR_Action_Vibration HapticFeedback
         {
             get

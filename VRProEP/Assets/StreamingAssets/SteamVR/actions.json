@@ -109,6 +109,11 @@
       "requirement": "mandatory"
     },
     {
+      "name": "/actions/vrproep/in/AuxInteractButton",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
       "name": "/actions/vrproep/out/HapticFeedback",
       "type": "vibration"
     }

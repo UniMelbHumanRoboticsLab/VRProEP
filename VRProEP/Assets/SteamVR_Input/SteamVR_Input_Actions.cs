@@ -65,6 +65,8 @@ namespace Valve.VR
         
         private static SteamVR_Action_Pose p_vrproep_HandPose;
         
+        private static SteamVR_Action_Boolean p_vrproep_AuxInteractButton;
+        
         private static SteamVR_Action_Vibration p_vrproep_HapticFeedback;
         
         public static SteamVR_Action_Boolean default_InteractUI
@@ -259,6 +261,14 @@ namespace Valve.VR
             }
         }
         
+        public static SteamVR_Action_Boolean vrproep_AuxInteractButton
+        {
+            get
+            {
+                return SteamVR_Actions.p_vrproep_AuxInteractButton.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
         public static SteamVR_Action_Vibration vrproep_HapticFeedback
         {
             get
@@ -294,6 +304,7 @@ namespace Valve.VR
                     SteamVR_Actions.vrproep_C7Pose,
                     SteamVR_Actions.vrproep_MRCameraPose,
                     SteamVR_Actions.vrproep_HandPose,
+                    SteamVR_Actions.vrproep_AuxInteractButton,
                     SteamVR_Actions.vrproep_HapticFeedback};
             Valve.VR.SteamVR_Input.actionsIn = new Valve.VR.ISteamVR_Action_In[] {
                     SteamVR_Actions.default_InteractUI,
@@ -318,7 +329,8 @@ namespace Valve.VR
                     SteamVR_Actions.vrproep_ShoulderPose,
                     SteamVR_Actions.vrproep_C7Pose,
                     SteamVR_Actions.vrproep_MRCameraPose,
-                    SteamVR_Actions.vrproep_HandPose};
+                    SteamVR_Actions.vrproep_HandPose,
+                    SteamVR_Actions.vrproep_AuxInteractButton};
             Valve.VR.SteamVR_Input.actionsOut = new Valve.VR.ISteamVR_Action_Out[] {
                     SteamVR_Actions.default_Haptic,
                     SteamVR_Actions.vrproep_HapticFeedback};
@@ -342,7 +354,8 @@ namespace Valve.VR
                     SteamVR_Actions.buggy_Brake,
                     SteamVR_Actions.buggy_Reset,
                     SteamVR_Actions.vrproep_InterfaceEnableButton,
-                    SteamVR_Actions.vrproep_ObjectInteractButton};
+                    SteamVR_Actions.vrproep_ObjectInteractButton,
+                    SteamVR_Actions.vrproep_AuxInteractButton};
             Valve.VR.SteamVR_Input.actionsSingle = new Valve.VR.SteamVR_Action_Single[] {
                     SteamVR_Actions.default_Squeeze,
                     SteamVR_Actions.buggy_Throttle};
@@ -368,7 +381,8 @@ namespace Valve.VR
                     SteamVR_Actions.buggy_Reset,
                     SteamVR_Actions.vrproep_Trackpad,
                     SteamVR_Actions.vrproep_InterfaceEnableButton,
-                    SteamVR_Actions.vrproep_ObjectInteractButton};
+                    SteamVR_Actions.vrproep_ObjectInteractButton,
+                    SteamVR_Actions.vrproep_AuxInteractButton};
         }
         
         private static void PreInitActions()
@@ -397,6 +411,7 @@ namespace Valve.VR
             SteamVR_Actions.p_vrproep_C7Pose = ((SteamVR_Action_Pose)(SteamVR_Action.Create<SteamVR_Action_Pose>("/actions/vrproep/in/C7Pose")));
             SteamVR_Actions.p_vrproep_MRCameraPose = ((SteamVR_Action_Pose)(SteamVR_Action.Create<SteamVR_Action_Pose>("/actions/vrproep/in/MRCameraPose")));
             SteamVR_Actions.p_vrproep_HandPose = ((SteamVR_Action_Pose)(SteamVR_Action.Create<SteamVR_Action_Pose>("/actions/vrproep/in/HandPose")));
+            SteamVR_Actions.p_vrproep_AuxInteractButton = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/vrproep/in/AuxInteractButton")));
             SteamVR_Actions.p_vrproep_HapticFeedback = ((SteamVR_Action_Vibration)(SteamVR_Action.Create<SteamVR_Action_Vibration>("/actions/vrproep/out/HapticFeedback")));
         }
     }

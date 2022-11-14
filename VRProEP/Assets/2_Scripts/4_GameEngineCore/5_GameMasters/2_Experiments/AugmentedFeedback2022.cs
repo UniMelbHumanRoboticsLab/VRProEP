@@ -147,9 +147,11 @@ public class AugmentedFeedback2022 : GameMaster
     //private List<Quaternion> initialOrientation = new List<Quaternion>();
     //private List<Vector3> initialPosition = new List<Vector3>();
 
-    
+
 
     // Flow control
+    private bool loopTraining = true;
+    private bool inPractice = false;
     private bool hasReached = false;
     private bool taskComplete = false;
     private bool emgIsRecording = false;
@@ -163,7 +165,8 @@ public class AugmentedFeedback2022 : GameMaster
     // Communication constants
     public const float PUSH_ENABLE = -1.0f;
     public const float ITE_RESET = -2.0f;
-    
+
+    protected SteamVR_Action_Boolean padAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("InterfaceEnableButton");
 
     #region Private methods
     private string ConfigEMGFilePath()
@@ -272,11 +275,18 @@ public class AugmentedFeedback2022 : GameMaster
                     selectIdx = 0;
             }
         }
-       
-           
+
+        // Choose if to try the training again
+        if (GetCurrentStateName() == State.STATE.TRAINING && inPractice)
+        {
+            if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any))
+                loopTraining = true;
+            else if (padAction.GetStateDown(SteamVR_Input_Sources.Any))
+                loopTraining = false;
+        }
 
         // Override fixed update to start the emg recording when the start performing the task
-        if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK && delsysEnable && !emgIsRecording )
+        if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK  && delsysEnable && !emgIsRecording )
         {
             
             delsysEMG.StartRecording(ConfigEMGFilePath());
@@ -316,11 +326,15 @@ public class AugmentedFeedback2022 : GameMaster
             {
                 AvatarSystem.LoadPlayer(UserType.Ablebodied, AvatarType.Transhumeral);
                 AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.Transhumeral);
+                prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
+                multiJointManager = prosthesisManagerGO.AddComponent<ConfigurableMultiJointManager>();
+                multiJointManager.InitializeProsthesis(SaveSystem.ActiveUser.upperArmLength, (SaveSystem.ActiveUser.forearmLength + SaveSystem.ActiveUser.handLength / 2.0f));
+                /*
                 // Initialize prosthesis
                 GameObject prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
-                ConfigurableMultiJointManager multiJointManager = prosthesisManagerGO.AddComponent<ConfigurableMultiJointManager>();
+                multiJointManager = prosthesisManagerGO.AddComponent<ConfigurableMultiJointManager>();
                 //ConfigurableElbowManager elbowManager = prosthesisManagerGO.AddComponent<ConfigurableElbowManager>();
-                multiJointManager.InitializeProsthesis(SaveSystem.ActiveUser.upperArmLength, (SaveSystem.ActiveUser.forearmLength + SaveSystem.ActiveUser.handLength / 2.0f));
+               
                 if (zmqPullEnable) //
                     // Set the reference generator to machine learning based synergy.
                     multiJointManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
@@ -328,6 +342,7 @@ public class AugmentedFeedback2022 : GameMaster
                     // Set the reference generator to machine learning based synergy.
                     multiJointManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
                 Debug.Log("Avatar loaded");
+                */
 
             }
             else
@@ -503,21 +518,23 @@ public class AugmentedFeedback2022 : GameMaster
             if (upperArmTracker == null)
                 throw new System.NullReferenceException("The residual limb tracker was not found.");
             ExperimentSystem.AddSensor(upperArmTracker);
+
+
             // Set VIVE tracker and Linear synergy as active.
             // Get prosthesis
-            prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
-            multiJointManager = prosthesisManagerGO.GetComponent<ConfigurableMultiJointManager>();
+           
             if (zmqPullEnable)
                 // Set the reference generator to linear synergy.
                 multiJointManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
             else
             {
+                multiJointManager.AddSensor(upperArmTracker);
                 multiJointManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
-                multiJointManager.SetSynergy(45.0f/60.0f);
+                multiJointManager.SetSynergy(100.0f/60.0f);
             }
-                
 
-            
+
+
         }
        
 
@@ -598,36 +615,6 @@ public class AugmentedFeedback2022 : GameMaster
         welcomeDone = false;
         inWelcome = true;
 
-        //
-        // Calibration
-        InstructionManager.DisplayText("Before start, we need to do some clibration" + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("Please stand upright and relax your upper limb.");
-        Debug.Log("Press Up key to record calibration pose.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
-
-        if (fullTrackerEnable)
-        {
-            // Record initial frames
-            c7InitOrient = c7Tracker.GetTrackerTransform().rotation;
-            c7InitPos = c7Tracker.GetTrackerTransform().position;
-
-            shInitOrient = shoulderTracker.GetTrackerTransform().rotation;
-            shInitPos = shoulderTracker.GetTrackerTransform().position;
-        }
-
-
-        // Start
-        Debug.Log("Press Down key to start.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
-        if (delsysEnable & zmqPushEnable)
-            delsysEMG.SetZMQPusher(true);
-
-        InstructionManager.DisplayText("All done! Thanks!");
-
-        welcomeDone = true;
-
-
         HudManager.DisplayText("Look to the top left. Instructions will be displayed there.");
         InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -667,7 +654,36 @@ public class AugmentedFeedback2022 : GameMaster
         InstructionManager.DisplayText("A 60 sec rest occurs every 27 iterations" + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-        
+
+        //
+        // Calibration
+        InstructionManager.DisplayText("Before start, we need to do some clibration" + "\n\n (Press the trigger)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        InstructionManager.DisplayText("Please stand upright and relax your upper limb.");
+        Debug.Log("Press Up key to record calibration pose.");
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
+
+        if (fullTrackerEnable)
+        {
+            // Record initial frames
+            c7InitOrient = c7Tracker.GetTrackerTransform().rotation;
+            c7InitPos = c7Tracker.GetTrackerTransform().position;
+
+            shInitOrient = shoulderTracker.GetTrackerTransform().rotation;
+            shInitPos = shoulderTracker.GetTrackerTransform().position;
+        }
+
+
+        // Start
+        Debug.Log("Press Down key to start.");
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
+        if (delsysEnable & zmqPushEnable)
+            delsysEMG.SetZMQPusher(true);
+
+        InstructionManager.DisplayText("All done! Thanks!");
+
+        welcomeDone = true;
+
         #region Debug the zmq communications
         /*
         Debug.Log("Press Up key.");
@@ -796,12 +812,11 @@ public class AugmentedFeedback2022 : GameMaster
         InstructionManager.DisplayText("Press trigger to continue" + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-        instructionsDone = true;
 
         //Instructions
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied) // Able-bodied session
         {
-            InstructionManager.DisplayText("Alright, the sphere targets should have spawned for you." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("Alright, the bottle targets should have spawned for you." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("In the 1st session, you will need to match the position and oriention of the bottles in front of you with the bottle in your hand." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -811,7 +826,7 @@ public class AugmentedFeedback2022 : GameMaster
         }
         else if (AvatarSystem.AvatarType == AvatarType.Transhumeral) // second session
         {
-            InstructionManager.DisplayText("You've finished the 1st session, well done. Let's start the second session" + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("You've finished the 1st session, well done. Let's start the 2nd session" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("Now, you need to complete the same task, but the virtual forearm will not follow yours but controlled by some algorithm ." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -838,10 +853,12 @@ public class AugmentedFeedback2022 : GameMaster
         trainingDone = false;
         inTraining = true;
 
+        Debug.Log("Training Start.");
+
         InstructionManager.DisplayText("Press trigger to continue" + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-        trainingDone = true;
+        //trainingDone = true;
 
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
         {
@@ -854,19 +871,19 @@ public class AugmentedFeedback2022 : GameMaster
             // HUD Colours
             InstructionManager.DisplayText("First, let's tell you about the colour of the HUD. It will tell you what you need to do." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Red>: for returning back and adjusting your start position." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("<Red>: return relax." + "\n\n (Press the trigger)");
             HudManager.DisplayText("I'm red!");
             HudManager.colour = HUDManager.HUDColour.Red;
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Orange>: for waiting for the countdown." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("<Orange>: wait for countdown." + "\n\n (Press the trigger)");
             HudManager.DisplayText("I'm orange!");
             HudManager.colour = HUDManager.HUDColour.Orange;
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Blue>: for reaching for the target.!" + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("<Blue>: reach!" + "\n\n (Press the trigger)");
             HudManager.DisplayText("I'm blue!");
             HudManager.colour = HUDManager.HUDColour.Blue;
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You need to hold on you reaching position for a while until the HUD says 'Well Done', like" + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("You need to hold on you final position for a while until you hear return or next and HUD says 'Well Done'." + "\n\n (Press the trigger)");
             HudManager.colour = HUDManager.HUDColour.Red;
             HudManager.DisplayText("Well Done");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -876,7 +893,7 @@ public class AugmentedFeedback2022 : GameMaster
 
             //
             // Reaching practice
-            InstructionManager.DisplayText("Next, the colour of the targets will tell you the status of the target." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("The colour of the targets will tell you the status of the target." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("<Blue>: the target is selected as the next target." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -886,89 +903,100 @@ public class AugmentedFeedback2022 : GameMaster
 
             //
             // Explain routine
-            InstructionManager.DisplayText("Alright, let's explain the task routine." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("Thanks for the attention, let's explain the task routine." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("The task routine is: first keep your start position for 3 seconds, and HUD will tell you when to go." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("You will be asked to sequentially match the position and orientation of multiple bottle targets before returning to relax." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Then reach to the target in <blue> using your index finger." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("The group size in this experiment is: " + iterationBatchSize + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Finally, when you reach, hold on for a while, until you hear 'Return' and HUD says 'Well done'." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("Finally, when the target bottle turns green, hold on for a while, until you hear 'Return' or 'Next' and HUD says 'Well Done'." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
             //
             // Important messages
-            InstructionManager.DisplayText("Important!: Keep your final reaching position when you hear 'Hold', like !!! " + "\n\n (Press the trigger to play)");
+            InstructionManager.DisplayText("Important: Keep your final reaching position when you hear 'Hold', like !!! " + "\n\n (Press the trigger to play)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             audio.clip = holdAudioClip;
             audio.Play(0);
-            HudManager.DisplayText("Hold on for a while!!");
-            InstructionManager.DisplayText("Important!: Keep your final reaching position when you hear 'Hold', like !!! " + "\n\n (Press the trigger to continue)");
+            HudManager.DisplayText("Hold on for a while!");
+            InstructionManager.DisplayText("Important: Keep your final reaching position when you hear 'Hold', like !!! " + "\n\n (Press the trigger to continue)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-            InstructionManager.DisplayText("Important!: Do not return until HUD says 'Well Done' and you hear 'Return', like !!! " + "\n\n (Press the trigger to play)");
+            InstructionManager.DisplayText("Important: Please not return until HUD says 'Well Done' and you hear 'Next', like !!! " + "\n\n (Press the trigger to play)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            audio.clip = nextAudioClip;
+            audio.Play(0);
+            InstructionManager.DisplayText("Important: Please not return until HUD says 'Well Done' and you hear 'Next', like !!! " + "\n\n (Press the trigger to continue)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+
+
+            InstructionManager.DisplayText("Important: Please not return until HUD says 'Well Done' and you hear 'Return', like !!! " + "\n\n (Press the trigger to play)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             audio.clip = returnAudioClip;
             audio.Play(0);
-            HudManager.DisplayText("Well done!!");
-            InstructionManager.DisplayText("Important!: Do not return until HUD says 'Well Done' and you hear 'Return', like !!! " + "\n\n (Press the trigger to continue)");
+            HudManager.DisplayText("Well done!");
+            InstructionManager.DisplayText("Important: Please not return until HUD says 'Well Done' and you hear 'Return', like !!! " + "\n\n (Press the trigger to continue)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+
 
             //
             // Have a try
-            InstructionManager.DisplayText("Ok, let's have a try of a routine." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("Thansk for the attention, let's try a task routine." + "\n\n (Press the trigger)");
             HudManager.ClearText();
             HudManager.colour = HUDManager.HUDColour.Red;
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-
             //
             // Start position
-            InstructionManager.DisplayText("First, let's show you the start position." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("Before starting, your upper arm and elbow should point downards and relax." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-            //
-            // Start position
-            InstructionManager.DisplayText("Your upper arm and elbow should point downards." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Try it. The HUD displays: (current upper and fore arm angle/the desired one)");
-            //startPosPhoto.SetActive(true);
-            //startPosPhoto.transform.Rotate(new Vector3(0.0f, 90.0f, 0.0f), Space.World);
-            yield return new WaitUntil(() => IsReadyToStart());
-            //startPosPhoto.SetActive(false);
-            HudManager.ClearText();
 
             //Start practice
-            gridManager.SelectTarget(0);
-            InstructionManager.DisplayText("The sphere that you need to reach will turn blue. Don't reach now." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("The bottle that you need to reach will turn blue. Don't reach now." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You'll have to wait for a three second countdown. Look at the sphere and get ready!" + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("You'll have to wait for a countdown. Look at the sphere and get ready!" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            HudManager.colour = HUDManager.HUDColour.Orange;
-            HUDCountDown(1);
-            yield return new WaitUntil(() => CountdownDone); // And wait 
-            InstructionManager.DisplayText("Reach for it by index finger!!");
-            HudManager.DisplayText("Reach for it by index finger!!");
-            HudManager.colour = HUDManager.HUDColour.Blue;
-            yield return new WaitUntil(() => IsTaskDone());
-            // Signal the subject that the task is done
-            HudManager.DisplayText("Hold on your current position!");
-            yield return new WaitForSecondsRealtime(1.0f);
-            audio.clip = returnAudioClip;
-            audio.Play();
-            HudManager.colour = HUDManager.HUDColour.Red;
-            HudManager.DisplayText("Well done (you can return to start position)!");
-            // Reset flags
-            hasReached = false;
-            taskComplete = false;
-            HudManager.DisplayText("You can relax now. Look to the top right.", 3);
+
+            while (loopTraining)
+            {
+                inPractice = true;
+                PrepareForStart();
+                HudManager.colour = HUDManager.HUDColour.Orange;
+                HUDCountDown(1);
+                yield return new WaitUntil(() => CountdownDone); // And wait 
+                InstructionManager.DisplayText("Reach!");
+                HudManager.DisplayText("Reach!");
+                HudManager.colour = HUDManager.HUDColour.Blue;
+                yield return new WaitUntil(() => IsTaskDone());
+                // Signal the subject that the task is done
+                audio.clip = returnAudioClip;
+                audio.Play();
+                HudManager.colour = HUDManager.HUDColour.Red;
+                HudManager.DisplayText("Well done (you can return to start position)!");
+
+
+                // Reset flags
+                hasReached = false;
+                taskComplete = false;
+                iterationNumber = 0;
+                HandleIterationInitialisation();
+
+                // Do you want to retry?
+                InstructionManager.DisplayText("To retry (Press the trigger)" + "\n\n" + "To continue (Press the touchpad)");
+                yield return WaitForTrainingInstruction();
+            }
+            inPractice = false;
 
             //
             // End
-            InstructionManager.DisplayText("Important: Do not return until you hear 'Return' and HUD says 'Well Done' !!! " + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("Important: Hold your position until you hear the sound !!! " + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("Otherwise, you look ready to go! Good luck!" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
         }
+
+        // Amputee case
         if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
         {
             InstructionManager.DisplayText("Let's start training then!" + "\n\n (Press the trigger)");
@@ -976,7 +1004,7 @@ public class AugmentedFeedback2022 : GameMaster
 
             //
             // Reaching practice
-            InstructionManager.DisplayText("Everthing is the same except you need to match the orientations." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("This time the forearm will not track yours but controlled by signals from your upperarm" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("Ok, let's have a try." + "\n\n (Press the trigger)");
             HudManager.ClearText();
@@ -984,40 +1012,59 @@ public class AugmentedFeedback2022 : GameMaster
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
             //Start practice         
-            gridManager.SelectTarget(2);
-            InstructionManager.DisplayText("The sphere that you need to reach will turn blue. Do not reach now." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("The virtual elbow and wrist are controlled by your upperarm. You can have a try." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You'll have to wait for a three second countdown. Look at the sphere and get ready!" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            HudManager.colour = HUDManager.HUDColour.Orange;
-            HUDCountDown(3);
-            yield return new WaitUntil(() => CountdownDone); // And wait 
-            InstructionManager.DisplayText("Reach for it!!");
-            HudManager.DisplayText("Reach for it!!");
-            HudManager.colour = HUDManager.HUDColour.Blue;
-            yield return new WaitUntil(() => IsTaskDone());
-            // Signal the subject that the task is done
-            HudManager.DisplayText("Hold on!");
-            yield return new WaitForSecondsRealtime(1.0f);
-            HudManager.colour = HUDManager.HUDColour.Red;
-            HudManager.DisplayText("Well done (you can return to start position)!");
-            // Reset flags
-            hasReached = false;
-            taskComplete = false;
-            HudManager.DisplayText("You can relax now. Look to the top right.", 3);
+            while (loopTraining)
+            {
+                inPractice = true;
+                PrepareForStart();
+                HudManager.colour = HUDManager.HUDColour.Orange;
+                HUDCountDown(1);
+                yield return new WaitUntil(() => CountdownDone); // And wait 
+                InstructionManager.DisplayText("Reach!");
+                HudManager.DisplayText("Reach!");
+                HudManager.colour = HUDManager.HUDColour.Blue;
+                yield return new WaitUntil(() => IsTaskDone());
+                // Signal the subject that the task is done
+                audio.clip = returnAudioClip;
+                audio.Play();
+                HudManager.colour = HUDManager.HUDColour.Red;
+                HudManager.DisplayText("Well done (you can return to start position)!");
+
+
+                // Reset flags
+                hasReached = false;
+                taskComplete = false;
+                iterationNumber = 0;
+                HandleIterationInitialisation();
+
+                // Do you want to retry?
+                InstructionManager.DisplayText("To retry (Press the trigger)" + "\n\n" + "To continue (Press the touchpad)");
+                yield return WaitForTrainingInstruction();
+            }
+            inPractice = false;
+
 
             //
             // End
-            InstructionManager.DisplayText("Important: Hold your final reaching position until you hear 'Return' and HUD says 'Well Done' !!! " + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Otherwise, you look ready to go! Good luck!" + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("You look ready to go! Good luck!" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
         }
 
+        Debug.Log("Training complete.");
         // Now that you are done, set the flag to indicate we are done.
         trainingDone = true; 
 
+    }
+    /// <summary>
+    /// Coroutine check if continue the training
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator WaitForTrainingInstruction()
+    {
+        yield return new WaitUntil(() => buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || padAction.GetStateDown(SteamVR_Input_Sources.Any));
+        yield return new WaitForSeconds(0.5f);
     }
 
     /// <summary>
@@ -1213,29 +1260,24 @@ public class AugmentedFeedback2022 : GameMaster
 
         if (tempCompleteFlag && !hasReached)
         {
+
             iterationDoneTime = taskTime;
-            audio.clip = holdAudioClip;
-            audio.Play();
+            Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + iterationDoneTime.ToString() + ".");
 
             bool skipStateMachine = iterationBatchSize > 1 && (iterationNumber % iterationBatchSize) != 0;
             if (skipStateMachine)
             {
                 StartCoroutine(EndTaskCoroutine(skipStateMachine));
-
-                // Because this iteration is still in the batch
-                // Skip the gamemaster flow control, but initialise next iteration
-                AltHandleTaskCompletion();
-                AltHandleResultAnalysis();
-                HandleIterationInitialisation();
-                PrepareForStart();
             }
             else
-            { 
+            {
                 StartCoroutine(EndTaskCoroutine(skipStateMachine));
             }
-            Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + iterationDoneTime.ToString() + ".");
+           
 
         }
+
+
 
         return taskComplete;
     }
@@ -1249,15 +1291,33 @@ public class AugmentedFeedback2022 : GameMaster
     private IEnumerator EndTaskCoroutine(bool skipStateMachine)
     {
         hasReached = true;
+
+        audio.clip = holdAudioClip;
+        audio.Play();
         // Signal the subject that the task is done
         HudManager.DisplayText("Hold on for a while!!");
         HudManager.colour = HUDManager.HUDColour.Green;
-        //HudManager.colour = HUDManager.HUDColour.Green;
+        
        
         yield return new WaitForSecondsRealtime(holdingTime);
 
-        if(skipStateMachine)
+
+
+        if (skipStateMachine)
+        {
+            // Because this iteration is still in the batch
+            // Skip the gamemaster flow control, but initialise next iteration
+            AltHandleTaskCompletion();
+            AltHandleResultAnalysis();
+            HandleIterationInitialisation();
+            PrepareForStart();
+            HudManager.DisplayText("Next Pose!");
+            HudManager.colour = HUDManager.HUDColour.Blue;
+            //
+            yield return new WaitForSecondsRealtime(1.0f);
+            
             taskComplete = false;
+        }
         else
             taskComplete = true;
     }
@@ -1298,8 +1358,8 @@ public class AugmentedFeedback2022 : GameMaster
     /// </summary>
     private void AltHandleTaskCompletion()
     {
-        // Stop EMG reading and save data
-        if (delsysEnable)
+        // Stop EMG reading and save data, skip the training state
+        if (delsysEnable && GetCurrentStateName() != State.STATE.TRAINING)
         {
             delsysEMG.StopRecording();
             emgIsRecording = false;
@@ -1385,9 +1445,10 @@ public class AugmentedFeedback2022 : GameMaster
     public override void HandleIterationInitialisation()
     {
         //StartCoroutine(HandleIterationInitialisationCoroutine());
-        Debug.Log("Current target pose number: " + targetOrder[iterationNumber - 1]);
-        base.HandleIterationInitialisation();
         
+        base.HandleIterationInitialisation();
+        Debug.Log("Current target pose number: " + targetOrder[iterationNumber - 1]);
+
     }
 
 
@@ -1492,7 +1553,6 @@ public class AugmentedFeedback2022 : GameMaster
         if (zmqPushEnable || zmqReqEnable)
             ZMQSystem.CloseZMQSocket(zmqPushPort,ZMQSystem.SocketType.Pusher);
 
-       
 
         if (zmqReqEnable)
             ZMQSystem.CloseZMQSocket(zmqReqPort, ZMQSystem.SocketType.Requester);

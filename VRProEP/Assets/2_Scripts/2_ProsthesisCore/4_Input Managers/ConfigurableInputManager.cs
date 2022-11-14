@@ -154,10 +154,14 @@ namespace VRProEP.ProsthesisCore
             // Linear synergy reference generator requires multiple sensors.
             else if (GetActiveReferenceGeneratorType() == ReferenceGeneratorType.LinearKinematicSynergy)
             {
+                
                 // Save currently active sensor
                 SensorType prevSensorType = activeSensor.GetSensorType();
+
                 // Get residual limb velocity
                 Configure("CMD_SET_ACTIVE_SENSOR", SensorType.VIVETracker);
+                //Debug.Log(sensorManagers.Count);
+                //float qDotShoulder = sensorManagers[sensorManagers.Count - 1].GetProcessedData(channel);
                 float qDotShoulder = activeSensor.GetProcessedData(channel);
 
                 // Get enable

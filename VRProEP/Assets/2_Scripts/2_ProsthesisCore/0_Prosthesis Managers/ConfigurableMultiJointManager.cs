@@ -15,7 +15,6 @@ namespace VRProEP.ProsthesisCore
         private IdealJointManager wristPronManager;
         private IdealJointManager wristFlexManager;
 
-
         public float ElbowState { get; set; }
         public float WristPronState { get; set; }
         public float WristFlexState { get; set; }
@@ -40,7 +39,13 @@ namespace VRProEP.ProsthesisCore
             // ConfigurableInputManagar
             //
             // Find ResdiualLimbTracker GameObject and extract its Transform.
+
+
             GameObject residualLimbTrackerGO = GameObject.FindGameObjectWithTag("ResidualLimbTracker");
+
+            //residualLimbTrackerGO.transform.localScale = new Vector3(2.0f, 2.0f, 2.0f);
+            //Debug.Log("Residual tracker number: " + residualLimbTrackerGO.Length);
+
             // Create a VIVETracker with the obtained transform
             VIVETrackerManager trackerManager = new VIVETrackerManager(residualLimbTrackerGO.transform);
             // Create a basic reference generator: Integrator.
@@ -118,7 +123,7 @@ namespace VRProEP.ProsthesisCore
             // Reference generators
             //
             // Add a Linear Kinematic Synergy to the prosthesis
-            float[] theta = { -synValue, -synValue, -synValue };
+            float[] theta = { -synValue, synValue, -synValue };
             float[] thetaMin = { -3.5f, -3.5f, -3.5f };
             float[] thetaMax = { -0.1f, -0.1f, -0.1f };
             LinearKinematicSynergy linSyn = new LinearKinematicSynergy(xBar, xMin, xMax, theta, thetaMin, thetaMax);
