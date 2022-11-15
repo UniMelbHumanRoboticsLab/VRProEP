@@ -401,11 +401,11 @@ namespace VRProEP.GameEngineCore
             //GameObject llMotionTrackerGO = AvatarSystem.AddMotionTracker();
             GameObject llMotionTrackerGO = SpawnMotionTracker(newTracker);
             llMotionTrackerGO.tag = "ForearmTracker";
-            
+            llMotionTrackerGO.transform.GetChild(1).gameObject.SetActive(false); // Disable marker
 
             if (showAvatar)
             {
-                llMotionTrackerGO.transform.GetChild(1).gameObject.SetActive(false); // Disable marker
+                
                 // Load forearm from avatar folder and check whether successfully loaded.
                 GameObject forearmPrefab = Resources.Load<GameObject>("Avatars/Forearms/ForearmAble");
                 if (forearmPrefab == null)

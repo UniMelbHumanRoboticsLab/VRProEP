@@ -326,23 +326,21 @@ public class AugmentedFeedback2022 : GameMaster
             {
                 AvatarSystem.LoadPlayer(UserType.Ablebodied, AvatarType.Transhumeral);
                 AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.Transhumeral);
+
+                // Prosthesis manager
                 prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
                 multiJointManager = prosthesisManagerGO.AddComponent<ConfigurableMultiJointManager>();
+
+                // Initialise the forearm tracker first
+                if (SaveSystem.ActiveUser.type == UserType.Ablebodied)
+                {
+                    GameObject llMotionTrackerGO = GameObject.FindGameObjectWithTag("ForearmTracker");
+                    lowerArmTracker = new VIVETrackerManager(llMotionTrackerGO.transform);
+                }
+                
+                // Initialise prosthesis
                 multiJointManager.InitializeProsthesis(SaveSystem.ActiveUser.upperArmLength, (SaveSystem.ActiveUser.forearmLength + SaveSystem.ActiveUser.handLength / 2.0f));
-                /*
-                // Initialize prosthesis
-                GameObject prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
-                multiJointManager = prosthesisManagerGO.AddComponent<ConfigurableMultiJointManager>();
-                //ConfigurableElbowManager elbowManager = prosthesisManagerGO.AddComponent<ConfigurableElbowManager>();
-               
-                if (zmqPullEnable) //
-                    // Set the reference generator to machine learning based synergy.
-                    multiJointManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
-                else
-                    // Set the reference generator to machine learning based synergy.
-                    multiJointManager.ChangeReferenceGenerator("VAL_REFGEN_LINKINSYN");
-                Debug.Log("Avatar loaded");
-                */
+
 
             }
             else
@@ -505,9 +503,9 @@ public class AugmentedFeedback2022 : GameMaster
         }
         else
         {
-            GameObject llMotionTrackerGO = GameObject.FindGameObjectWithTag("ForearmTracker");
-            lowerArmTracker = new VIVETrackerManager(llMotionTrackerGO.transform);
+            // Forearm tracker
             ExperimentSystem.AddSensor(lowerArmTracker);
+            Debug.Log("Forearm tracker registerd number:" + lowerArmTracker.TrackerNumber + " Total number: " + lowerArmTracker.TotalTrackerNumber);
 
             // Get active sensors from avatar system and get the vive tracker being used for the UA
             foreach (ISensor sensor in AvatarSystem.GetActiveSensors())
@@ -518,11 +516,14 @@ public class AugmentedFeedback2022 : GameMaster
             if (upperArmTracker == null)
                 throw new System.NullReferenceException("The residual limb tracker was not found.");
             ExperimentSystem.AddSensor(upperArmTracker);
+            Debug.Log("Upperarm tracker registerd number:" + upperArmTracker.TrackerNumber + " Total number: " + upperArmTracker.TotalTrackerNumber);
+
+            
+         
 
 
             // Set VIVE tracker and Linear synergy as active.
             // Get prosthesis
-           
             if (zmqPullEnable)
                 // Set the reference generator to linear synergy.
                 multiJointManager.ChangeReferenceGenerator("VAL_REFGEN_MLKINSYN");
@@ -539,19 +540,18 @@ public class AugmentedFeedback2022 : GameMaster
        
 
 
-
-
-
         if (fullTrackerEnable)
         {
             // Shoulder acromium head tracker
             GameObject shMotionTrackerGO = AvatarSystem.AddMotionTracker();
             shoulderTracker = new VIVETrackerManager(shMotionTrackerGO.transform);
             ExperimentSystem.AddSensor(shoulderTracker);
+            Debug.Log("Shoulder acromion tracker registerd number:" + shoulderTracker.TrackerNumber + " Total number: " + lowerArmTracker.TotalTrackerNumber);
             // C7 tracker
             GameObject c7MotionTrackerGO = AvatarSystem.AddMotionTracker();
             c7Tracker = new VIVETrackerManager(c7MotionTrackerGO.transform);
             ExperimentSystem.AddSensor(c7Tracker);
+            Debug.Log("Trunk tracker registerd number:" + c7Tracker.TrackerNumber + " Total number: " + lowerArmTracker.TotalTrackerNumber);
         }
 
         
@@ -1203,8 +1203,8 @@ public class AugmentedFeedback2022 : GameMaster
         // If in transhumeral prosthesis mode add prosthetic elbow and wrist states
         if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
         {
-            logData += "," + multiJointManager.ElbowState;
-            logData += "," + multiJointManager.WristPronState;
+            logData += "," + -multiJointManager.ElbowState;
+            logData += "," + -multiJointManager.WristPronState;
         }
        
 

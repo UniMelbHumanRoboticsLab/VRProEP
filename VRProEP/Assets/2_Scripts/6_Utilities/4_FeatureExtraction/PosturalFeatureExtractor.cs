@@ -159,7 +159,7 @@ public static class PosturalFeatureExtractor
         // Scapular protraction / retraction
         Vector2 vXZ1 = new Vector2(currentAcromionAxial.x, currentAcromionAxial.z);
         Vector2 vXZ2 = new Vector2(initialAcromionAxial.x, initialAcromionAxial.z);
-        if (vXZ1.y > vXZ2.y) sgn = -1; else sgn = 1;
+        if (vXZ1.y > vXZ2.y) sgn = 1; else sgn = -1;
         float anglePR = Vector2.Angle(vXZ1, vXZ2);
         scapularPR =  sgn * (shoulderBreadth / 2.0f) * Mathf.Sin(anglePR * Mathf.Deg2Rad);
         //Debug.Log(anglePR);

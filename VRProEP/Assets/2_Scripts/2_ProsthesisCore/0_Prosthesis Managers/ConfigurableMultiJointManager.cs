@@ -48,6 +48,8 @@ namespace VRProEP.ProsthesisCore
 
             // Create a VIVETracker with the obtained transform
             VIVETrackerManager trackerManager = new VIVETrackerManager(residualLimbTrackerGO.transform);
+            //Debug.Log("Residual tracker number: " + trackerManager.TrackerNumber);
+
             // Create a basic reference generator: Integrator.
             IntegratorReferenceGenerator integratorRG = new IntegratorReferenceGenerator(xBar, xMin, xMax);
             // Create configurable input manager with the created sensor and RG.

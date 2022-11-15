@@ -33,7 +33,9 @@ namespace VRProEP.ProsthesisCore
 
         // Configuration variables.
         private static int totalTrackerNumber = 0; // Sets tracker number for when there are multiple ones.
+        public int TotalTrackerNumber { get => totalTrackerNumber; }
         private int trackerNumber = 0;
+        public int TrackerNumber { get => trackerNumber; }
 
         // Transform to get position information
         private Transform trackerTransform;
