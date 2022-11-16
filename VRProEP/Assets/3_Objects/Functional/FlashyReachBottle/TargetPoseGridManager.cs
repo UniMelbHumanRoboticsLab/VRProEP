@@ -89,7 +89,7 @@ public class TargetPoseGridManager : MonoBehaviour
 
     // Target pose list
     private List<List<float>> qJoints = new List<List<float>>();
-    private List<float[]> qUpperLimb = new List<float[]>();
+    public List<float[]> QUpperLimb { get; set; } = new List<float[]>();
     private List<float[]> targetPoseList = new List<float[]>();
 
     // Required dofs
@@ -351,7 +351,7 @@ public class TargetPoseGridManager : MonoBehaviour
         Vector3 shoulderCentre = shoulderCentreLoc.position;
 
 
-        foreach (float[] qUA in qUpperLimb)
+        foreach (float[] qUA in QUpperLimb)
         {
             float qSfe = qUA[SFE_DOF];
             float qSaa = qUA[SAA_DOF];
@@ -669,7 +669,7 @@ public class TargetPoseGridManager : MonoBehaviour
     /// <returns 
     public void AddUpperLimbPose(float[] angle)
     {
-        qUpperLimb.Add(angle);
+        QUpperLimb.Add(angle);
     }
 
 
@@ -747,7 +747,7 @@ public class TargetPoseGridManager : MonoBehaviour
             // so no more combinations left
             if (next < 0)
             {
-                Debug.Log("Total number of poses: " + qUpperLimb.Count);
+                Debug.Log("Total number of poses: " + QUpperLimb.Count);
                 return;
 
             }
@@ -795,35 +795,31 @@ public class TargetPoseGridManager : MonoBehaviour
         // Generate the sequential randomised target order list
         while (true)
         {
-
-            // Add the target to the temp order list
-            Debug.Log("Add pose: " + targetOrder[idx]);
-            t_targetOrder.Add(targetOrder[idx]);
-
-
-
             // Batch size is full?
             if (t_targetOrder.Count >= batchSize)
             {
                 shuffledTargetOrder.AddRange(t_targetOrder);
                 t_targetOrder.Clear();
                 idx = Random.Range(0, targetOrder.Count);
+                Debug.Log("Batch size full");
                 continue;
             }
-
 
             // If reach the maximum, return the order list
             if (shuffledTargetOrder.Count >= N)
             {
-
                 break;
-
             }
 
 
+            // Add the target to the temp order list
+            Debug.Log("Remain poses: " + string.Join(",", targetOrder.Distinct().ToList()));
+            Debug.Log("Add pose: " + targetOrder[idx]);
+            t_targetOrder.Add(targetOrder[idx]);
+           
             // Remove the previous one from the input list
             targetOrder.RemoveAt(idx);
-
+            
 
             // Search the next
             // Current target pose
@@ -833,7 +829,7 @@ public class TargetPoseGridManager : MonoBehaviour
             // Find a different pose
             List<int> range = targetOrder.Distinct().ToList();
             range.Shuffle();
-            Debug.Log(string.Join(",", range));
+            //Debug.Log(string.Join(",", range));
 
 
             int i;
@@ -845,8 +841,8 @@ public class TargetPoseGridManager : MonoBehaviour
                 float[] pose = new float[dofList.Count];
                 for (j = 0; j <= dofList.Count - 1; j++)
                 {
-                    t_pose[j] = qUpperLimb[t_targetOrder.Last()][dofList[j]];
-                    pose[j] = qUpperLimb[range[i]][dofList[j]];
+                    t_pose[j] = QUpperLimb[t_targetOrder.Last()][dofList[j]];
+                    pose[j] = QUpperLimb[range[i]][dofList[j]];
 
                     if (t_pose[j] == pose[j])
                         break;
@@ -855,12 +851,13 @@ public class TargetPoseGridManager : MonoBehaviour
                 if (j == dofList.Count)
                 {
 
-                    Debug.Log("Next Pose: " + string.Join(",", pose));
+                    //Debug.Log("Next Pose: " + string.Join(",", pose));
                     break;
                 }
 
 
             }
+
 
             if (i > range.Count - 1)
                 i = range.Count - 1;
@@ -877,11 +874,12 @@ public class TargetPoseGridManager : MonoBehaviour
 
 
             // Update the idx
-            //Debug.Log(range[i]);
-            idx = targetOrder.LastIndexOf(range[i]);
-
-
-
+            if (range.Count > 0)
+            {
+                idx = targetOrder.IndexOf(range[i]);
+                Debug.Log("Next pose index:" + idx);
+            }
+            
             //idx = Random.Range(0, targetOrder.Count);
 
         }

@@ -31,7 +31,7 @@ public class AugmentedFeedback2022 : GameMaster
     [SerializeField]
     private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pEfe,pWps";
     [SerializeField]
-    private string performanceDataFormat = "i,loc,t_f,score";
+    private string performanceDataFormat = "i,loc,t_f,qt_sfe,qt_saa,qt_sr,qt_efe,qt_wps,qt_wfe,qt_waa";
 
     
 
@@ -1392,7 +1392,12 @@ public class AugmentedFeedback2022 : GameMaster
         //StartCoroutine(HandleResultAnalysisCoroutine());
         //Debug.Log("Try feedback");
 
-        string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + iterationDoneTime.ToString(); //+ "," + feedbackScore.ToString();
+        string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + iterationDoneTime.ToString();
+
+        foreach (float element in gridManager.QUpperLimb[targetOrder[iterationNumber-1]])
+        {
+            iterationResults += "," + element;
+        }
 
         // Log results
         performanceDataLogger.AppendData(iterationResults);
@@ -1408,6 +1413,10 @@ public class AugmentedFeedback2022 : GameMaster
     {
         string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + iterationDoneTime.ToString(); //+ "," + feedbackScore.ToString();
 
+        foreach (float element in gridManager.QUpperLimb[targetOrder[iterationNumber - 1]])
+        {
+            iterationResults += "," + element;
+        }
         // Log results
         performanceDataLogger.AppendData(iterationResults);
         performanceDataLogger.SaveLog();
