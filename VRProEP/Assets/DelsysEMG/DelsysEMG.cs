@@ -127,6 +127,7 @@ public class DelsysEMG
         }
 
         // Add the active sensor channel to a list for query
+        
         for (int i = 0; i < 16; i++)
         {
             if (_sensors[i] == SensorTypes.SensorTrignoImu)
@@ -134,6 +135,7 @@ public class DelsysEMG
                 activeSensorChannels.Add(i + 1);
             }
         }
+        Debug.Log("Active Delsys EMG number: " + activeSensorChannels.Count);
 
         SendCommand("UPSAMPLE OFF");
 
@@ -429,11 +431,11 @@ public class DelsysEMG
                 if (zmqPushFlag)
                 {
                     // Send data to other platform
-                    float[] zmqData = new float[activeSensorChannels.Max()+2];
+                    float[] zmqData = new float[activeSensorChannels.Count+ 2];
                     zmqData[0] = 2; // Label indicating this is emg data
                     zmqData[1] = time; //Time stamp
-                    //Debug.Log("Active Delsys Sesnors:" +activeSensorChannels.Max());
-                    for (int i = 0; i < activeSensorChannels.Max(); i++)
+                    //Debug.Log("Active Delsys Sesnors:" +activeSensorChannels.Count);
+                    for (int i = 0; i < activeSensorChannels.Count; i++)
                     {
                         zmqData[i+2] = tempEmgDataList[activeSensorChannels[i] - 1];
                         //Debug.Log("Active Delsys Sesnors Channel: " + (activeSensorChannels[i] - 1) + ". Readings: " + zmqData[i]);
