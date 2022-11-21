@@ -41,26 +41,27 @@ public class ZMQPuller : RunAbleThread
                 byte[] data = null;
                 var receiveFlag = puller.TryReceiveFrameBytes(out data);
                 if (receiveFlag)
+                {
                     receivedData = parseReceivedData(data);
 
-                /*
-                string responseStr = null;
-                foreach (float element in receivedData)
-                {
-                    responseStr += element.ToString() + ",";
-                }
-                Debug.Log("ZMQPuller<- Received: " + responseStr);
-                */
+                    /*
+                    string responseStr = null;
+                    foreach (float element in receivedData)
+                    {
+                        responseStr += element.ToString() + ",";
+                    }
+                    Debug.Log("ZMQPuller<- Received: " + responseStr);
+                    */
 
-                /*
-                string responseStr = null;
-                foreach (byte element in data)
-                {
-                    responseStr += element.ToString() + ",";
+                    /*
+                    string responseStr = null;
+                    foreach (byte element in data)
+                    {
+                        responseStr += element.ToString() + ",";
+                    }
+                    Debug.Log("ZMQPuller<- Received: " + responseStr);
+                    */
                 }
-                Debug.Log("ZMQPuller<- Received: " + responseStr);
-                */
-
 
             }
             puller.Close();

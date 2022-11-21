@@ -56,7 +56,7 @@ namespace VRProEP.ProsthesisCore
                 return - Mathf.Deg2Rad * INI_POSE[channel];
             else  
             {
-                //Debug.Log("ML Ref:" + Mathf.Rad2Deg * xBar[channel]);
+                //Debug.Log("ML Ref" + channel + ": " + Mathf.Rad2Deg * xBar[channel]);
                 return -xBar[channel];
 
                 #region old version

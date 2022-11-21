@@ -187,7 +187,8 @@ namespace VRProEP.GameEngineCore
                 follower = residualLimbGO.AddComponent<LimbFollower>();
 
             follower.avatarType = avatarType;
-            follower.offset = new Vector3(0.0f, -activeResidualLimbData.dimensions.x / 1.0f, 0.0f);
+            //follower.offset = new Vector3(0.0f, -activeResidualLimbData.dimensions.x / 1.0f, 0.0f);
+            follower.offset = new Vector3(0.0f, 0.05f, 0.05f);
 
             motionTrackerNumber++;
 
@@ -736,9 +737,9 @@ namespace VRProEP.GameEngineCore
             // Configure
             SteamVR_TrackedObject motionTrackerConfig = motionTrackerGO.GetComponent<SteamVR_TrackedObject>();
             if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
-                motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 + 2); // Set hardware device index to follow, -1 if headset is conneted through wires not wifi.
+                motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 + 0); // Set hardware device index to follow, -1 if headset is conneted through wires not wifi.
             else
-                motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 + 2); // Set hardware device index to follow
+                motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 + 0); // Set hardware device index to follow
             motionTrackerConfig.origin = playerGO.transform; 
             if(newTracker)
                 motionTrackerNumber++; 
