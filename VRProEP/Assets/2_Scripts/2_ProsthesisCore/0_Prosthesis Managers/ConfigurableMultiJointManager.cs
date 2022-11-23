@@ -15,6 +15,7 @@ namespace VRProEP.ProsthesisCore
         private IdealJointManager wristPronManager;
         private IdealJointManager wristFlexManager;
 
+
         public float ElbowState { get; set; }
         public float WristPronState { get; set; }
         public float WristFlexState { get; set; }
@@ -28,6 +29,10 @@ namespace VRProEP.ProsthesisCore
         private float[] xMin = { Mathf.Deg2Rad * -145.0f, Mathf.Deg2Rad * -90.0f, Mathf.Deg2Rad * 0.0f };
         private float[] xMax = { Mathf.Deg2Rad * -0.1f, Mathf.Deg2Rad * 90.0f, Mathf.Deg2Rad * 0.0f };
 
+
+        public const float MAX_EFE_VEL = 60.0f;
+        public const float MAX_WPS_VEL = 60.0f;
+        public const float MAX_WFE_VEL = 60.0f;
 
         /// <summary>
         /// Initializes the multi joint prosthesis with basic functionality.
@@ -70,6 +75,7 @@ namespace VRProEP.ProsthesisCore
             // Ideal tracking version
             // Create ElbowManager with the given elbowJoint.
             elbowManager = new IdealJointManager(elbowJoint);
+            elbowManager.MaxAngVel = MAX_EFE_VEL;
 
 
             //
@@ -86,7 +92,7 @@ namespace VRProEP.ProsthesisCore
             // Ideal tracking version
             // Create ElbowManager with the given elbowJoint.
             wristPronManager = new IdealJointManager(wristPronJoint);
-
+            wristPronManager.MaxAngVel = MAX_WPS_VEL;
 
             //
             // WristFlexorManager
@@ -102,8 +108,8 @@ namespace VRProEP.ProsthesisCore
             // Ideal tracking version
             // Create ElbowManager with the given elbowJoint.
             wristFlexManager = new IdealJointManager(wristFlexJoint);
-
-
+            wristFlexManager.MaxAngVel = MAX_WFE_VEL;
+           
             //
             // Sensors
             //
@@ -158,14 +164,16 @@ namespace VRProEP.ProsthesisCore
         {
             if (isConfigured)
             {
-                // Update references
-                ElbowState = inputManager.GenerateReference(0);
-                WristPronState = inputManager.GenerateReference(1);
-                WristFlexState = inputManager.GenerateReference(2);
+                //Get the readings
+                ElbowState = elbowManager.GetJointAngle();
+                WristPronState = wristPronManager.GetJointAngle();
+                WristFlexState = wristFlexManager.GetJointAngle();
+
                 // Update device state
-                elbowManager.UpdateState(0, ElbowState);
-                wristPronManager.UpdateState(0, WristPronState); ;
-                wristFlexManager.UpdateState(0, WristFlexState); ;
+                elbowManager.UpdateState(0, inputManager.GenerateReference(0));
+                wristPronManager.UpdateState(0, inputManager.GenerateReference(1));
+                wristFlexManager.UpdateState(0, inputManager.GenerateReference(2));
+
                 isEnabled = inputManager.IsEnabled();
             }
         }

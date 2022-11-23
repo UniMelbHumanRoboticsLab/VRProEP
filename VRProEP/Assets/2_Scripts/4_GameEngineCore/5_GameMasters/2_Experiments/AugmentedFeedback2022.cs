@@ -614,7 +614,7 @@ public class AugmentedFeedback2022 : GameMaster
         // First flag that we are in the welcome routine
         welcomeDone = false;
         inWelcome = true;
-
+        /*
         HudManager.DisplayText("Look to the top left. Instructions will be displayed there.");
         InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -653,7 +653,7 @@ public class AugmentedFeedback2022 : GameMaster
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
         InstructionManager.DisplayText("A 60 sec rest occurs every 27 iterations" + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
+        */
 
         //
         // Calibration

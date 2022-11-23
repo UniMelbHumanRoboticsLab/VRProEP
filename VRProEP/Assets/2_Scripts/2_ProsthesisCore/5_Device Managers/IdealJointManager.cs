@@ -8,6 +8,11 @@ namespace VRProEP.ProsthesisCore
         // sensor and controllers unnecessary for this elbow device.
         private HingeJoint joint;
         private JointSpring jointSpring;
+        private JointMotor jointMotor;
+
+        private float errorPrev = 0;
+
+        public float MaxAngVel { get; set; } // in deg/sec
         /// <summary>
         /// Manager for a virtual elbow prosthetic device with ideal tracking.
         /// </summary>
@@ -20,11 +25,24 @@ namespace VRProEP.ProsthesisCore
             this.joint = elbowJoint;
 
             // Configure spring
+            /*
             jointSpring = this.joint.spring;
-            jointSpring.spring = 1000.0f;
-            jointSpring.damper = 30.0f;
+            jointSpring.spring = 2000.0f;
+            jointSpring.damper = 60.0f;
             this.joint.useSpring = true;
             this.joint.spring = jointSpring;
+            */
+
+
+            
+            //Configure motor
+            jointMotor = this.joint.motor;
+            jointMotor.freeSpin = false;
+            jointMotor.force = 1000;
+            jointMotor.targetVelocity = MaxAngVel;
+            this.joint.useMotor = true;
+            this.joint.motor = jointMotor;
+            
         }
 
         /// <summary>
@@ -47,6 +65,29 @@ namespace VRProEP.ProsthesisCore
             this.joint.spring = jointSpring;
         }
 
+
+        /// <summary>
+        /// Returns all pre-processed joint states in an array.
+        /// 0: Angular displacement given in radians.
+        /// 1: Angular velocity given in radians per second.
+        /// </summary>
+        /// <returns>The array with pre-processed angular position and velocity data.</returns>
+        public float GetJointAngle()
+        {
+            return joint.angle* Mathf.Deg2Rad;
+        }
+
+        /// <summary>
+        /// Returns all pre-processed joint states in an array.
+        /// 0: Angular displacement given in radians.
+        /// 1: Angular velocity given in radians per second.
+        /// </summary>
+        /// <returns>The array with pre-processed angular position and velocity data.</returns>
+        public float GetJointAngVel()
+        {
+            return joint.velocity * Mathf.Deg2Rad;
+        }
+
         /// <summary>
         /// Updates the state of the device for the given channel.
         /// Since it's 1DOF, only one channel available.
@@ -60,8 +101,47 @@ namespace VRProEP.ProsthesisCore
             if (channel != 0)
                 throw new System.ArgumentException("Only channel 0 available since 1DOF.");
 
-            jointSpring.targetPosition = (float)System.Math.Round(Mathf.Rad2Deg*reference, 1);
+
+            
+            float error = reference - this.GetJointAngle();
+
+            if ((this.Sign(error) * this.Sign(errorPrev)) < 0)
+            {
+                jointMotor.targetVelocity = 0.0f;
+            }
+            else
+            {
+                jointMotor.targetVelocity = MaxAngVel * this.Sign(error);
+            }
+            joint.motor = jointMotor;
+
+            //Debug.Log("Reference: " + reference + " Current State: " + this.GetJointAngle() + " " + MaxAngVel * this.Sign(error));
+
+            errorPrev = error;
+           
+
+
+            /*
+            float currentPos = this.GetJointAngle();
+            float currentVel = this.GetJointAngVel();
+            float relativeVel = Mathf.Abs(reference - currentPos) * Mathf.Rad2Deg / Time.fixedDeltaTime;
+
+            Debug.Log("Reference: " + reference + " Current State: " + currentPos + ", required speed: " + relativeVel);
+            // Constrain the maximum velocity
+            if (Mathf.Abs(currentVel) * Mathf.Rad2Deg > this.MaxAngVel)
+            {
+                float validRef = currentPos + Mathf.Sign(reference - currentPos) * MaxAngVel * Time.fixedDeltaTime * Mathf.Deg2Rad;
+                //Debug.Log("Adjusted reference: " + validRef *Mathf.Rad2Deg + " dt: " + Time.fixedDeltaTime);
+                jointSpring.targetPosition = (float)System.Math.Round(Mathf.Rad2Deg * validRef, 1);
+            }
+            else
+            {
+                jointSpring.targetPosition = (float)System.Math.Round(Mathf.Rad2Deg * reference, 1);
+                //Debug.Log("Original reference: " + reference * Mathf.Rad2Deg + " dt: " + Time.fixedDeltaTime);
+            }
             joint.spring = jointSpring;
+            */
+
         }
 
         /// <summary>
@@ -76,6 +156,17 @@ namespace VRProEP.ProsthesisCore
                 throw new System.ArgumentException("Only 2 references (position and velocity) required since 1DOF.");
 
             UpdateState(1, references[0]);
+        }
+
+
+
+        /// <summary>
+        /// Customised sgn function, return -1 for negative, return 1 for positive, return 0 for zero
+        /// </summary>
+        /// <param name="references">The set of references for the device to track.</param>
+        private float Sign(float number)
+        {
+            return number < 0 ? -1 : (number > 0 ? 1 : 0);
         }
     }
 }
