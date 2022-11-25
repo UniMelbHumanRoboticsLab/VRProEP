@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3900194632808980364}
   m_Layer: 0
-  m_Name: WrstAbleWithHandR
+  m_Name: WrIstHandAble_R
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -450,7 +450,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1011353099484506, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1058940015095344, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
       propertyPath: m_Name
@@ -458,7 +458,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1063115693358972, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1148639304437202, guid: 39555b5a47553dc43920e36acb72c4e5, type: 3}
       propertyPath: m_IsActive

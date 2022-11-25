@@ -293,7 +293,7 @@ public class AugmentedFeedback2022 : GameMaster
             emgIsRecording = true;
         }
 
-        if (Input.GetKeyDown(KeyCode.UpArrow)  && fullTrackerEnable )
+        if (padAction.GetStateDown(SteamVR_Input_Sources.Any) && fullTrackerEnable ) //Input.GetKeyDown(KeyCode.UpArrow)
         {
             // Record initial frames
             c7InitOrient = c7Tracker.GetTrackerTransform().rotation;
@@ -661,7 +661,8 @@ public class AugmentedFeedback2022 : GameMaster
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
         InstructionManager.DisplayText("Please stand upright and relax your upper limb.");
         Debug.Log("Press Up key to record calibration pose.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
+        yield return new WaitUntil(() => padAction.GetStateDown(SteamVR_Input_Sources.Any));
+        //Input.GetKeyDown(KeyCode.UpArrow));
 
         if (fullTrackerEnable)
         {
@@ -676,7 +677,8 @@ public class AugmentedFeedback2022 : GameMaster
 
         // Start
         Debug.Log("Press Down key to start.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
+        yield return new WaitUntil(() => buttonAction.GetStateDown(SteamVR_Input_Sources.Any));
+        //Input.GetKeyDown(KeyCode.DownArrow));
         if (delsysEnable & zmqPushEnable)
             delsysEMG.SetZMQPusher(true);
 

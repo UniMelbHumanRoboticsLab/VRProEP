@@ -188,7 +188,7 @@ namespace VRProEP.GameEngineCore
 
             follower.avatarType = avatarType;
             //follower.offset = new Vector3(0.0f, -activeResidualLimbData.dimensions.x / 1.0f, 0.0f);
-            follower.offset = new Vector3(0.0f, 0.05f, 0.05f);
+            follower.offset = new Vector3(0.0f, 0.0f, 0.05f);
 
             motionTrackerNumber++;
 
