@@ -39,6 +39,7 @@ TagManager:
   - Wrist
   - WristPronator
   - WristFlexer
+  - HandProsthesis
   layers:
   - Default
   - TransparentFX

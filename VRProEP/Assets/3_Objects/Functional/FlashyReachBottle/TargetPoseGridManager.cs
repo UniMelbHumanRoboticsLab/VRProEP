@@ -44,9 +44,18 @@ public class TargetPoseGridManager : MonoBehaviour
     [Header("Physical Property")]
     [SerializeField]
     private Vector3 shoulderCentreOffset;
+    public Vector3 ShoulderCentreOffset { get; set; }
     [SerializeField]
     private Transform shoulderCentreLoc;
-
+    [SerializeField]
+    private float uarmLengthOffset;
+    public float UarmLengthOffset { get; set; }
+    [SerializeField]
+    private float farmLengthOffset;
+    public float FarmLengthOffset { get; set; }
+    [SerializeField]
+    private float handLengthOffset;
+    public float HandLengthOffset { get; set; }
 
     [Header("Limb Models")]
     [SerializeField]
@@ -186,11 +195,11 @@ public class TargetPoseGridManager : MonoBehaviour
         // Read the user data
         //
         subjectHeight = SaveSystem.ActiveUser.height;
-        subjectFALength = SaveSystem.ActiveUser.forearmLength;
-        subjectUALength = SaveSystem.ActiveUser.upperArmLength;
+        subjectFALength = SaveSystem.ActiveUser.forearmLength + farmLengthOffset;
+        subjectUALength = SaveSystem.ActiveUser.upperArmLength + uarmLengthOffset;
         subjectFAWidth = SaveSystem.ActiveUser.forearmWidth;
         subjectUAWidth = SaveSystem.ActiveUser.upperArmWidth;
-        subjectHandLength = SaveSystem.ActiveUser.handLength;
+        subjectHandLength = SaveSystem.ActiveUser.handLength + handLengthOffset;
         subjectTrunkLength2SA = SaveSystem.ActiveUser.trunkLength2SA;
         subjectHeight2SA = SaveSystem.ActiveUser.height2SA;
         subjectShoulderBreadth = SaveSystem.ActiveUser.shoulderBreadth;
@@ -202,7 +211,7 @@ public class TargetPoseGridManager : MonoBehaviour
 
         //sagittalOffset = -subjectShoulderBreadth / 4.0f;
 
-        Debug.Log("Gridmanager: load user data");
+        Debug.Log("Gridmanager: load user physical data");
     }
 
     /// <summary>
@@ -214,13 +223,17 @@ public class TargetPoseGridManager : MonoBehaviour
     public void UpdateUserData()
     {
 
-        //
+        // Shoulder centre
         shoulderCentreLoc.position = new Vector3(subjectShoulderBreadth / 2.0f, subjectHeight2SA, 0);
         shoulderCentreLoc.position = shoulderCentreLoc.position - shoulderCentreOffset;
 
+        // Arm length
+        subjectUALength = SaveSystem.ActiveUser.upperArmLength + uarmLengthOffset;
+        subjectFALength = SaveSystem.ActiveUser.forearmLength + farmLengthOffset;
+        subjectHandLength = SaveSystem.ActiveUser.handLength + handLengthOffset;
         //sagittalOffset = -subjectShoulderBreadth / 4.0f;
 
-        Debug.Log("Gridmanager: update user data");
+        Debug.Log("Gridmanager: update user physical data");
     }
 
     void Start()
@@ -258,7 +271,8 @@ public class TargetPoseGridManager : MonoBehaviour
         {
             UpdateUserData();
             GenerateTargetLocations(); // Update the locations if there is any change in the offset
-            ShowLimbPose(selectedIndex);
+            ShowLimbPose(0);
+            CalibrationPose();
         }
         if (Input.GetKeyDown(KeyCode.F2)) //select the next target
         {
@@ -281,14 +295,16 @@ public class TargetPoseGridManager : MonoBehaviour
             Debug.Log(selectedIndex);
 
         }
-        if (Input.GetKeyDown(KeyCode.F3)) //Restore the grid parameters 
-        {
-            ConfigUserData();
-            GenerateTargetLocations(); // Update the locations if there is any change in the offset
-            ShowLimbPose(selectedIndex);
 
-        }
-        //}
+            /*
+           if (Input.GetKeyDown(KeyCode.F2)) //Restore the grid parameters 
+           {
+               ConfigUserData();
+               GenerateTargetLocations(); // Update the locations if there is any change in the offset
+               ShowLimbPose(selectedIndex);
+               CalibrationPose();
+           }
+           */
 
 
         // Check if the selected bottle is reached or not
@@ -359,41 +375,72 @@ public class TargetPoseGridManager : MonoBehaviour
             float qWps = qUA[WPS_DOF];
             float qWfe = qUA[WFE_DOF];
 
-            Vector3 target = new Vector3();
-            Vector3 elbow = new Vector3();
-            Vector3 wrist = new Vector3();
-
-            elbow.z = shoulderCentre.z + subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe);
-            elbow.y = shoulderCentre.y - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qSfe);
-            elbow.x = shoulderCentre.x;
+            Vector3 elbow = CalElbowPosition(qSfe, shoulderCentre);
             AddElbowLocation(elbow);
 
-            wrist.z = elbow.z + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
-            wrist.y = elbow.y - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
-            wrist.x = shoulderCentre.x;
+            Vector3 wrist = CalWristPosition(qSfe, qEfe, shoulderCentre, elbow);
             AddWristLocation(wrist);
 
-            Vector3 tempX = wrist - elbow;
-            tempX.Normalize();
-
-
-            GameObject tempGO = new GameObject("TargetPoint"); // temp gamobject describes hand orientation
-            tempGO.transform.position = wrist;
-            tempGO.transform.rotation = Quaternion.LookRotation(tempX, Vector3.left);
-
-            tempGO.transform.localRotation *= Quaternion.Euler(0, 0, qWps + 90.0f);
-            tempGO.transform.localRotation *= Quaternion.Euler(0, qWfe, 0);
-            tempGO.transform.Translate(new Vector3(0, 0, subjectHandLength), Space.Self);
-
-
+            GameObject tempGO = CalTargetPosition(qWps, qWfe, elbow, wrist);
             AddTargetLocation(tempGO.transform.position);
             AddTargetRotation(tempGO.transform.rotation);
-
-
             Destroy(tempGO);
         }
 
     }
+
+    /// <summary>
+    /// Calculate wrist position
+    /// </summary>
+    /// <param >
+    /// <returns 
+    private Vector3 CalElbowPosition(float qSfe, Vector3 shoulderCentre)
+    {
+        Vector3 elbow = new Vector3();
+        elbow.z = shoulderCentre.z + subjectUALength * Mathf.Sin(Mathf.Deg2Rad * qSfe);
+        elbow.y = shoulderCentre.y - subjectUALength * Mathf.Cos(Mathf.Deg2Rad * qSfe);
+        elbow.x = shoulderCentre.x;
+
+        return elbow;
+    }
+
+    /// <summary>
+    /// Calculate elbow position
+    /// </summary>
+    /// <param >
+    /// <returns 
+    private Vector3 CalWristPosition(float qSfe,float qEfe, Vector3 shoulderCentre,Vector3 elbow)
+    {
+        Vector3 wrist = new Vector3();
+        wrist.z = elbow.z + subjectFALength * Mathf.Sin(Mathf.Deg2Rad * (qSfe + qEfe));
+        wrist.y = elbow.y - subjectFALength * Mathf.Cos(Mathf.Deg2Rad * (qSfe + qEfe));
+        wrist.x = shoulderCentre.x;
+        return wrist;
+    }
+
+   
+
+    /// <summary>
+    /// Calculate target position
+    /// </summary>
+    /// <param >
+    /// <returns
+    private GameObject CalTargetPosition(float qWps, float qWfe, Vector3 elbow, Vector3 wrist)
+    {
+        Vector3 forearmVec = wrist - elbow;
+        forearmVec.Normalize();
+
+        GameObject tempGO = new GameObject("TargetPoint"); // temp gamobject describes hand orientation
+        tempGO.transform.position = wrist;
+        tempGO.transform.rotation = Quaternion.LookRotation(forearmVec, Vector3.left);
+
+        tempGO.transform.localRotation *= Quaternion.Euler(0, 0, qWps + 90.0f);
+        tempGO.transform.localRotation *= Quaternion.Euler(0, qWfe, 0);
+        tempGO.transform.Translate(new Vector3(0, 0, subjectHandLength), Space.Self);
+
+        return tempGO;
+    }
+
 
     /// <summary>
     /// Clear the list of locations
@@ -910,8 +957,6 @@ public class TargetPoseGridManager : MonoBehaviour
     }
 
 
-
-
     /// <summary>
     /// Spawn the boottle grid
     /// </summary>
@@ -1000,8 +1045,48 @@ public class TargetPoseGridManager : MonoBehaviour
         ShowLimbPose(index);
     }
 
+    /// <summary>
+    /// Select a bottle by index
+    /// </summary>
+    /// <param int index>
+    /// <returns>
+    public void CalibrationPose()
+    {
+
+        float qSfe = 0.0f;
+        float qEfe = 90.0f;
+        float qWps = 0.0f;
+        float qWfe = 0.0f;
+
+        Vector3 shoulderCentre = shoulderCentreLoc.position;
+        Vector3 elbow = CalElbowPosition(qSfe, shoulderCentre);
+        Vector3 wrist = CalWristPosition(qSfe, qEfe, shoulderCentre, elbow);
+        GameObject targetGO = CalTargetPosition(qWps, qWfe, elbow, wrist);
+
+        //Display the limb as lines
+        uaLine.SetPosition(0, shoulderCentreLoc.position);
+        uaLine.SetPosition(1, elbow);
+        faLine.SetPosition(0, elbow);
+        faLine.SetPosition(1, wrist);
+        handLine.SetPosition(0, wrist);
+        handLine.SetPosition(1, targetGO.transform.position);
 
 
+
+        // Display the 3D models   
+        upperarmGO.SetActive(false);
+
+        forearmGO.SetActive(false);
+
+        wristHandGO.transform.position = wrist;
+        GameObject tempGO = new GameObject("Wrist Joint");
+        tempGO.transform.rotation = targetGO.transform.rotation;
+        tempGO.transform.localRotation *= Quaternion.Euler(0, -90, 0);
+        tempGO.transform.localRotation *= Quaternion.Euler(0, 0, 90);
+        wristHandGO.transform.rotation = tempGO.transform.rotation;
+        Destroy(tempGO);
+        Destroy(targetGO);
+    }
 
     /// <summary>
     /// Clears the current traget selection

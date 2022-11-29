@@ -104,6 +104,11 @@ PrefabInstance:
       propertyPath: m_ConnectedBody
       value: 
       objectReference: {fileID: 5403992078820764355}
+    - target: {fileID: 7157043001766538915, guid: 5288c4ff420f36048a44561fbe71fdac,
+        type: 3}
+      propertyPath: m_TagString
+      value: HandProsthesis
+      objectReference: {fileID: 0}
     - target: {fileID: 7174924804747976793, guid: 5288c4ff420f36048a44561fbe71fdac,
         type: 3}
       propertyPath: m_IsKinematic
@@ -182,7 +187,7 @@ PrefabInstance:
     - target: {fileID: 2237108434401726315, guid: 6b6afb9c25fa21d4dab393ca12c11cda,
         type: 3}
       propertyPath: m_ConnectedAnchor.y
-      value: 0.49999952
+      value: 0.5000019
       objectReference: {fileID: 0}
     - target: {fileID: 2486246798037717608, guid: 6b6afb9c25fa21d4dab393ca12c11cda,
         type: 3}

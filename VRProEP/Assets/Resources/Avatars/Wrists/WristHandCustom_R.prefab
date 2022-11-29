@@ -134,6 +134,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5771013506060911639, guid: 95f5d18daafa9aa41aced9cb674d41e7,
+        type: 3}
+      propertyPath: m_TagString
+      value: HandProsthesis
+      objectReference: {fileID: 0}
     - target: {fileID: 5771019640244262235, guid: 95f5d18daafa9aa41aced9cb674d41e7,
         type: 3}
       propertyPath: m_IsActive

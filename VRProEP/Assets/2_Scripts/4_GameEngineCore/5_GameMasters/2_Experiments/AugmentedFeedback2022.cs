@@ -29,7 +29,7 @@ public class AugmentedFeedback2022 : GameMaster
     //private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
     private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
     [SerializeField]
-    private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pEfe,pWps";
+    private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pxHand,pyHand,pzHand,paHand,pbHand,pgHand,pEfe,pWps";
     [SerializeField]
     private string performanceDataFormat = "i,loc,t_f,qt_sfe,qt_saa,qt_sr,qt_efe,qt_wps,qt_wfe,qt_waa";
 
@@ -59,7 +59,12 @@ public class AugmentedFeedback2022 : GameMaster
     private int[] iterationsPerTarget;
     [SerializeField]
     private int iterationBatchSize;
-
+    [SerializeField]
+    // Time to hold the final pose
+    private float holdingTime;
+    [SerializeField]
+    // Max time to reach
+    private float maxTaskTime;
 
     [Header("Media")]
     [SerializeField]
@@ -119,8 +124,7 @@ public class AugmentedFeedback2022 : GameMaster
     private float iterationDoneTime;
     private float feedbackScore;
 
-    // Time to hold the final pose
-    private float holdingTime;
+
 
     // Prosthesis handling objects
     private GameObject prosthesisManagerGO;
@@ -249,6 +253,7 @@ public class AugmentedFeedback2022 : GameMaster
         public int[] iterationsPerTarget = {2};
         public int iterationBatchSize = 3;
         public float holdingTime = 0.5f;
+        public float maxTaskTime = 100.0f;
         public float[] sfePose;
         public float[] efePose;
         public float[] wpsPose;
@@ -350,10 +355,6 @@ public class AugmentedFeedback2022 : GameMaster
             }
             
 
-
-            
-
-
         }
 
     }
@@ -408,6 +409,7 @@ public class AugmentedFeedback2022 : GameMaster
 
         // Load from config file
         holdingTime = configurator.holdingTime;
+        maxTaskTime = configurator.maxTaskTime;
         iterationsPerTarget = configurator.iterationsPerTarget;
         iterationBatchSize = configurator.iterationBatchSize;
         sfePose = configurator.sfePose;
@@ -492,6 +494,7 @@ public class AugmentedFeedback2022 : GameMaster
         // Lower limb motion tracker
         if (AvatarSystem.AvatarType != AvatarType.Transhumeral)
         {
+            // Lower limb motion tracker
             GameObject llMotionTrackerGO = GameObject.FindGameObjectWithTag("ForearmTracker");
             lowerArmTracker = new VIVETrackerManager(llMotionTrackerGO.transform);
             ExperimentSystem.AddSensor(lowerArmTracker);
@@ -500,6 +503,7 @@ public class AugmentedFeedback2022 : GameMaster
             GameObject ulMotionTrackerGO = AvatarSystem.AddMotionTracker();
             upperArmTracker = new VIVETrackerManager(ulMotionTrackerGO.transform);
             ExperimentSystem.AddSensor(upperArmTracker);
+
         }
         else
         {
@@ -518,10 +522,6 @@ public class AugmentedFeedback2022 : GameMaster
             ExperimentSystem.AddSensor(upperArmTracker);
             Debug.Log("Upperarm tracker registerd number:" + upperArmTracker.TrackerNumber + " Total number: " + upperArmTracker.TotalTrackerNumber);
 
-            
-         
-
-
             // Set VIVE tracker and Linear synergy as active.
             // Get prosthesis
             if (zmqPullEnable)
@@ -534,36 +534,26 @@ public class AugmentedFeedback2022 : GameMaster
                 multiJointManager.SetSynergy(100.0f/60.0f);
             }
 
+            if (fullTrackerEnable)
+            {
+                // Shoulder acromium head tracker
+                GameObject shMotionTrackerGO = AvatarSystem.AddMotionTracker();
+                shoulderTracker = new VIVETrackerManager(shMotionTrackerGO.transform);
+                ExperimentSystem.AddSensor(shoulderTracker);
+                Debug.Log("Shoulder acromion tracker registerd number:" + shoulderTracker.TrackerNumber + " Total number: " + lowerArmTracker.TotalTrackerNumber);
+                // C7 tracker
+                GameObject c7MotionTrackerGO = AvatarSystem.AddMotionTracker();
+                c7Tracker = new VIVETrackerManager(c7MotionTrackerGO.transform);
+                ExperimentSystem.AddSensor(c7Tracker);
+                Debug.Log("Trunk tracker registerd number:" + c7Tracker.TrackerNumber + " Total number: " + lowerArmTracker.TotalTrackerNumber);
+            }
 
-
+            // Hand tracking sensor
+            GameObject handGO = GameObject.FindGameObjectWithTag("Bottle");
+            handTracker = new VirtualPositionTracker(handGO.transform);
+            ExperimentSystem.AddSensor(handTracker);
         }
        
-
-
-        if (fullTrackerEnable)
-        {
-            // Shoulder acromium head tracker
-            GameObject shMotionTrackerGO = AvatarSystem.AddMotionTracker();
-            shoulderTracker = new VIVETrackerManager(shMotionTrackerGO.transform);
-            ExperimentSystem.AddSensor(shoulderTracker);
-            Debug.Log("Shoulder acromion tracker registerd number:" + shoulderTracker.TrackerNumber + " Total number: " + lowerArmTracker.TotalTrackerNumber);
-            // C7 tracker
-            GameObject c7MotionTrackerGO = AvatarSystem.AddMotionTracker();
-            c7Tracker = new VIVETrackerManager(c7MotionTrackerGO.transform);
-            ExperimentSystem.AddSensor(c7Tracker);
-            Debug.Log("Trunk tracker registerd number:" + c7Tracker.TrackerNumber + " Total number: " + lowerArmTracker.TotalTrackerNumber);
-        }
-
-        
-
-        //
-        // Hand tracking sensor
-        //
-        /*
-        GameObject handGO = GameObject.FindGameObjectWithTag("Hand");
-        handTracker = new VirtualPositionTracker(handGO.transform);
-        ExperimentSystem.AddSensor(handTracker);
-        */
 
 
         #endregion
@@ -796,7 +786,7 @@ public class AugmentedFeedback2022 : GameMaster
         Debug.Log("Total trials:" + targetOrder.Count);
         Debug.Log("Current target pose number: " + targetOrder[iterationNumber - 1]);
 
-
+       
         #endregion
     }
 
@@ -811,9 +801,16 @@ public class AugmentedFeedback2022 : GameMaster
         instructionsDone = false;
         inInstructions = true;
 
+
+        gridManager.CalibrationPose();
+
         InstructionManager.DisplayText("Press trigger to continue" + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
+       
+
+        // Now that you are done, set the flag to indicate we are done.
+        instructionsDone = true;
 
         //Instructions
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied) // Able-bodied session
@@ -838,8 +835,7 @@ public class AugmentedFeedback2022 : GameMaster
 
 
 
-        // Now that you are done, set the flag to indicate we are done.
-        instructionsDone = true;
+       
 
     }
 
@@ -1258,11 +1254,10 @@ public class AugmentedFeedback2022 : GameMaster
         if (dummyControlEnable)
             tempCompleteFlag = buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyDown(KeyCode.UpArrow); //Input.GetKey(KeyCode.DownArrow)
         else
-            tempCompleteFlag = gridManager.SelectedTouched;
+            tempCompleteFlag = gridManager.SelectedTouched || taskTime > maxTaskTime;
 
         if (tempCompleteFlag && !hasReached)
         {
-
             iterationDoneTime = taskTime;
             Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + iterationDoneTime.ToString() + ".");
 
@@ -1275,12 +1270,8 @@ public class AugmentedFeedback2022 : GameMaster
             {
                 StartCoroutine(EndTaskCoroutine(skipStateMachine));
             }
-           
-
+            
         }
-
-
-
         return taskComplete;
     }
 

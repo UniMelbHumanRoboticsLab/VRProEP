@@ -22,8 +22,13 @@ public class BottleInHandManager : MonoBehaviour
     {
         if (AvatarSystem.IsAvatarAvaiable)
         {
+            GameObject hand;
             //Debug.Log("Avatar find, attach bottle to hand!");
-            GameObject hand = GameObject.FindGameObjectWithTag("Hand");           
+            if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
+                hand = GameObject.FindGameObjectWithTag("Hand");
+            else
+                hand = GameObject.FindGameObjectWithTag("HandProsthesis");
+
             transform.rotation = hand.transform.rotation;  // Orientation
             transform.Rotate(Vector3.left, -90f);
             transform.Rotate(Vector3.up, -90f);
