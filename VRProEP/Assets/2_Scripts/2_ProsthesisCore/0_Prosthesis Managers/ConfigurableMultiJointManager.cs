@@ -16,9 +16,9 @@ namespace VRProEP.ProsthesisCore
         private IdealJointManager wristFlexManager;
 
 
-        public float ElbowState { get; set; }
-        public float WristPronState { get; set; }
-        public float WristFlexState { get; set; }
+        public float[] ElbowState { get; set; }
+        public float[] WristPronState { get; set; }
+        public float[] WristFlexState { get; set; }
 
         private bool isConfigured = false;
         private bool isEnabled = false;
@@ -30,7 +30,7 @@ namespace VRProEP.ProsthesisCore
         private float[] xMax = { Mathf.Deg2Rad * -0.1f, Mathf.Deg2Rad * 90.0f, Mathf.Deg2Rad * 0.0f };
 
 
-        public const float MAX_EFE_VEL = 60.0f;
+        public const float MAX_EFE_VEL = 90.0f;
         public const float MAX_WPS_VEL = 60.0f;
         public const float MAX_WFE_VEL = 60.0f;
 
@@ -165,9 +165,9 @@ namespace VRProEP.ProsthesisCore
             if (isConfigured)
             {
                 //Get the readings
-                ElbowState = elbowManager.GetJointAngle();
-                WristPronState = wristPronManager.GetJointAngle();
-                WristFlexState = wristFlexManager.GetJointAngle();
+                ElbowState = elbowManager.GetJointStates();
+                WristPronState = wristPronManager.GetJointStates();
+                WristFlexState = wristFlexManager.GetJointStates();
 
                 // Update device state
                 elbowManager.UpdateState(0, inputManager.GenerateReference(0));
@@ -241,7 +241,7 @@ namespace VRProEP.ProsthesisCore
         /// Returns the current elbow joint angle.
         /// </summary>
         /// <returns></returns>
-        public float GetElbowAngle()
+        public float[] GetElbowAngle()
         {
             return ElbowState;
         }
@@ -256,7 +256,7 @@ namespace VRProEP.ProsthesisCore
                 throw new System.ArgumentOutOfRangeException("The provided elbow angle is out of the allowed range.");
 
             inputManager.Configure("CMD_SET_REFERENCE", elbowAngle);
-            ElbowState = elbowAngle;
+            ElbowState[0] = elbowAngle;
         }
     }
 }

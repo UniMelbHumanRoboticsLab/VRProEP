@@ -29,7 +29,7 @@ public class AugmentedFeedback2022 : GameMaster
     //private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
     private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
     [SerializeField]
-    private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pxHand,pyHand,pzHand,paHand,pbHand,pgHand,pEfe,pWps";
+    private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pxHand,pyHand,pzHand,paHand,pbHand,pgHand,pEfe,pDotEfe,pWps,pDotWps";
     [SerializeField]
     private string performanceDataFormat = "i,loc,t_f,qt_sfe,qt_saa,qt_sr,qt_efe,qt_wps,qt_wfe,qt_waa";
 
@@ -1201,8 +1201,8 @@ public class AugmentedFeedback2022 : GameMaster
         // If in transhumeral prosthesis mode add prosthetic elbow and wrist states
         if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
         {
-            logData += "," + -multiJointManager.ElbowState;
-            logData += "," + -multiJointManager.WristPronState;
+            logData += "," + -multiJointManager.ElbowState[0] + "," + - multiJointManager.ElbowState[1];
+            logData += "," + -multiJointManager.WristPronState[0] + "," + - multiJointManager.WristPronState[1];
         }
        
 

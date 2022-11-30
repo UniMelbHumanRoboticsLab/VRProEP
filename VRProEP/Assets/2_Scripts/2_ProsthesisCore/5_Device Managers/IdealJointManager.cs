@@ -10,7 +10,12 @@ namespace VRProEP.ProsthesisCore
         private JointSpring jointSpring;
         private JointMotor jointMotor;
 
-        private float errorPrev = 0;
+        private float errorP = 0.0f;
+        private float errorPP = 0.0f;
+        public float KP  { get; set; }
+        public float KI { get; set; }
+        public float KD { get; set; }
+
 
         public float MaxAngVel { get; set; } // in deg/sec
         /// <summary>
@@ -42,6 +47,10 @@ namespace VRProEP.ProsthesisCore
             jointMotor.targetVelocity = MaxAngVel;
             this.joint.useMotor = true;
             this.joint.motor = jointMotor;
+
+            this.KP = 100.0f;
+            this.KI = 60.0f;
+            this.KD = 0.0f;
             
         }
 
@@ -65,6 +74,19 @@ namespace VRProEP.ProsthesisCore
             this.joint.spring = jointSpring;
         }
 
+        /// <summary>
+        /// Returns all pre-processed joint states in an array.
+        /// 0: Angular displacement given in radians.
+        /// 1: Angular velocity given in radians per second.
+        /// </summary>
+        /// <returns>The array with pre-processed angular position and velocity data.</returns>
+        public float[] GetJointStates()
+        {
+            float[] x = new float[2];
+            x[0] = joint.angle * Mathf.Deg2Rad;
+            x[1] = joint.velocity * Mathf.Deg2Rad;
+            return x;
+        }
 
         /// <summary>
         /// Returns all pre-processed joint states in an array.
@@ -102,7 +124,8 @@ namespace VRProEP.ProsthesisCore
                 throw new System.ArgumentException("Only channel 0 available since 1DOF.");
 
 
-            
+            /*
+            #region Simple stop and go
             float error = reference - this.GetJointAngle();
 
             if ((this.Sign(error) * this.Sign(errorPrev)) < 0)
@@ -118,7 +141,34 @@ namespace VRProEP.ProsthesisCore
             //Debug.Log("Reference: " + reference + " Current State: " + this.GetJointAngle() + " " + MaxAngVel * this.Sign(error));
 
             errorPrev = error;
-           
+            #endregion
+            */
+
+
+
+            #region PID velocity control
+            float error = Mathf.Rad2Deg * (reference - this.GetJointAngle());
+            jointMotor.targetVelocity = jointMotor.targetVelocity + IncPID(KP,KI,KD,error,errorP,errorPP);
+
+
+            if (jointMotor.targetVelocity > MaxAngVel)
+            {
+                jointMotor.targetVelocity = MaxAngVel;
+            }
+            else if (jointMotor.targetVelocity < -MaxAngVel)
+            {
+                jointMotor.targetVelocity = -MaxAngVel;
+            }
+               
+
+            joint.motor = jointMotor;
+            Debug.Log("Reference: " + Mathf.Rad2Deg * reference + " Current State: " + Mathf.Rad2Deg * this.GetJointAngle() + "Controller Output: " + jointMotor.targetVelocity + "Saturation Speed: " + MaxAngVel);
+
+            errorPP = errorP;
+            errorP = error;
+
+            #endregion
+
 
 
             /*
@@ -159,11 +209,24 @@ namespace VRProEP.ProsthesisCore
         }
 
 
+        /// <summary>
+        /// PID controller
+        /// </summary>
+        /// <param></param>
+        private float IncPID(float KP, float KI, float KD, float error, float errorP, float errprPP )
+        {
+            float output = 0.0f;
+
+            output = KP * (error - errorP) + KI * error + KD * (error - 2 * errorP + errorPP);
+
+            return output;
+        }
+
 
         /// <summary>
         /// Customised sgn function, return -1 for negative, return 1 for positive, return 0 for zero
         /// </summary>
-        /// <param name="references">The set of references for the device to track.</param>
+        /// <param></param>
         private float Sign(float number)
         {
             return number < 0 ? -1 : (number > 0 ? 1 : 0);
