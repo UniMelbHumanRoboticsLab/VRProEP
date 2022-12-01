@@ -44,18 +44,18 @@ public class TargetPoseGridManager : MonoBehaviour
     [Header("Physical Property")]
     [SerializeField]
     private Vector3 shoulderCentreOffset;
-    public Vector3 ShoulderCentreOffset { get; set; }
+    public Vector3 ShoulderCentreOffset { get=> shoulderCentreOffset; set => shoulderCentreOffset = value; }
     [SerializeField]
     private Transform shoulderCentreLoc;
     [SerializeField]
     private float uarmLengthOffset;
-    public float UarmLengthOffset { get; set; }
+    public float UarmLengthOffset { get => uarmLengthOffset; set => uarmLengthOffset = value; }
     [SerializeField]
     private float farmLengthOffset;
-    public float FarmLengthOffset { get; set; }
+    public float FarmLengthOffset { get => farmLengthOffset; set => farmLengthOffset = value; }
     [SerializeField]
     private float handLengthOffset;
-    public float HandLengthOffset { get; set; }
+    public float HandLengthOffset { get => handLengthOffset; set => handLengthOffset = value; }
 
     [Header("Limb Models")]
     [SerializeField]
@@ -207,7 +207,7 @@ public class TargetPoseGridManager : MonoBehaviour
 
         //
         shoulderCentreLoc.position = new Vector3(subjectShoulderBreadth / 2.0f, subjectHeight2SA, 0);
-        shoulderCentreLoc.position = shoulderCentreLoc.position - shoulderCentreOffset;
+        shoulderCentreLoc.position = shoulderCentreLoc.position + shoulderCentreOffset;
 
         //sagittalOffset = -subjectShoulderBreadth / 4.0f;
 
@@ -225,7 +225,7 @@ public class TargetPoseGridManager : MonoBehaviour
 
         // Shoulder centre
         shoulderCentreLoc.position = new Vector3(subjectShoulderBreadth / 2.0f, subjectHeight2SA, 0);
-        shoulderCentreLoc.position = shoulderCentreLoc.position - shoulderCentreOffset;
+        shoulderCentreLoc.position = shoulderCentreLoc.position + shoulderCentreOffset;
 
         // Arm length
         subjectUALength = SaveSystem.ActiveUser.upperArmLength + uarmLengthOffset;
@@ -964,6 +964,7 @@ public class TargetPoseGridManager : MonoBehaviour
     /// <returns void>
     public void SpawnTargetGrid()
     {
+        UpdateUserData();
         GenerateTargetLocations();
         for (int i = 0; i <= targetPositions.Count - 1; i++)
         {
@@ -1006,6 +1007,8 @@ public class TargetPoseGridManager : MonoBehaviour
         }
 
         InitialiseLimb();
+        ShowLimbPose(0);
+        CalibrationPose();
 
     }
 

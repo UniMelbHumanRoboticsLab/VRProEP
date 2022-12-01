@@ -4400,11 +4400,6 @@ PrefabInstance:
       propertyPath: fullTrackerEnable
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
-        type: 3}
-      propertyPath: restIterations
-      value: 100
-      objectReference: {fileID: 0}
     - target: {fileID: 8645427431186587885, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: m_textInfo.characterCount
@@ -5015,13 +5010,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1210544919}
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -0.729, y: 1.4, z: -0.191}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: -0, w: -0.7071068}
+  m_LocalPosition: {x: 1.2, y: 1.35, z: 0.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 270, z: 0}
 --- !u!1001 &1266499932
 PrefabInstance:
   m_ObjectHideFlags: 0

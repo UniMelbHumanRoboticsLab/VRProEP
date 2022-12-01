@@ -260,6 +260,21 @@ public class AugmentedFeedback2022 : GameMaster
     }
     private AugmentedFeedbackConfigurator configurator;
 
+    //
+    // Configuration class:
+    // Modify this class to be able to output the customised settings to a configuration file
+    //
+    private class CustomisedConfigurator
+    {
+        public List<int> targetOrder;
+        public Vector3 shoulderCentreOffset;
+        public Vector3 residualFollowerOffset;
+        public float uarmLengthOffset;
+        public float farmLengthOffset;
+        public float handLengthOffset;
+    }
+    private CustomisedConfigurator customConfigurator;
+
     #endregion
 
     // Here are all the methods you need to write for your experiment.
@@ -269,6 +284,7 @@ public class AugmentedFeedback2022 : GameMaster
     {
 
         // Manully select targets, for debug only
+        /*
         if (debug)
         {
             if (Input.GetKeyDown(KeyCode.F4))
@@ -280,6 +296,7 @@ public class AugmentedFeedback2022 : GameMaster
                     selectIdx = 0;
             }
         }
+        */
 
         // Choose if to try the training again
         if (GetCurrentStateName() == State.STATE.TRAINING && inPractice)
@@ -298,7 +315,7 @@ public class AugmentedFeedback2022 : GameMaster
             emgIsRecording = true;
         }
 
-        if (padAction.GetStateDown(SteamVR_Input_Sources.Any) && fullTrackerEnable ) //Input.GetKeyDown(KeyCode.UpArrow)
+        if (Input.GetKeyDown(KeyCode.UpArrow) && fullTrackerEnable) //Input.GetKeyDown(KeyCode.UpArrow) padAction.GetStateDown(SteamVR_Input_Sources.Any)
         {
             // Record initial frames
             c7InitOrient = c7Tracker.GetTrackerTransform().rotation;
@@ -323,7 +340,8 @@ public class AugmentedFeedback2022 : GameMaster
             // Debug using the test bot
             //
 
-            SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
+            //SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
+            SaveSystem.LoadUserData("HL1996178");
             
             Debug.Log("Load Avatar to Debug.");
 
@@ -331,7 +349,7 @@ public class AugmentedFeedback2022 : GameMaster
             {
                 AvatarSystem.LoadPlayer(UserType.Ablebodied, AvatarType.Transhumeral);
                 AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.Transhumeral);
-
+               
                 // Prosthesis manager
                 prosthesisManagerGO = GameObject.FindGameObjectWithTag("ProsthesisManager");
                 multiJointManager = prosthesisManagerGO.AddComponent<ConfigurableMultiJointManager>();
@@ -421,6 +439,10 @@ public class AugmentedFeedback2022 : GameMaster
             iterationsPerSession.Add(0);
         }
         Debug.Log("Size of iterationperTarget: " + iterationsPerTarget.Length);
+
+        
+        
+
     }
 
     /// <summary>
@@ -503,6 +525,20 @@ public class AugmentedFeedback2022 : GameMaster
             GameObject ulMotionTrackerGO = AvatarSystem.AddMotionTracker();
             upperArmTracker = new VIVETrackerManager(ulMotionTrackerGO.transform);
             ExperimentSystem.AddSensor(upperArmTracker);
+
+            if (fullTrackerEnable)
+            {
+                // Shoulder acromium head tracker
+                GameObject shMotionTrackerGO = AvatarSystem.AddMotionTracker();
+                shoulderTracker = new VIVETrackerManager(shMotionTrackerGO.transform);
+                ExperimentSystem.AddSensor(shoulderTracker);
+                Debug.Log("Shoulder acromion tracker registerd number:" + shoulderTracker.TrackerNumber + " Total number: " + lowerArmTracker.TotalTrackerNumber);
+                // C7 tracker
+                GameObject c7MotionTrackerGO = AvatarSystem.AddMotionTracker();
+                c7Tracker = new VIVETrackerManager(c7MotionTrackerGO.transform);
+                ExperimentSystem.AddSensor(c7Tracker);
+                Debug.Log("Trunk tracker registerd number:" + c7Tracker.TrackerNumber + " Total number: " + lowerArmTracker.TotalTrackerNumber);
+            }
 
         }
         else
@@ -604,7 +640,7 @@ public class AugmentedFeedback2022 : GameMaster
         // First flag that we are in the welcome routine
         welcomeDone = false;
         inWelcome = true;
-        /*
+        
         HudManager.DisplayText("Look to the top left. Instructions will be displayed there.");
         InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -641,9 +677,9 @@ public class AugmentedFeedback2022 : GameMaster
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
         InstructionManager.DisplayText("You will do 2 sessions which woudl take about an hour " + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("A 60 sec rest occurs every 27 iterations" + "\n\n (Press the trigger)");
+        InstructionManager.DisplayText("A" + this.RestTime + "sec rest occurs every" + this.RestIterations + "iterations" + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        */
+        
 
         //
         // Calibration
@@ -651,8 +687,8 @@ public class AugmentedFeedback2022 : GameMaster
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
         InstructionManager.DisplayText("Please stand upright and relax your upper limb.");
         Debug.Log("Press Up key to record calibration pose.");
-        yield return new WaitUntil(() => padAction.GetStateDown(SteamVR_Input_Sources.Any));
-        //Input.GetKeyDown(KeyCode.UpArrow));
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
+        //yield return new WaitUntil(() => padAction.GetStateDown(SteamVR_Input_Sources.Any));
 
         if (fullTrackerEnable)
         {
@@ -667,12 +703,12 @@ public class AugmentedFeedback2022 : GameMaster
 
         // Start
         Debug.Log("Press Down key to start.");
-        yield return new WaitUntil(() => buttonAction.GetStateDown(SteamVR_Input_Sources.Any));
-        //Input.GetKeyDown(KeyCode.DownArrow));
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
+        //yield return new WaitUntil(() => buttonAction.GetStateDown(SteamVR_Input_Sources.Any));
         if (delsysEnable & zmqPushEnable)
             delsysEMG.SetZMQPusher(true);
 
-        InstructionManager.DisplayText("All done! Thanks!");
+       
 
         welcomeDone = true;
 
@@ -751,10 +787,30 @@ public class AugmentedFeedback2022 : GameMaster
     {
         //Spwan grid
         #region Spawn grid
-        // Spawn the grid
-        //gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Ball;
-        //gridManager.AddJointPose(TargetPoseGridManager.WFE_POSE, new float[3] { 0, 0 ,0 });
+        bool hasConfigured = false;
+        // Convert customised setting file to configuration class. 
+        string fileName = SaveSystem.ActiveSaveFolder + "/" + ExperimentSystem.ActiveExperimentID + "/customised_settings.json";
+        if (File.Exists(fileName))
+        {
+            hasConfigured = true;
+            string json = File.ReadAllText(fileName);
+            customConfigurator = JsonUtility.FromJson<CustomisedConfigurator>(json);
+           
+            gridManager.ShoulderCentreOffset = customConfigurator.shoulderCentreOffset;
+            gridManager.FarmLengthOffset = customConfigurator.farmLengthOffset;
+            gridManager.UarmLengthOffset = customConfigurator.uarmLengthOffset;
+            gridManager.HandLengthOffset = customConfigurator.handLengthOffset;
 
+            // If prosthesis avatar, we also need to set the prosthesis offset
+            if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+            {
+                GameObject tempResidualGO = GameObject.FindGameObjectWithTag("ResidualLimbAvatar");
+                LimbFollower follower = tempResidualGO.GetComponent<LimbFollower>();
+                follower.offset = customConfigurator.residualFollowerOffset;
+            }
+            Debug.Log("Load customised experiment settings");
+        }
+            
         gridManager.AddJointPose(TargetPoseGridManager.SFE_POSE, sfePose);
         gridManager.AddJointPose(TargetPoseGridManager.EFE_POSE, efePose);
         gridManager.AddJointPose(TargetPoseGridManager.WPS_POSE, wpsPose);
@@ -765,28 +821,37 @@ public class AugmentedFeedback2022 : GameMaster
         Debug.Log("Spawn the grid!");
         #endregion
 
+
+
         #region Iteration settings
         // Set iterations variables for flow control.
         targetNumber = gridManager.TargetNumber;
         Debug.Log("Total target number: " + targetNumber);
         iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget[sessionNumber-1];
-
-        // Create the list of target indexes and shuffle it.
-        List<int> tempOrder = new List<int>();
-        for (int i = 0; i < targetNumber; i++)
+        if (!hasConfigured || customConfigurator.targetOrder.Count != targetNumber * iterationsPerTarget[sessionNumber - 1])
         {
-            for (int j = 0; j < iterationsPerTarget[sessionNumber - 1]; j++)
+            // Create the list of target indexes and shuffle it.
+            List<int> tempOrder = new List<int>();
+            for (int i = 0; i < targetNumber; i++)
             {
-                tempOrder.Add(i);
-                
+                for (int j = 0; j < iterationsPerTarget[sessionNumber - 1]; j++)
+                {
+                    tempOrder.Add(i);
+
+                }
             }
+
+            targetOrder = gridManager.SequentialRandomise(tempOrder, iterationBatchSize);
+        }
+        else
+        {
+            targetOrder = new List<int>(customConfigurator.targetOrder);
         }
         
-        targetOrder = gridManager.SequentialRandomise(tempOrder, iterationBatchSize);
+
         Debug.Log("Total trials:" + targetOrder.Count);
         Debug.Log("Current target pose number: " + targetOrder[iterationNumber - 1]);
-
-       
+        Debug.Log("Target order:" + string.Join(",", targetOrder));
         #endregion
     }
 
@@ -801,16 +866,32 @@ public class AugmentedFeedback2022 : GameMaster
         instructionsDone = false;
         inInstructions = true;
 
-
         gridManager.CalibrationPose();
+        Debug.Log("Calibrate the avatar. Press up arrow to continue.");
+        InstructionManager.DisplayText("We also neeed to calibrate your avatar. Relax your shoulder and bend your elbow like the white and blue lines show." );
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
+        //yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        Debug.Log("Calibration done.");
 
-        InstructionManager.DisplayText("Press trigger to continue" + "\n\n (Press the trigger)");
+        // Save the customised settings
+        customConfigurator = new CustomisedConfigurator();
+        customConfigurator.targetOrder = new List<int>(targetOrder);
+        customConfigurator.shoulderCentreOffset = gridManager.ShoulderCentreOffset;
+        customConfigurator.farmLengthOffset = gridManager.FarmLengthOffset;
+        customConfigurator.uarmLengthOffset = gridManager.UarmLengthOffset;
+        customConfigurator.handLengthOffset = gridManager.HandLengthOffset;
+        GameObject tempResidualGO = GameObject.FindGameObjectWithTag("ResidualLimbAvatar");
+        LimbFollower follower = tempResidualGO.GetComponent<LimbFollower>();
+        customConfigurator.residualFollowerOffset = follower.offset;
+
+        // Covert the setting class to json
+        string json = JsonUtility.ToJson(customConfigurator);
+        string fileName = SaveSystem.ActiveSaveFolder + "/" + ExperimentSystem.ActiveExperimentID + "/customised_settings.json";
+        File.WriteAllText(fileName, json);
+
+        // Done calibration
+        InstructionManager.DisplayText("All done! Thanks! Press trigger to continue" + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-       
-
-        // Now that you are done, set the flag to indicate we are done.
-        instructionsDone = true;
 
         //Instructions
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied) // Able-bodied session
@@ -833,9 +914,10 @@ public class AugmentedFeedback2022 : GameMaster
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
         }
 
+        // Now that you are done, set the flag to indicate we are done.
+        instructionsDone = true;
 
 
-       
 
     }
 
@@ -1045,7 +1127,7 @@ public class AugmentedFeedback2022 : GameMaster
 
             //
             // End
-            InstructionManager.DisplayText("You look ready to go! Good luck!" + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("You look ready to go! Good luck!" + "\n\n (Press the trigger to start experiment)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
         }
@@ -1172,9 +1254,6 @@ public class AugmentedFeedback2022 : GameMaster
             }
         }
        
-
-        
-
 
         /*
         // Read from all user sensors

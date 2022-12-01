@@ -542,8 +542,8 @@ MonoBehaviour:
   worldOrientation: 90
   experimentCenter: {fileID: 8645427431186587858}
   playerOrientation: 0
-  restTime: 60
-  restIterations: 100
+  restTime: 30
+  restIterations: 27
   iterationsPerSession: 
   trainingPerSession: 
   taskDataFormat: 

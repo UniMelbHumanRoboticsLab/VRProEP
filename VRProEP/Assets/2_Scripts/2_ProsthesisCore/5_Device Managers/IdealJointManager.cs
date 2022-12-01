@@ -162,7 +162,7 @@ namespace VRProEP.ProsthesisCore
                
 
             joint.motor = jointMotor;
-            Debug.Log("Reference: " + Mathf.Rad2Deg * reference + " Current State: " + Mathf.Rad2Deg * this.GetJointAngle() + "Controller Output: " + jointMotor.targetVelocity + "Saturation Speed: " + MaxAngVel);
+            //Debug.Log("Reference: " + Mathf.Rad2Deg * reference + " Current State: " + Mathf.Rad2Deg * this.GetJointAngle() + "Controller Output: " + jointMotor.targetVelocity + "Saturation Speed: " + MaxAngVel);
 
             errorPP = errorP;
             errorP = error;

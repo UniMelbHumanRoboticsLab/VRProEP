@@ -31,7 +31,7 @@ namespace VRProEP.ProsthesisCore
 
 
         public const float MAX_EFE_VEL = 90.0f;
-        public const float MAX_WPS_VEL = 60.0f;
+        public const float MAX_WPS_VEL = 90.0f;
         public const float MAX_WFE_VEL = 60.0f;
 
         /// <summary>
