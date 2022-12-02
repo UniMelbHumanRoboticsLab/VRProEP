@@ -27,9 +27,9 @@ public class AugmentedFeedback2022 : GameMaster
     #region Unity objects
     [SerializeField]
     //private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
-    private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
+    private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,erorX,errorY,errorZ,errorAng";
     [SerializeField]
-    private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pxHand,pyHand,pzHand,paHand,pbHand,pgHand,pEfe,pDotEfe,pWps,pDotWps";
+    private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pxHand,pyHand,pzHand,paHand,pbHand,pgHand,pEfe,pDotEfe,pWps,pDotWps,erorX,errorY,errorZ,errorAng";
     [SerializeField]
     private string performanceDataFormat = "i,loc,t_f,qt_sfe,qt_saa,qt_sr,qt_efe,qt_wps,qt_wfe,qt_waa";
 
@@ -83,6 +83,8 @@ public class AugmentedFeedback2022 : GameMaster
     private bool amputeeAvatar;
     [SerializeField]
     private bool controlllerHand;
+    [SerializeField]
+    private bool avatarCalibration;
 
     [Header("Flags")]
     // If allow using controller to complete tasks
@@ -111,6 +113,7 @@ public class AugmentedFeedback2022 : GameMaster
     [SerializeField]
     private bool zmqReqEnable;
     private readonly int zmqReqPort = ZMQ_REQ_PORT;
+
 
     [SerializeField]
     private bool skipXR;
@@ -268,7 +271,8 @@ public class AugmentedFeedback2022 : GameMaster
     {
         public List<int> targetOrder;
         public Vector3 shoulderCentreOffset;
-        public Vector3 residualFollowerOffset;
+        public Vector3 residualFollowerPosOffset;
+        public Vector3 residualFollowerAngOffset;
         public float uarmLengthOffset;
         public float farmLengthOffset;
         public float handLengthOffset;
@@ -282,21 +286,6 @@ public class AugmentedFeedback2022 : GameMaster
 
     protected override void FixedUpdate()
     {
-
-        // Manully select targets, for debug only
-        /*
-        if (debug)
-        {
-            if (Input.GetKeyDown(KeyCode.F4))
-            {
-                Debug.Log(selectIdx);
-                gridManager.SelectTarget(targetOrder[selectIdx]);
-                selectIdx++;
-                if (selectIdx >= targetOrder.Count)
-                    selectIdx = 0;
-            }
-        }
-        */
 
         // Choose if to try the training again
         if (GetCurrentStateName() == State.STATE.TRAINING && inPractice)
@@ -640,47 +629,49 @@ public class AugmentedFeedback2022 : GameMaster
         // First flag that we are in the welcome routine
         welcomeDone = false;
         inWelcome = true;
-        
-        HudManager.DisplayText("Look to the top left. Instructions will be displayed there.");
-        InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-        InstructionManager.DisplayText("Make sure you are standing on top of the green circle. \n\n (Press the trigger button to continue...)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        if (!avatarCalibration)
+        {
+            HudManager.DisplayText("Look to the top left. Instructions will be displayed there.");
+            InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-        InstructionManager.DisplayText("Test audio. \n\n (If you can hear the audio, press the trigger button to continue...)");
-        audio.loop = true;
-        audio.volume = 0.4f;
-        audio.Play();
-        
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        audio.loop = false;
-        audio.Stop();
-        audio.volume = 1.0f;
+            InstructionManager.DisplayText("Make sure you are standing on top of the green circle. \n\n (Press the trigger button to continue...)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-        //
-        // Hud intro
-        InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me introduce you to your assistant, the Heads Up Display (HUD)." + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("Look at the HUD around your left eye. It's saying hi!");
-        HudManager.DisplayText("Hi! I'm HUD!" + "\n (Press trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        HudManager.DisplayText("I'm here to help!" + "\n (Press trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        HudManager.DisplayText("Look at the screen.", 3);
+            InstructionManager.DisplayText("Test audio. \n\n (If you can hear the audio, press the trigger button to continue...)");
+            audio.loop = true;
+            audio.volume = 0.4f;
+            audio.Play();
 
-        //
-        // Experiment overall intro
-        InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me explain what we are doing today." + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("Today, the experiment will require you to match the position and orientation of the bottles in front of you" + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("You will do 2 sessions which woudl take about an hour " + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("A" + this.RestTime + "sec rest occurs every" + this.RestIterations + "iterations" + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            audio.loop = false;
+            audio.Stop();
+            audio.volume = 1.0f;
 
+            //
+            // Hud intro
+            InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me introduce you to your assistant, the Heads Up Display (HUD)." + "\n\n (Press the trigger)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            InstructionManager.DisplayText("Look at the HUD around your left eye. It's saying hi!");
+            HudManager.DisplayText("Hi! I'm HUD!" + "\n (Press trigger)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            HudManager.DisplayText("I'm here to help!" + "\n (Press trigger)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            HudManager.DisplayText("Look at the screen.", 3);
+
+            //
+            // Experiment overall intro
+            InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me explain what we are doing today." + "\n\n (Press the trigger)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            InstructionManager.DisplayText("Today, the experiment will require you to match the position and orientation of the bottles in front of you" + "\n\n (Press the trigger)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            InstructionManager.DisplayText("You will do 2 sessions which woudl take about an hour " + "\n\n (Press the trigger)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            InstructionManager.DisplayText("A" + this.RestTime + "sec rest occurs every" + this.RestIterations + "iterations" + "\n\n (Press the trigger)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        }
+       
         //
         // Calibration
         InstructionManager.DisplayText("Before start, we need to do some clibration" + "\n\n (Press the trigger)");
@@ -806,7 +797,8 @@ public class AugmentedFeedback2022 : GameMaster
             {
                 GameObject tempResidualGO = GameObject.FindGameObjectWithTag("ResidualLimbAvatar");
                 LimbFollower follower = tempResidualGO.GetComponent<LimbFollower>();
-                follower.offset = customConfigurator.residualFollowerOffset;
+                follower.offset = customConfigurator.residualFollowerPosOffset;
+                follower.angularOffset = customConfigurator.residualFollowerAngOffset;
             }
             Debug.Log("Load customised experiment settings");
         }
@@ -880,9 +872,14 @@ public class AugmentedFeedback2022 : GameMaster
         customConfigurator.farmLengthOffset = gridManager.FarmLengthOffset;
         customConfigurator.uarmLengthOffset = gridManager.UarmLengthOffset;
         customConfigurator.handLengthOffset = gridManager.HandLengthOffset;
-        GameObject tempResidualGO = GameObject.FindGameObjectWithTag("ResidualLimbAvatar");
-        LimbFollower follower = tempResidualGO.GetComponent<LimbFollower>();
-        customConfigurator.residualFollowerOffset = follower.offset;
+        if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+        {
+            GameObject tempResidualGO = GameObject.FindGameObjectWithTag("ResidualLimbAvatar");
+            LimbFollower follower = tempResidualGO.GetComponent<LimbFollower>();
+            customConfigurator.residualFollowerPosOffset = follower.offset;
+            customConfigurator.residualFollowerAngOffset = follower.angularOffset;
+        }
+        
 
         // Covert the setting class to json
         string json = JsonUtility.ToJson(customConfigurator);
@@ -893,25 +890,28 @@ public class AugmentedFeedback2022 : GameMaster
         InstructionManager.DisplayText("All done! Thanks! Press trigger to continue" + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-        //Instructions
-        if (AvatarSystem.AvatarType == AvatarType.AbleBodied) // Able-bodied session
+        if (!avatarCalibration)
         {
-            InstructionManager.DisplayText("Alright, the bottle targets should have spawned for you." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("In the 1st session, you will need to match the position and oriention of the bottles in front of you with the bottle in your hand." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            //Instructions
+            if (AvatarSystem.AvatarType == AvatarType.AbleBodied) // Able-bodied session
+            {
+                InstructionManager.DisplayText("Alright, the bottle targets should have spawned for you." + "\n\n (Press the trigger)");
+                yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+                InstructionManager.DisplayText("In the 1st session, you will need to match the position and oriention of the bottles in front of you with the bottle in your hand." + "\n\n (Press the trigger)");
+                yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+                InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
+                yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-        }
-        else if (AvatarSystem.AvatarType == AvatarType.Transhumeral) // second session
-        {
-            InstructionManager.DisplayText("You've finished the 1st session, well done. Let's start the 2nd session" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Now, you need to complete the same task, but the virtual forearm will not follow yours but controlled by some algorithm ." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            }
+            else if (AvatarSystem.AvatarType == AvatarType.Transhumeral) // second session
+            {
+                InstructionManager.DisplayText("You've finished the 1st session, well done. Let's start the 2nd session" + "\n\n (Press the trigger)");
+                yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+                InstructionManager.DisplayText("Now, you need to complete the same task, but the virtual forearm will not follow yours but controlled by some algorithm ." + "\n\n (Press the trigger)");
+                yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+                InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
+                yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            }
         }
 
         // Now that you are done, set the flag to indicate we are done.
@@ -1283,12 +1283,14 @@ public class AugmentedFeedback2022 : GameMaster
             logData += "," + -multiJointManager.ElbowState[0] + "," + - multiJointManager.ElbowState[1];
             logData += "," + -multiJointManager.WristPronState[0] + "," + - multiJointManager.WristPronState[1];
         }
-       
 
+        // Log task error
+        Vector3 errorTemp = gridManager.GetPosError();
+        logData += "," + errorTemp.x + "," + errorTemp.y + "," + errorTemp.z + ","  + gridManager.GetAngError();
 
-        //
-        // Log current data and clear before next run.
-        //
+       //
+       // Log current data and clear before next run.
+       //
         taskDataLogger.AppendData(logData);
         logData = "";
 

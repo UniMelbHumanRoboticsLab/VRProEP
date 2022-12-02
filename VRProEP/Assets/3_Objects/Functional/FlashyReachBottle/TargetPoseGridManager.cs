@@ -1123,6 +1123,40 @@ public class TargetPoseGridManager : MonoBehaviour
         selectedTouched = false;
     }
 
+    /// <summary>
+    /// Clears the current traget selection
+    /// </summary>
+    public Vector3 GetPosError()
+    {
+        Vector3 error = new Vector3(0.0f,0.0f,0.0f);
+        switch (targetType)
+        {
+            case TargetType.Bottle:
+                error = bottles[selectedIndex].ErrorPos;
+                break;
+            case TargetType.Ball:
+                break;
+        }
+
+        return error;
+    }
+
+    /// <summary>
+    /// Clears the current traget selection
+    /// </summary>
+    public float GetAngError()
+    {
+        float error = 0.0f;
+        switch (targetType)
+        {
+            case TargetType.Bottle:
+                error = bottles[selectedIndex].ErrorAng;
+                break;
+            case TargetType.Ball:
+                break;
+        }
+        return error;
+    }
 
 
 

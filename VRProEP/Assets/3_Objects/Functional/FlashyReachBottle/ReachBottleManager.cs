@@ -45,6 +45,14 @@ public class ReachBottleManager : MonoBehaviour
     //Constants
     private float WAIT_SECONDS = 1.0f;
 
+
+    // Error
+    private Vector3 errorPos;
+    public Vector3 ErrorPos { get => errorPos; }
+    private float errorAng;
+    public float ErrorAng { get => errorAng; }
+
+
     void Update()
     {
        
@@ -136,21 +144,22 @@ public class ReachBottleManager : MonoBehaviour
         bool reached = false;
         
 
-        Vector3 postionError = this.transform.position - bottleInHand.transform.position;
+        this.errorPos = this.transform.position - bottleInHand.transform.position;
+        
 
         Quaternion targetRotation = this.gameObject.transform.localRotation;
 
         Quaternion bottleInHandRotation = bottleInHand.transform.localRotation;
 
-        float rotationError = Quaternion.Angle(targetRotation, bottleInHandRotation) / 2.0f;
+        this.errorAng = Quaternion.Angle(targetRotation, bottleInHandRotation) / 2.0f;
 
-        if (Mathf.Abs(postionError.x) < positionTolerance.x && Mathf.Abs(postionError.y) < positionTolerance.y && Mathf.Abs(postionError.z) < positionTolerance.z )
+        if (Mathf.Abs(errorPos.x) < positionTolerance.x && Mathf.Abs(errorPos.y) < positionTolerance.y && Mathf.Abs(errorPos.z) < positionTolerance.z )
             positionReached = true;  
         else
             positionReached = false;
 
 
-        if ( Mathf.Abs(rotationError) <= rotationToleranceAngle) //
+        if ( Mathf.Abs(errorAng) <= rotationToleranceAngle) //
             orientationReached = true;
         else
             orientationReached = false;
