@@ -1024,20 +1024,20 @@ public class TargetPoseGridManager : MonoBehaviour
 
         selectedIndex = index;
 
-        MeshRenderer[] renderer;
+        Renderer[] renderer;
         switch (targetType)
         {
             
             case TargetType.Bottle:
-                renderer = bottles[index].gameObject.GetComponentsInChildren<MeshRenderer>();
-                foreach (MeshRenderer element in renderer)
+                renderer = bottles[index].gameObject.GetComponentsInChildren<Renderer>();
+                foreach (Renderer element in renderer)
                     element.enabled = true;
                 bottles[index].SetSelected();
 
                 break;
             case TargetType.Ball:
-                renderer = balls[index].gameObject.GetComponentsInChildren<MeshRenderer>();
-                foreach (MeshRenderer element in renderer)
+                renderer = balls[index].gameObject.GetComponentsInChildren<Renderer>();
+                foreach (Renderer element in renderer)
                     element.enabled = true;
                 balls[index].SetSelected();
                 break;
@@ -1096,15 +1096,15 @@ public class TargetPoseGridManager : MonoBehaviour
     /// </summary>
     public void ResetTargetSelection()
     {
-        MeshRenderer[] renderer;
+        Renderer[] renderer;
         switch (targetType)
         {
             case TargetType.Bottle:
                 foreach (ReachBottleManager bottle in bottles)
                 {
                     bottle.ClearSelection();
-                    renderer = bottle.gameObject.GetComponentsInChildren<MeshRenderer>();
-                    foreach (MeshRenderer element in renderer)
+                    renderer = bottle.gameObject.GetComponentsInChildren<Renderer>();
+                    foreach (Renderer element in renderer)
                         element.enabled = false;
                 }
                 break;
@@ -1112,8 +1112,8 @@ public class TargetPoseGridManager : MonoBehaviour
                 foreach (TouchyBallManager ball in balls)
                 {
                     ball.ClearSelection();
-                    renderer = ball.gameObject.GetComponentsInChildren<MeshRenderer>();
-                    foreach (MeshRenderer element in renderer)
+                    renderer = ball.gameObject.GetComponentsInChildren<Renderer>();
+                    foreach (Renderer element in renderer)
                         element.enabled = false;
                 }
                 break;

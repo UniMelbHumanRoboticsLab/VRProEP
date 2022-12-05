@@ -330,8 +330,9 @@ public class AugmentedFeedback2022 : GameMaster
             //
 
             //SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
-            SaveSystem.LoadUserData("HL1996178");
-            
+            //SaveSystem.LoadUserData("HL1996178");
+            SaveSystem.LoadUserData("RW1995169");
+
             Debug.Log("Load Avatar to Debug.");
 
             if (amputeeAvatar)
