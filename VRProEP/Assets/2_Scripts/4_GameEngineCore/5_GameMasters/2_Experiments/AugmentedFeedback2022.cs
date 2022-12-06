@@ -27,9 +27,9 @@ public class AugmentedFeedback2022 : GameMaster
     #region Unity objects
     [SerializeField]
     //private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
-    private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,erorX,errorY,errorZ,errorAng";
+    private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,errorX,errorY,errorZ,errorAng";
     [SerializeField]
-    private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pxHand,pyHand,pzHand,paHand,pbHand,pgHand,pEfe,pDotEfe,pWps,pDotWps,erorX,errorY,errorZ,errorAng";
+    private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pxHand,pyHand,pzHand,paHand,pbHand,pgHand,pEfe,pDotEfe,pWps,pDotWps,errorX,errorY,errorZ,errorAng";
     [SerializeField]
     private string performanceDataFormat = "i,loc,t_f,qt_sfe,qt_saa,qt_sr,qt_efe,qt_wps,qt_wfe,qt_waa";
 
@@ -255,6 +255,7 @@ public class AugmentedFeedback2022 : GameMaster
     {
         public int[] iterationsPerTarget = {2};
         public int iterationBatchSize = 3;
+        public int initIteration = 1;
         public float holdingTime = 0.5f;
         public float maxTaskTime = 100.0f;
         public float[] sfePose;
@@ -329,9 +330,9 @@ public class AugmentedFeedback2022 : GameMaster
             // Debug using the test bot
             //
 
-            //SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
+            SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
             //SaveSystem.LoadUserData("HL1996178");
-            SaveSystem.LoadUserData("RW1995169");
+            //SaveSystem.LoadUserData("RW1995169");
 
             Debug.Log("Load Avatar to Debug.");
 
@@ -469,8 +470,13 @@ public class AugmentedFeedback2022 : GameMaster
 
         // Make sure flow control is initialised
         sessionNumber = 1;
-        iterationNumber = 1;
         
+        if(configurator.initIteration % configurator.iterationBatchSize == 0)
+            iterationNumber = configurator.initIteration - configurator.iterationBatchSize - 1;
+        else
+            iterationNumber = configurator.initIteration - (configurator.initIteration % configurator.iterationBatchSize - 1);
+        
+
         //
         // Create the default data loggers
         //

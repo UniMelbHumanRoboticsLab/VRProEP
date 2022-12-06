@@ -1,1 +1,1 @@
-{"iterationsPerTarget": [3], "iterationBatchSize": 3, "holdingTime": 1.0, "maxTaskTime": 100.0, "sfePose": [30,50,70], "efePose": [30,60,90], "wpsPose": [-30,0,60] }
+{"iterationsPerTarget": [3], "iterationBatchSize": 3, "initIteration": 1, "holdingTime": 1.0, "maxTaskTime": 100.0, "sfePose": [30,50,70], "efePose": [30,60,90], "wpsPose": [-30,0,60] }

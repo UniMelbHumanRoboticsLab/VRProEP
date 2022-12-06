@@ -40,6 +40,7 @@ TagManager:
   - WristPronator
   - WristFlexer
   - HandProsthesis
+  - BottleAnchor
   layers:
   - Default
   - TransparentFX

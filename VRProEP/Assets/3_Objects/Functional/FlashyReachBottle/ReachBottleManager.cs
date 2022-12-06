@@ -44,14 +44,17 @@ public class ReachBottleManager : MonoBehaviour
 
     //Constants
     private float WAIT_SECONDS = 1.0f;
-
+    private float MIN_HOLD_TIME = 0.1f;
 
     // Error
     private Vector3 errorPos;
     public Vector3 ErrorPos { get => errorPos; }
     private float errorAng;
     public float ErrorAng { get => errorAng; }
+    private Vector3 errorAngVec;
+    public Vector3 ErrorAngVec { get => errorAngVec; }
 
+    private float holdTime;
 
     void Update()
     {
@@ -139,41 +142,69 @@ public class ReachBottleManager : MonoBehaviour
     /// <returns bool reached>
     private bool CheckReached()
     {
+        bool reachedFinal = false;
+
         bool positionReached = false;
         bool orientationReached = false;
         bool reached = false;
-        
 
+        // Previous
+        bool positionReachedPrev = Mathf.Abs(errorPos.x) < positionTolerance.x && Mathf.Abs(errorPos.y) < positionTolerance.y && Mathf.Abs(errorPos.z) < positionTolerance.z;
+        bool orientationReachedPrev = Mathf.Abs(errorAng) <= rotationToleranceAngle;
+        //bool orientationReachedPrev = Mathf.Abs(errorAngVec.x) < rotationTolerance.x && Mathf.Abs(errorAngVec.y) < rotationTolerance.y && Mathf.Abs(errorAngVec.z) < rotationTolerance.z;
+        bool reachedPrev = positionReachedPrev & orientationReachedPrev;
+
+        // Current
         this.errorPos = this.transform.position - bottleInHand.transform.position;
-        
 
+        // Just check frontal orientation
+        /*
+        Quaternion targetRotation = this.gameObject.transform.rotation;
+        Quaternion bottleInHandRotation = Quaternion.Inverse(targetRotation) * bottleInHand.transform.rotation;
+        Vector3 targetAxis = Vector3.up;
+        Vector3 bottleAxis = bottleInHandRotation * Vector3.up;
+        this.errorAng = Vector2.Angle( new Vector2(targetAxis.y, targetAxis.z), new Vector2(bottleAxis.y, bottleAxis.z));
+        */
+
+        // Quaternion angle difference method
         Quaternion targetRotation = this.gameObject.transform.localRotation;
-
         Quaternion bottleInHandRotation = bottleInHand.transform.localRotation;
+        Quaternion relative = Quaternion.Inverse(bottleInHandRotation) * targetRotation;
+        //this.errorAng = Quaternion.Angle(targetRotation, bottleInHandRotation) / 2.0f;
+        this.errorAng = 2.0f * Mathf.Rad2Deg * Mathf.Atan2(Mathf.Sqrt(relative.x * relative.x + relative.y * relative.y + relative.z * relative.z),relative.w);
+        if (errorAng > 180.0f)
+            errorAng = 360.0f - errorAng;
 
-        this.errorAng = Quaternion.Angle(targetRotation, bottleInHandRotation) / 2.0f;
+        /*
+        Quaternion targetRotation = this.gameObject.transform.localRotation;
+        Matrix4x4 m1 = Matrix4x4.Rotate(targetRotation);
+        Quaternion bottleInHandRotation = bottleInHand.transform.localRotation;
+        Matrix4x4 m2 = Matrix4x4.Rotate(bottleInHandRotation);
+        Vector3 temp = 0.5f * (Vector3.Cross(m1.GetColumn(0),m2.GetColumn(0)) + Vector3.Cross(m1.GetColumn(1), m2.GetColumn(1)) + Vector3.Cross(m1.GetColumn(2), m2.GetColumn(2)));
+        this.errorAngVec.x = Mathf.Rad2Deg * Mathf.Asin(temp.x);
+        this.errorAngVec.y = Mathf.Rad2Deg * Mathf.Asin(temp.y);
+        this.errorAngVec.z = Mathf.Rad2Deg * Mathf.Asin(temp.z);
+        */
 
-        if (Mathf.Abs(errorPos.x) < positionTolerance.x && Mathf.Abs(errorPos.y) < positionTolerance.y && Mathf.Abs(errorPos.z) < positionTolerance.z )
-            positionReached = true;  
-        else
-            positionReached = false;
+        positionReached = Mathf.Abs(errorPos.x) < positionTolerance.x && Mathf.Abs(errorPos.y) < positionTolerance.y && Mathf.Abs(errorPos.z) < positionTolerance.z;
+        orientationReached =  Mathf.Abs(errorAng) <= rotationToleranceAngle;
+        //orientationReached = Mathf.Abs(errorAngVec.x) < rotationTolerance.x && Mathf.Abs(errorAngVec.y) < rotationTolerance.y && Mathf.Abs(errorAngVec.z) < rotationTolerance.z;
+        reached = positionReached & orientationReached;
 
-
-        if ( Mathf.Abs(errorAng) <= rotationToleranceAngle) //
-            orientationReached = true;
-        else
-            orientationReached = false;
-
-
+        // Debug Log
         //Debug.Log(bottleInHandRotation);
         //Debug.Log(bottleInHand.transform.position);
         //Debug.Log(postionError);
-        //Debug.Log(rotationError);
-         
+        Debug.Log(errorAng);
 
+        if (reachedPrev && reached)
+            holdTime += Time.fixedDeltaTime;
+        else
+            holdTime = 0.0f;
 
-        reached = positionReached & orientationReached;
-        return reached;
+        reachedFinal = reached && holdTime > MIN_HOLD_TIME;
+            
+        return reachedFinal;
     }
 
     /// <summary>

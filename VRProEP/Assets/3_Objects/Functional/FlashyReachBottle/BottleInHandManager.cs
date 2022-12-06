@@ -22,18 +22,16 @@ public class BottleInHandManager : MonoBehaviour
     {
         if (AvatarSystem.IsAvatarAvaiable)
         {
-            GameObject hand;
+            GameObject wristPoint;
             //Debug.Log("Avatar find, attach bottle to hand!");
-            if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
-                hand = GameObject.FindGameObjectWithTag("Hand");
-            else
-                hand = GameObject.FindGameObjectWithTag("HandProsthesis");
+            wristPoint = GameObject.FindGameObjectWithTag("BottleAnchor");
 
-            transform.rotation = hand.transform.rotation;  // Orientation
-            transform.Rotate(Vector3.left, -90f);
-            transform.Rotate(Vector3.up, -90f);
-            transform.localRotation *= Quaternion.Euler(0,0,10);
-            transform.position = hand.transform.position + transform.forward* zOffest + transform.up * yOffest + transform.right * xOffest; //Position
+            transform.rotation = wristPoint.transform.rotation;  // Orientation
+            transform.Rotate(Vector3.forward, 90f, Space.Self);
+            transform.Rotate(Vector3.up, -180f, Space.Self);
+            transform.position = wristPoint.transform.position;
+            transform.Translate(new Vector3(xOffest + SaveSystem.ActiveUser.handLength, yOffest, zOffest), Space.Self);
+ 
         }
     }
 }

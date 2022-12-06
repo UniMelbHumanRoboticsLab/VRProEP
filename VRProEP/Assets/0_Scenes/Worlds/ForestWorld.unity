@@ -4305,11 +4305,6 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 4682151062224831076, guid: 258682ab411a72c4a87bf0334391016e,
-        type: 3}
-      propertyPath: zOffest
-      value: 0.02
-      objectReference: {fileID: 0}
     - target: {fileID: 7057585951369286232, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: m_Name
@@ -4343,12 +4338,12 @@ PrefabInstance:
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: delsysEnable
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: zmqPushEnable
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -4368,7 +4363,7 @@ PrefabInstance:
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: zmqPullEnable
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -4378,7 +4373,7 @@ PrefabInstance:
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: amputeeAvatar
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
