@@ -276,8 +276,8 @@ namespace VRProEP.GameEngineCore
                 throw new System.Exception("The requested elbow information was not found.");
 
             // Instantiate with prosthesis manager as parent.
-            //float elbowOffset = (upperArmLength - (activeElbowData_Upper.dimensions.x / 2.0f));
-            GameObject elbowGO = Object.Instantiate(elbowPrefab, new Vector3(elbowPrefab.transform.localPosition.x, -upperArmLength, elbowPrefab.transform.localPosition.z), elbowPrefab.transform.localRotation, prosthesisManagerGO.transform);
+            float elbowOffset = (upperArmLength - (activeElbowData_Upper.dimensions.x / 2.0f));
+            GameObject elbowGO = Object.Instantiate(elbowPrefab, new Vector3(elbowPrefab.transform.localPosition.x, -elbowOffset, elbowPrefab.transform.localPosition.z), elbowPrefab.transform.localRotation, prosthesisManagerGO.transform);
                        
             // Attach the socket to thre residual limb through a fixed joint.
             // Get the elbow upper part that needs to be attached to the socket
