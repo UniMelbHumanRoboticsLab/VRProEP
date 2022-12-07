@@ -195,7 +195,7 @@ public class ReachBottleManager : MonoBehaviour
         //Debug.Log(bottleInHandRotation);
         //Debug.Log(bottleInHand.transform.position);
         //Debug.Log(postionError);
-        Debug.Log(errorAng);
+        //Debug.Log(errorAng);
 
         if (reachedPrev && reached)
             holdTime += Time.fixedDeltaTime;
