@@ -330,10 +330,10 @@ public class AugmentedFeedback2022 : GameMaster
             // Debug using the test bot
             //
 
-            //SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
+            SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
             //SaveSystem.LoadUserData("HL1996178");
             //SaveSystem.LoadUserData("RW1995169");
-            SaveSystem.LoadUserData("XG1995174");
+            //SaveSystem.LoadUserData("XG1995174");
             
 
             Debug.Log("Load Avatar to Debug.");
