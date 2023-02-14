@@ -102,7 +102,7 @@ public class DataCollection2022GM : GameMaster
     // Additional data logging
     private DataStreamLogger performanceDataLogger;
     private float doneTime;
-    private int subStep;
+    private int subStep=1;
 
     // Delsys EMG background data collection
     private DelsysEMG delsysEMG = new DelsysEMG();
