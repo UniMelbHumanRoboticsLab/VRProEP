@@ -28,6 +28,8 @@ public class DataCollection2022GM : GameMaster
     [SerializeField]
     private bool delsysEMGEnable = false;
     [SerializeField]
+    private bool trackerEnable = false;
+    [SerializeField]
     private bool fourTrackerEnable = false;
     [SerializeField]
     private bool xrSkip = false;
@@ -49,7 +51,7 @@ public class DataCollection2022GM : GameMaster
     private ADLPoseListManager poseListManager;
 
    
-    [Header("Experiment configuration: Start position")]
+    [Header("Prefab Experiment configuration:")]
     [SerializeField]
     [Tooltip("The subject's shoulder start angle in degrees.")]
     [Range(-180.0f, 180.0f)]
@@ -65,11 +67,21 @@ public class DataCollection2022GM : GameMaster
     [Range(0.0f, 90.0f)]
     private float startTolerance = 15.0f;
 
-    [Header("Experiment configuration: Reps and Sets")]
     [SerializeField]
     [Tooltip("The number of iterations per target.")]
     [Range(1, 100)]
     private int iterationsPerTarget = 10;
+
+    [SerializeField]
+    [Tooltip("Max time for each iteration")]
+    [Range(1, 20)]
+    private float maxTaskTime = 2.0f;
+
+    [SerializeField]
+    [Tooltip("Holding time for each iteration")]
+    [Range(0, 20)]
+    private float holdingTime = 1.0f;
+
 
 
     [SerializeField]
@@ -121,7 +133,9 @@ public class DataCollection2022GM : GameMaster
 
     // Flow control
     private bool hasReached = false;
+    private bool taskStarted = false;
     private bool taskComplete = false;
+    private bool startRecording = false;
     private bool emgIsRecording = false;
 
     // Lefty subject sign
@@ -155,12 +169,11 @@ public class DataCollection2022GM : GameMaster
         taskPoseText.text = poseListManager.SelectedPose(index) + " "+ iterationNumber.ToString();
         // Play the audio
         audio.clip = nextAudioClip;
-        audio.Play(0);
-        yield return new WaitForSecondsRealtime(1.0f);
-        audio.clip = poseListManager.GetPoseAudio(index);
-        audio.Play(0);
-
+        audio.Play();
         Debug.Log("Ite:" + iterationNumber + ". Next pose:" + poseListManager.SelectedPose(index) + ".");
+        yield return new WaitForSecondsRealtime(holdingTime);
+        //audio.clip = poseListManager.GetPoseAudio(index);
+        //audio.Play();
     }
 
 
@@ -244,16 +257,23 @@ public class DataCollection2022GM : GameMaster
     {
        
         // Override fixed update to start the emg recording when the start performing the task
-        if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK && !emgIsRecording)
+        if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK && startRecording)
         {
-           
-            Debug.Log("Ite:" + iterationNumber + ". Start task");
-            audio.clip = startAudioClip;
-            audio.Play(0);
-            // Comment out when sEMG is connected
-            if(delsysEMGEnable)
-                delsysEMG.StartRecording(ConfigEMGFilePath());
-            emgIsRecording = true;
+            if (!taskStarted)
+            {
+                // Comment out when sEMG is connected
+                if (delsysEMGEnable)
+                {
+                    delsysEMG.StartRecording(ConfigEMGFilePath());
+                    emgIsRecording = true;
+                }
+
+                Debug.Log("Ite:" + iterationNumber + ". Start task");
+                audio.clip = startAudioClip;
+                audio.Play();
+                taskStarted = true;
+            }
+               
         }
 
         base.FixedUpdate();
@@ -388,8 +408,8 @@ public class DataCollection2022GM : GameMaster
             delsysEMG.Init();
             delsysEMG.Connect();
         }
-       
-       
+
+
 
         #endregion
 
@@ -399,29 +419,33 @@ public class DataCollection2022GM : GameMaster
         // Add arm motion trackers for able-bodied case.
         //
         // Lower limb motion tracker
-        GameObject llMotionTrackerGO = GameObject.FindGameObjectWithTag("ForearmTracker");
-        lowerArmTracker = new VIVETrackerManager(llMotionTrackerGO.transform);
-        ExperimentSystem.AddSensor(lowerArmTracker);
-
-        // Upper limb motion tracker
-        GameObject ulMotionTrackerGO = AvatarSystem.AddMotionTracker();
-        ulMotionTrackerGO.tag = "UpperarmTracker";
-        upperArmTracker = new VIVETrackerManager(ulMotionTrackerGO.transform);
-        ExperimentSystem.AddSensor(upperArmTracker);
-
-        if (fourTrackerEnable)
+        if (trackerEnable)
         {
-            // Shoulder acromium head tracker
-            GameObject motionTrackerGO1 = AvatarSystem.AddMotionTracker();
-            shoulderTracker = new VIVETrackerManager(motionTrackerGO1.transform);
-            motionTrackerGO1.tag = "SATracker";
-            ExperimentSystem.AddSensor(shoulderTracker);
-            // C7 tracker
-            GameObject motionTrackerGO2 = AvatarSystem.AddMotionTracker();
-            c7Tracker = new VIVETrackerManager(motionTrackerGO2.transform);
-            motionTrackerGO2.tag = "C7Tracker";
-            ExperimentSystem.AddSensor(c7Tracker);
+            GameObject llMotionTrackerGO = GameObject.FindGameObjectWithTag("ForearmTracker");
+            lowerArmTracker = new VIVETrackerManager(llMotionTrackerGO.transform);
+            ExperimentSystem.AddSensor(lowerArmTracker);
+
+            // Upper limb motion tracker
+            GameObject ulMotionTrackerGO = AvatarSystem.AddMotionTracker();
+            ulMotionTrackerGO.tag = "UpperarmTracker";
+            upperArmTracker = new VIVETrackerManager(ulMotionTrackerGO.transform);
+            ExperimentSystem.AddSensor(upperArmTracker);
+
+            if (fourTrackerEnable)
+            {
+                // Shoulder acromium head tracker
+                GameObject motionTrackerGO1 = AvatarSystem.AddMotionTracker();
+                shoulderTracker = new VIVETrackerManager(motionTrackerGO1.transform);
+                motionTrackerGO1.tag = "SATracker";
+                ExperimentSystem.AddSensor(shoulderTracker);
+                // C7 tracker
+                GameObject motionTrackerGO2 = AvatarSystem.AddMotionTracker();
+                c7Tracker = new VIVETrackerManager(motionTrackerGO2.transform);
+                motionTrackerGO2.tag = "C7Tracker";
+                ExperimentSystem.AddSensor(c7Tracker);
+            }
         }
+
 
         
 
@@ -652,7 +676,7 @@ public class DataCollection2022GM : GameMaster
             InstructionManager.DisplayText("Important!: Keep your final reaching position when you hear 'Hold', like !!! " + "\n\n (Press the trigger to play)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             audio.clip = holdAudioClip;
-            audio.Play(0);
+            audio.Play();
             HudManager.DisplayText("Hold on for a while!!");
             InstructionManager.DisplayText("Important!: Keep your final reaching position when you hear 'Hold', like !!! " + "\n\n (Press the trigger to continue)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -660,7 +684,7 @@ public class DataCollection2022GM : GameMaster
             InstructionManager.DisplayText("Important!: Do not return until HUD says 'Well Done' and you hear 'Return', like !!! " + "\n\n (Press the trigger to play)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             audio.clip = returnAudioClip;
-            audio.Play(0);
+            audio.Play();
             HudManager.DisplayText("Well done!!");
             InstructionManager.DisplayText("Important!: Do not return until HUD says 'Well Done' and you hear 'Return', like !!! " + "\n\n (Press the trigger to continue)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -704,7 +728,7 @@ public class DataCollection2022GM : GameMaster
             yield return new WaitUntil(() => IsTaskDone());
             // Signal the subject that the task is done
             HudManager.DisplayText("Hold on your current position!");
-            yield return new WaitForSecondsRealtime(1.0f);
+            yield return new WaitForSecondsRealtime(holdingTime);
             audio.clip = returnAudioClip;
             audio.Play();
             HudManager.colour = HUDManager.HUDColour.Red;
@@ -750,7 +774,7 @@ public class DataCollection2022GM : GameMaster
             yield return new WaitUntil(() => IsTaskDone());
             // Signal the subject that the task is done
             HudManager.DisplayText("Hold on!");
-            yield return new WaitForSecondsRealtime(1.0f);
+            yield return new WaitForSecondsRealtime(holdingTime);
             HudManager.colour = HUDManager.HUDColour.Red;
             HudManager.DisplayText("Well done (you can return to start position)!");
             // Reset flags
@@ -822,12 +846,17 @@ public class DataCollection2022GM : GameMaster
     /// </summary>
     public override void HandleTaskDataLogging()
     {
-        if (padAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyUp(KeyCode.RightArrow))
+        
+
+        if (!startRecording && (padAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyUp(KeyCode.RightArrow)))
         {
-            subStep += 1;
-            Debug.Log("Substeps: " + subStep);
+            Debug.Log("Data Recording Started.");
+            startRecording = true;
         }
-            
+
+        if (!startRecording)
+            return;
+
 
         //
         // Add your custom data logging here
@@ -843,21 +872,28 @@ public class DataCollection2022GM : GameMaster
         {
             logData += taskTime.ToString();
             logData += "," + subStep.ToString();
-            GameObject got = GameObject.FindGameObjectWithTag("ForearmTracker");
-            logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
-            logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
+            if (trackerEnable)
+            {
+                GameObject got = GameObject.FindGameObjectWithTag("ForearmTracker");
+                logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
+                logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
 
-            got = GameObject.FindGameObjectWithTag("UpperarmTracker");
-            logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
-            logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
+                got = GameObject.FindGameObjectWithTag("UpperarmTracker");
+                logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
+                logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
 
-            got = GameObject.FindGameObjectWithTag("SATracker");
-            logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
-            logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
+                if (fourTrackerEnable)
+                {
+                    got = GameObject.FindGameObjectWithTag("SATracker");
+                    logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
+                    logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
 
-            got = GameObject.FindGameObjectWithTag("C7Tracker");
-            logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
-            logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
+                    got = GameObject.FindGameObjectWithTag("C7Tracker");
+                    logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
+                    logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
+                }
+            }
+   
 
             //
             // Log current data and clear before next run.
@@ -892,13 +928,13 @@ public class DataCollection2022GM : GameMaster
         // You can implement whatever condition you want, maybe touching an object in the virtual world or being in a certain posture.
 
         //gridManager.SelectedTouched && !hasReached
-        if ( (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyDown(KeyCode.UpArrow))  && !hasReached) //Input.GetKey(KeyCode.DownArrow)
+        if ( (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyDown(KeyCode.UpArrow)) || taskTime >= maxTaskTime  && !hasReached) //Input.GetKey(KeyCode.DownArrow)
         {
             doneTime = taskTime;
             //audio.clip = holdAudioClip;
             //audio.Play();
-            StartCoroutine(EndTaskCoroutine());
             Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + doneTime.ToString() + ".");
+            StartCoroutine(EndTaskCoroutine());
         }
             
         return taskComplete;
@@ -917,8 +953,8 @@ public class DataCollection2022GM : GameMaster
         //HudManager.DisplayText("Hold on for a while!!");
         //HudManager.colour = HUDManager.HUDColour.Green;
         //HudManager.colour = HUDManager.HUDColour.Green;
-       
-        yield return new WaitForSecondsRealtime(1.0f);
+        yield return new WaitForSecondsRealtime(holdingTime);
+
         taskComplete = true;
     }
 
@@ -928,23 +964,20 @@ public class DataCollection2022GM : GameMaster
     /// </summary>
     public override void HandleTaskCompletion()
     {
-
-
-        // Stop EMG reading and save data
+        // Stop data reading and save data
+        startRecording = false;
         delsysEMG.StopRecording();
         emgIsRecording = false;
 
         base.HandleTaskCompletion();
-
-        
-
         // Reset flags
         hasReached = false;
+        taskStarted = false;
         taskComplete = false;
 
         // Play return audio
-        audio.clip = returnAudioClip;
-        audio.Play();
+        //audio.clip = returnAudioClip;
+        //audio.Play();
     }
 
     /// <summary>

@@ -1000,12 +1000,12 @@ PrefabInstance:
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: delsysEMGEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: fourTrackerEnable
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
@@ -1017,6 +1017,26 @@ PrefabInstance:
       propertyPath: positionDataFormat
       value: iteration,t,step,x1,y1,z1,w1,qx1,qy1,qz1, x2,y2,z2,w2,qx2,qy2,qz2, x3,y3,z3,w3,qx3,qy3,qz3,
         x4,y4,z4,w4,qx4,qy4,qz4
+      objectReference: {fileID: 0}
+    - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
+        type: 3}
+      propertyPath: trackerEnable
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
+        type: 3}
+      propertyPath: maxTaskTime
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
+        type: 3}
+      propertyPath: holdingTime
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
+        type: 3}
+      propertyPath: checkStartPosition
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3173896575985748330, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
@@ -1106,7 +1126,7 @@ PrefabInstance:
     - target: {fileID: 7057585951369286232, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8645427431186587885, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
@@ -4327,7 +4347,7 @@ PrefabInstance:
     - target: {fileID: 7057585951369286232, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8311324623452099690, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}

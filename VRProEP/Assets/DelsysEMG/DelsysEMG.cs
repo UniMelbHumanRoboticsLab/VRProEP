@@ -51,7 +51,7 @@ public class DelsysEMG
 
 
     //Threads for acquiring emg and acc data
-    private const float samplingInterval = 0.0009f;
+    private const float samplingInterval = 1.0f/1111.0f;
     private Thread emgThread;
 
 
