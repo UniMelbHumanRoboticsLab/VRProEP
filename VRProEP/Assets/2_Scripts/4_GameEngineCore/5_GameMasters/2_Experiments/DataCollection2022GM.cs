@@ -5,6 +5,7 @@ using System.IO;
 
 // Unity
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 // SteamVR
@@ -141,7 +142,8 @@ public class DataCollection2022GM : GameMaster
     // Lefty subject sign
     private float leftySign = 1.0f;
 
-
+    // Timer slide bar
+    private Slider timerSliderBar;
 
 
     private class VariationTestConfigurator
@@ -275,6 +277,9 @@ public class DataCollection2022GM : GameMaster
             }
                
         }
+
+        // Slider bar UI
+        timerSliderBar.value = this.taskTime;
 
         base.FixedUpdate();
 
@@ -461,12 +466,20 @@ public class DataCollection2022GM : GameMaster
         //
         // Target ADL poses
         //
-        poseListManager.AddPose("Iteration:", nextAudioClip);
+        poseListManager.AddPose("Gesture 1");
+        poseListManager.AddPose("Gesture 2");
 
+        //
+        // Timer slider bar
+        //
+        timerSliderBar = gameObject.GetComponentInChildren<Slider>();
+        timerSliderBar.maxValue = maxTaskTime;
+        timerSliderBar.value = 0.0f;
 
-
+        //
         // Start EMG readings
-        if(delsysEMGEnable)
+        //
+        if (delsysEMGEnable)
             delsysEMG.StartAcquisition();
 
 

@@ -6,12 +6,14 @@ using VRProEP.GameEngineCore;
 
 public class ADLPoseListManager : MonoBehaviour
 {
-
     // List of poses
+    [SerializeField]
+    private Sprite[] poseSpriteList;
+
     private List<string> poses = new List<string>();// List of poses
     private List<AudioClip> poseAudioClips = new List<AudioClip>();
     AudioSource audio;
-
+    private SpriteRenderer spriteRenderer;
     // Signs
     private bool hasSelected = false; // Whether a bottle has been selected
     private int selectedIndex = -1;
@@ -55,6 +57,9 @@ public class ADLPoseListManager : MonoBehaviour
         SpawnBottleGrid();
         ResetBottleSelection();
         */
+        spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+        poseSpriteList = Resources.LoadAll<Sprite>("HandGestures");
+       
     }
 
     void Update()
@@ -106,9 +111,10 @@ public class ADLPoseListManager : MonoBehaviour
     {
         // Reset previous selections
         ResetPoseSelection();
-
+        // Change selection index
         selectedIndex = index;
-        
+        // Change the sprite
+        spriteRenderer.sprite = poseSpriteList[index];
 
         hasSelected = true;
         selectedTouched = false;

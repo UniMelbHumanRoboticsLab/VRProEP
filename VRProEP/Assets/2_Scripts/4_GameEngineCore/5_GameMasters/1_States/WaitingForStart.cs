@@ -14,7 +14,7 @@ namespace VRProEP.GameEngineCore
             Countdown
         }
         // Countdown management
-        private int countdownTime = 4;
+        private int countdownTime = 1;
         private bool counting = false;
         private bool countdownDone = false;
         private Coroutine countdownCoroutine;
