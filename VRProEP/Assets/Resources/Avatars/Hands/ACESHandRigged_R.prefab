@@ -49,7 +49,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 670224309865224971, guid: 91b221c63f2927d458b7d5fa222bcaf6, type: 3}
+  - {fileID: 2100000, guid: 00d589b39d1a37043a83047e9673d402, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -379,6 +379,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6003602637557579258}
   - component: {fileID: 4457181596354809984}
+  - component: {fileID: 8102016301526750258}
   m_Layer: 0
   m_Name: ACESHandRigged_R
   m_TagString: Untagged
@@ -421,6 +422,22 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &8102016301526750258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7280716490383380457}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a40a14c4a997003438d063f1697f8e83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animator: {fileID: 0}
+  deltaLevel: 0.01
+  maxLevel: 1
+  minLevel: 0
 --- !u!1 &7740959307390387606
 GameObject:
   m_ObjectHideFlags: 0

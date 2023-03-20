@@ -1,15 +1,45 @@
 fileFormatVersion: 2
-guid: 55b470ed6f492ac4f872046d3b7eee9e
+guid: 16ba21593b022ff42aec09fbbdbe2089
 ModelImporter:
-  serializedVersion: 19300
+  serializedVersion: 19301
   internalIDToNameTable:
   - first:
-      74: -1872372644452663071
-    second: Armature|1Relax
+      74: 2251412445027006864
+    second: Closthespin|1Close
   - first:
-      74: -3224957368594317840
-    second: Armature|2Pinch
-  externalObjects: {}
+      74: -5029508248756176405
+    second: Closthespin|1Open
+  - first:
+      74: -3431704385831896426
+    second: Closthespin|2Close
+  - first:
+      74: -1522017838651992640
+    second: Closthespin|2Open
+  - first:
+      74: 1475687652288244655
+    second: Closthespin.001|1Close
+  - first:
+      74: -6662652928401814394
+    second: Closthespin.001|1Open
+  - first:
+      74: -2868804771993944751
+    second: Closthespin.001|2Close
+  - first:
+      74: -5008205632954831036
+    second: Closthespin.001|2Open
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 191,191,191.002
+    second: {fileID: -5200137929929196432, guid: 689a19425b3a36340aabed662924cf04,
+      type: 3}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 191,191,191.003
+    second: {fileID: -5200137929929196432, guid: 689a19425b3a36340aabed662924cf04,
+      type: 3}
   materials:
     materialImportMode: 1
     materialName: 0
@@ -49,6 +79,7 @@ ModelImporter:
     importBlendShapes: 1
     importCameras: 1
     importLights: 1
+    fileIdsGeneration: 2
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
@@ -95,7 +126,7 @@ ModelImporter:
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 2
   humanoidOversampling: 1
-  avatarSetup: 0
+  avatarSetup: 1
   additionalBone: 0
   userData: 
   assetBundleName: 

@@ -1,14 +1,8 @@
 fileFormatVersion: 2
-guid: 55b470ed6f492ac4f872046d3b7eee9e
+guid: 972d38f355956de48861beccf91075fb
 ModelImporter:
-  serializedVersion: 19300
-  internalIDToNameTable:
-  - first:
-      74: -1872372644452663071
-    second: Armature|1Relax
-  - first:
-      74: -3224957368594317840
-    second: Armature|2Pinch
+  serializedVersion: 19301
+  internalIDToNameTable: []
   externalObjects: {}
   materials:
     materialImportMode: 1
@@ -49,6 +43,7 @@ ModelImporter:
     importBlendShapes: 1
     importCameras: 1
     importLights: 1
+    fileIdsGeneration: 2
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1

@@ -10,9 +10,12 @@ public class ACESHandAnimation : MonoBehaviour
 
     private float pinchLevel;
 
-    private const float DELTA_LEVEL = 0.01f;
-    private const float MAX_LEVEL = 1.0f;
-    private const float MIN_LEVEL = 0.0f;
+    [SerializeField]
+    private float deltaLevel = 0.01f;
+    [SerializeField]
+    private float maxLevel = 1.0f;
+    [SerializeField]
+    private float minLevel = 0.0f;
 
     // Start is called before the first frame update
     void Awake()
@@ -25,18 +28,18 @@ public class ACESHandAnimation : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            pinchLevel += DELTA_LEVEL;
-            if (pinchLevel > MAX_LEVEL)
-                pinchLevel = MAX_LEVEL;
+            pinchLevel += deltaLevel;
+            if (pinchLevel > maxLevel)
+                pinchLevel = maxLevel;
 
             animator.SetFloat("InputAxis1", pinchLevel);
             
         }
         else if (Input.GetKey(KeyCode.LeftArrow))
         {
-            pinchLevel -= DELTA_LEVEL;
-            if (pinchLevel < MIN_LEVEL)
-                pinchLevel = MIN_LEVEL;
+            pinchLevel -= deltaLevel;
+            if (pinchLevel < minLevel)
+                pinchLevel = minLevel;
 
             animator.SetFloat("InputAxis1", pinchLevel);
 
