@@ -41,6 +41,8 @@ TagManager:
   - WristFlexer
   - HandProsthesis
   - BottleAnchor
+  - Fire
+  - ThumbFingerCollider
   layers:
   - Default
   - TransparentFX
