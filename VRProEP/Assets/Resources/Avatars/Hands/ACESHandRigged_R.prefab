@@ -369,7 +369,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1588364355268357014
 Transform:
   m_ObjectHideFlags: 0
@@ -655,9 +655,11 @@ GameObject:
   - component: {fileID: 6003602637557579258}
   - component: {fileID: 4457181596354809984}
   - component: {fileID: 8102016301526750258}
+  - component: {fileID: 1247608299400899511}
+  - component: {fileID: 2808917583491726615}
   m_Layer: 0
   m_Name: ACESHandRigged_R
-  m_TagString: Untagged
+  m_TagString: Hand
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -714,6 +716,36 @@ MonoBehaviour:
   deltaLevel: 0.03
   maxLevel: 1
   minLevel: 0
+--- !u!54 &1247608299400899511
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7280716490383380457}
+  serializedVersion: 2
+  m_Mass: 0.0000001
+  m_Drag: 0
+  m_AngularDrag: 0
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!138 &2808917583491726615
+FixedJoint:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7280716490383380457}
+  m_ConnectedBody: {fileID: 0}
+  m_BreakForce: Infinity
+  m_BreakTorque: Infinity
+  m_EnableCollision: 0
+  m_EnablePreprocessing: 1
+  m_MassScale: 1
+  m_ConnectedMassScale: 1
 --- !u!1 &7574811928157235881
 GameObject:
   m_ObjectHideFlags: 0

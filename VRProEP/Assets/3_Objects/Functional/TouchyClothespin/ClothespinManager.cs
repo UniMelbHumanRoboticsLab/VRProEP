@@ -4,7 +4,20 @@ using UnityEngine;
 
 public class ClothespinManager : MonoBehaviour
 {
+    //
+    // Flow control state
+    //
     public enum ClothespinState { Idle, Selected, Correct, Wrong}
+    private ClothespinState pinState;
+    // Grasp State
+    private bool grasped;
+
+    //
+    // Transform control
+    //
+    private Transform initTransform;
+    private Transform targetTransform;
+
 
 
     //
@@ -19,8 +32,6 @@ public class ClothespinManager : MonoBehaviour
     private Color correctColour;
     [SerializeField]
     private Color wrongColour;
-
-    private ClothespinState pinState = ClothespinState.Idle;
     private Renderer[] pinRenderer;
 
 
@@ -52,15 +63,10 @@ public class ClothespinManager : MonoBehaviour
     void Awake()
     {
         minLevel = initialLevel;
-
         animator = GetComponent<Animator>();
         openLevel = initialLevel;
         animator.SetFloat("InputAxis1", openLevel);
-
-        pinState = ClothespinState.Selected;
         pinRenderer = GetComponentsInChildren<Renderer>();
-
-        
     }
 
     // Collider
@@ -101,7 +107,7 @@ public class ClothespinManager : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        bool grasped = indexFingerTouched && thumbFingerTouched;
+        grasped = indexFingerTouched && thumbFingerTouched;
         switch (pinState)
         {
             case ClothespinState.Idle:
@@ -159,6 +165,24 @@ public class ClothespinManager : MonoBehaviour
         
     }
 
+
+    //
+    // Public methods
+    //
+    public void SetSelect()
+    {
+        pinState = ClothespinState.Selected;
+    }
+
+    public void SetTargetTransform(Transform init, Transform target)
+    {
+        this.initTransform = init;
+        this.targetTransform = target;
+    }
+
+    //
+    // Private methods
+    //
     private void ChangeClothespinColor(Color color)
     {
         foreach (Renderer renderer in pinRenderer)
@@ -186,4 +210,8 @@ public class ClothespinManager : MonoBehaviour
             openLevel = minLevel;
         animator.SetFloat("InputAxis1", openLevel);
     }
+
+
+   
+
 }
