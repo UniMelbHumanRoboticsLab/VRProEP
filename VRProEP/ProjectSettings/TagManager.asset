@@ -43,6 +43,7 @@ TagManager:
   - BottleAnchor
   - Fire
   - ThumbFingerCollider
+  - ClothespinRackRod
   layers:
   - Default
   - TransparentFX

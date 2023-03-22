@@ -50,9 +50,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8130a78c8c98dd64a898aad6be7a958d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ClothespinPrefab: {fileID: 5625324626307143023, guid: 98f65da1157e9d940bc9862e047c914d,
+  clothespinPrefab: {fileID: 5625324626307143023, guid: 98f65da1157e9d940bc9862e047c914d,
     type: 3}
-  ClothespinList: []
+  clothespinList: []
+  horizontalTargets: []
+  verticalTargets: []
 --- !u!1 &4295877400609646706
 GameObject:
   m_ObjectHideFlags: 0
@@ -159,9 +161,10 @@ GameObject:
   - component: {fileID: 3714329825517555112}
   - component: {fileID: 8771585013874167776}
   - component: {fileID: 5323705132707409029}
+  - component: {fileID: 2730929904477280303}
   m_Layer: 0
   m_Name: Rod_V1
-  m_TagString: Untagged
+  m_TagString: ClothespinRackRod
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -241,6 +244,22 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+--- !u!54 &2730929904477280303
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4974527495733796893}
+  serializedVersion: 2
+  m_Mass: 0.0000001
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &5227489617819909116
 GameObject:
   m_ObjectHideFlags: 0
@@ -441,9 +460,10 @@ GameObject:
   - component: {fileID: 9181969517642146188}
   - component: {fileID: 7930334961959212170}
   - component: {fileID: 991151926269037913}
+  - component: {fileID: 5310348524846547018}
   m_Layer: 0
   m_Name: Rod_H2
-  m_TagString: Untagged
+  m_TagString: ClothespinRackRod
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -523,6 +543,22 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+--- !u!54 &5310348524846547018
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8530239792140269199}
+  serializedVersion: 2
+  m_Mass: 0.0000001
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &8705733052985112759
 GameObject:
   m_ObjectHideFlags: 0

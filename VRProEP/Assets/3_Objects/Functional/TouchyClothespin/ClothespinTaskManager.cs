@@ -11,7 +11,7 @@ public class ClothespinTaskManager : MonoBehaviour
     private List<ClothespinManager> clothespinList;
 
     private readonly string[] horizontalAttachPoint = { "AttachPoint_H2_1", "AttachPoint_H2_2" };
-    private readonly string[] verticalAttachPoint = { "AttachPoint_H2_1", "AttachPoint_H2_2" };
+    private readonly string[] verticalAttachPoint = { "AttachPoint_V1_1", "AttachPoint_V1_2" };
 
     [SerializeField]
     private List<Transform> horizontalTargets;
@@ -27,7 +27,8 @@ public class ClothespinTaskManager : MonoBehaviour
         InitClothespin();
         int index = 0;
         SelectClothespin(index);
-        SetClothespinTargetTransform(index, horizontalTargets[index], verticalTargets[index]);
+        SetClothespinTargetTransform(index, horizontalTargets[index].position, horizontalTargets[index].rotation,
+                                        verticalTargets[index].position, verticalTargets[index].rotation);
     }
 
     // Update is called once per frame
@@ -60,12 +61,13 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     // Set closthespin initial and target transform
     //
-    private void SetClothespinTargetTransform(int index,Transform init, Transform target)
+    private void SetClothespinTargetTransform(int index, Vector3 initPosition, Quaternion initRotation, 
+                                                Vector3 finalPosition, Quaternion finalRotation)
     {
         if (index > clothespinList.Count - 1)
             throw new System.ArgumentOutOfRangeException("The requested pin index is invalid.");
 
-        clothespinList[index].SetTargetTransform(init, target);
+        clothespinList[index].SetTargetTransform(initPosition, initRotation, finalPosition, finalRotation);
             
     }
 
@@ -79,7 +81,8 @@ public class ClothespinTaskManager : MonoBehaviour
         foreach (Transform target in horizontalTargets)
         {
             GameObject pinGO = Instantiate(clothespinPrefab,
-                    target.transform.position, target.transform.rotation);
+                    target.transform.position, 
+                    target.transform.rotation);
             clothespinList.Add(pinGO.GetComponentInChildren<ClothespinManager>());
 
         }

@@ -7,7 +7,7 @@ public class ClothespinManager : MonoBehaviour
     //
     // Flow control state
     //
-    public enum ClothespinState { Idle, Selected, Correct, Wrong}
+    public enum ClothespinState { Idle, Selected, InHand, LeaveInit, ReachTarget, Wrong}
     private ClothespinState pinState;
     // Grasp State
     private bool grasped;
@@ -15,10 +15,14 @@ public class ClothespinManager : MonoBehaviour
     //
     // Transform control
     //
-    private Transform initTransform;
-    private Transform targetTransform;
-
-
+    private Vector3 initPosition;
+    private Quaternion initRotation;
+    private Vector3 finalPosition;
+    private Quaternion finalRotation;
+    [SerializeField]
+    private Vector3 posTol { get; set; }
+    [SerializeField]
+    private float angTol { get; set; }
 
     //
     // Color and display
@@ -30,6 +34,8 @@ public class ClothespinManager : MonoBehaviour
     private Color selectedColour;
     [SerializeField]
     private Color correctColour;
+    [SerializeField]
+    private Color movingColour;
     [SerializeField]
     private Color wrongColour;
     private Renderer[] pinRenderer;
@@ -57,6 +63,7 @@ public class ClothespinManager : MonoBehaviour
     //
     private bool indexFingerTouched = false;
     private bool thumbFingerTouched = false;
+    private bool touchRod = true;
 
 
     // Start is called before the first frame update
@@ -67,6 +74,9 @@ public class ClothespinManager : MonoBehaviour
         openLevel = initialLevel;
         animator.SetFloat("InputAxis1", openLevel);
         pinRenderer = GetComponentsInChildren<Renderer>();
+
+        posTol = new Vector3(0.02f,0.02f,0.02f);
+        angTol = 360.0f;
     }
 
     // Collider
@@ -85,6 +95,12 @@ public class ClothespinManager : MonoBehaviour
             thumbFingerTouched = true;
             //Debug.Log("Thumb touched!");
         }
+
+        if (other.tag == "ClothespinRackRod")
+        {
+            touchRod = true;
+            Debug.Log("Rod touched!");
+        }
     }
 
     private void OnTriggerExit(Collider other)
@@ -102,6 +118,12 @@ public class ClothespinManager : MonoBehaviour
             thumbFingerTouched = false;
             //Debug.Log("Thumb leave!");
         }
+
+        if (other.tag == "ClothespinRackRod")
+        {
+            touchRod = false;
+            Debug.Log("Rod leave!");
+        }
     }
 
     // Update is called once per frame
@@ -113,40 +135,90 @@ public class ClothespinManager : MonoBehaviour
             case ClothespinState.Idle:
                 if (grasped)
                 {
-                    pinState = ClothespinState.Wrong;
                     ChangeClothespinColor(wrongColour);
+                    pinState = ClothespinState.Wrong;
                 }
                 else
                 {
-                    pinState = ClothespinState.Idle;
                     ChangeClothespinColor(idleColour);
                     CloseClothespin();
+                    pinState = ClothespinState.Idle;
                 }
                 
                 break;
             case ClothespinState.Selected:
                 if (grasped)
                 {
-                    pinState = ClothespinState.Correct;
+                    ChangeClothespinColor(correctColour);
+                    pinState = ClothespinState.InHand;
+                }
+                else
+                {
+                    ChangeClothespinColor(selectedColour);
+                    CloseClothespin();
+                    pinState = ClothespinState.Selected;
+                    
+                }
+                break;
+            case ClothespinState.InHand:
+                if (grasped)
+                {
+                    OpenClothespin();
+                    FollowHand(true);
+                    if (CheckAtTargetTransform(initPosition,initRotation, posTol, angTol))
+                    {
+                        pinState = ClothespinState.LeaveInit;
+                    }
+                }
+                else
+                {
+                    ChangeClothespinColor(selectedColour);
+                    CloseClothespin();
+                    FollowHand(false);
+                    SetTransform(initPosition, initRotation);
+                    pinState = ClothespinState.Selected;
+                    
+                }
+                break;
+            case ClothespinState.LeaveInit:
+                if (grasped)
+                {
+                    OpenClothespin();
+                    // Leaving the initial position & rotation
+                    if (!CheckAtTargetTransform(initPosition, initRotation, posTol, angTol))
+                    {
+                        ChangeClothespinColor(movingColour);
+                    }
+                    // Reaching the final position & rotation
+                    if (CheckAtTargetTransform(finalPosition, finalRotation, posTol, angTol) && !touchRod)
+                    {
+                        ChangeClothespinColor(correctColour);
+                        pinState = ClothespinState.ReachTarget;
+                    }
+
+                }
+                else
+                {
+                    ChangeClothespinColor(selectedColour);
+                    CloseClothespin();
+                    FollowHand(false);
+                    SetTransform(initPosition, initRotation);
+                    pinState = ClothespinState.Selected;
+                }
+                break;
+            case ClothespinState.ReachTarget:
+                if (grasped)
+                {
                     ChangeClothespinColor(correctColour);
                 }
                 else
                 {
-                    pinState = ClothespinState.Selected;
-                    ChangeClothespinColor(selectedColour);
-                    CloseClothespin();
-                }
-                break;
-            case ClothespinState.Correct:
-                if (grasped)
-                {
-                    OpenClothespin();
-                }
-                else
-                {
-                    pinState = ClothespinState.Selected;
-                    ChangeClothespinColor(selectedColour);
-                    CloseClothespin();
+                    if (CheckAtTargetTransform(finalPosition, finalRotation, posTol, angTol))
+                    {
+                        FollowHand(false);
+                        CloseClothespin();
+                        pinState = ClothespinState.Idle;
+                    }
                 }
                 break;
             case ClothespinState.Wrong:
@@ -169,20 +241,83 @@ public class ClothespinManager : MonoBehaviour
     //
     // Public methods
     //
+    #region public methods
+
+    //
+    // Set the clothespin to selected state.
+    //
     public void SetSelect()
     {
         pinState = ClothespinState.Selected;
     }
 
-    public void SetTargetTransform(Transform init, Transform target)
+    //
+    // Set the clothespin transform
+    //
+    public void SetTransform(Vector3 position, Quaternion rotation)
     {
-        this.initTransform = init;
-        this.targetTransform = target;
+        this.transform.parent.parent.position = position;
+        this.transform.parent.parent.rotation = rotation;
     }
+
+    //
+    // Set the target init and final transform of the clothespin
+    //
+    public void SetTargetTransform(Vector3 initPosition, Quaternion initRotation, Vector3 finalPosition, Quaternion finalRotation)
+    {
+        this.initPosition = initPosition;
+        this.initRotation = initRotation;
+        this.finalPosition = finalPosition;
+        this.finalRotation = finalRotation;
+    }
+
+    
+
+    #endregion
+
 
     //
     // Private methods
     //
+    #region private emthods
+
+    //
+    // Set the clothespin to follow the hand
+    //
+    private void FollowHand(bool follow)
+    {
+        if (follow)
+            this.transform.parent.parent.SetParent(GameObject.FindGameObjectWithTag("Hand").transform);
+        else
+            this.transform.parent.parent.SetParent(null);
+        
+    }
+
+    //
+    // Check if the clothespin is at the 
+    //
+    private bool CheckAtTargetTransform(Vector3 targetPosition, Quaternion targetRotation, Vector3 posTol, float angTol)
+    {
+        Transform current = this.transform.parent.parent; // two layer hiearchy
+
+        // Position
+        bool posReached = Mathf.Abs(current.position.x - targetPosition.x) < posTol.x
+                    & Mathf.Abs(current.position.y - targetPosition.y) < posTol.y
+                    & Mathf.Abs(current.position.z - targetPosition.z) < posTol.z;
+
+
+        // Angular
+        Quaternion relative = Quaternion.Inverse(current.rotation) * targetRotation;
+        float errorAng = 2.0f * Mathf.Rad2Deg * Mathf.Atan2(Mathf.Sqrt(relative.x * relative.x + relative.y * relative.y + relative.z * relative.z), relative.w);
+        if (errorAng > 180.0f)
+            errorAng = 360.0f - errorAng;
+        bool angReached = Mathf.Abs(errorAng) <= angTol;
+        angReached = true;
+
+        return posReached & angReached;
+    }
+
+
     private void ChangeClothespinColor(Color color)
     {
         foreach (Renderer renderer in pinRenderer)
@@ -193,11 +328,19 @@ public class ClothespinManager : MonoBehaviour
 
     private void OpenClothespin()
     {
-        openLevel += deltaLevel ;
+        openLevel += deltaLevel;
         if (openLevel > maxLevel)
+        {
             openLevel = maxLevel;
+            return;
+        }
+
         else if (openLevel < minLevel)
+        {
             openLevel = minLevel;
+            return;
+        }
+            
         animator.SetFloat("InputAxis1", openLevel);
     }
 
@@ -205,13 +348,21 @@ public class ClothespinManager : MonoBehaviour
     {
         openLevel -= deltaLevel * 2;
         if (openLevel > maxLevel)
+        {
             openLevel = maxLevel;
+            return;
+        }
         else if (openLevel < minLevel)
+        {
             openLevel = minLevel;
+            return;
+        }  
         animator.SetFloat("InputAxis1", openLevel);
     }
+    #endregion
 
 
-   
+
+
 
 }

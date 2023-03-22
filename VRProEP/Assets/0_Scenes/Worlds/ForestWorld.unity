@@ -3278,6 +3278,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: ClothespinTask
       objectReference: {fileID: 0}
+    - target: {fileID: 946447128519415044, guid: b1f57071856472a4d80510ef960e22d8,
+        type: 3}
+      propertyPath: clothespinPrefab
+      value: 
+      objectReference: {fileID: 5625324626307143023, guid: 98f65da1157e9d940bc9862e047c914d,
+        type: 3}
     - target: {fileID: 1347228790131418228, guid: b1f57071856472a4d80510ef960e22d8,
         type: 3}
       propertyPath: m_RootOrder
