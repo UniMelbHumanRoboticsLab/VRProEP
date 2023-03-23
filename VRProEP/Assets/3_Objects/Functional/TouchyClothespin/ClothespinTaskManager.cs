@@ -14,46 +14,107 @@ public class ClothespinTaskManager : MonoBehaviour
     private readonly string[] verticalAttachPoint = { "AttachPoint_V1_1", "AttachPoint_V1_2" };
 
     [SerializeField]
-    private List<Transform> horizontalTargets;
+    private List<GameObject> attachGOList;
 
     [SerializeField]
-    private List<Transform> verticalTargets;
+    private int currentTrial;
 
+    [SerializeField]
+    private int currentPinIndex;
+
+    // Relocation task path, {from, to, pinIndex}. Target numbering: [horizontal, vertical]
+    public readonly int[,] TASK_PATH = new int[,] { {0, 2, 0}, {1, 3, 1}, {3, 1, 1},{2, 0, 0} };
+    private readonly int GET_INIT_INDEX = 0;
+    private readonly int GET_FINAL_INDEX = 1;
+    private readonly int GET_PIN_INDEX = 2;
+
+    // Flow control
+    private bool trialComplete = false;
+    public bool TrialComplete { get => trialComplete; set { trialComplete = value; } }
 
     // Start is called before the first frame update
     void Start()
     {
         GetAllTargetTransform();
         InitClothespin();
-        int index = 0;
-        SelectClothespin(index);
-        SetClothespinTargetTransform(index, horizontalTargets[index].position, horizontalTargets[index].rotation,
-                                        verticalTargets[index].position, verticalTargets[index].rotation);
+        currentTrial = 1;
+        currentPinIndex = 0;
+
+        // First trial;
+        SetupTarget(currentTrial);
     }
 
     // Update is called once per frame
     void Update()
     {
 
+        // If the selected pin reached
+        if (CheckReached(currentPinIndex))
+        {
+            // Reset flag
+            clothespinList[currentPinIndex].ReachedFinal = false;
+            trialComplete = true;
+            // Update target
+            currentTrial++;
+            currentPinIndex = SetupTarget(currentTrial);
+        }
     }
 
 
+    #region public methods
+
+    #endregion
+
+
     #region private methods
+    //
+    // Set up target
+    //
+    private int SetupTarget(int trial)
+    {
+        int trialInCycle = (trial - 1) % TASK_PATH.GetLength(0);
+        //if (trialInCycle == TASK_PATH.GetLength(0) - 1)
+            //this.currentCycle++;
+        int pinIndex = TASK_PATH[trialInCycle, GET_PIN_INDEX];
+
+        // Setup the new target
+        int fromIndex = TASK_PATH[trialInCycle, GET_INIT_INDEX];
+        int toIndex = TASK_PATH[trialInCycle, GET_FINAL_INDEX];
+        SelectClothespin(pinIndex);
+
+        if(trial ==1 || trial == 2)
+            SetClothespinInitTransform(pinIndex, attachGOList[fromIndex].transform.position, attachGOList[fromIndex].transform.rotation);
+
+        SetClothespinFinalTransform(pinIndex, attachGOList[toIndex].transform.position, attachGOList[toIndex].transform.rotation);
+        DisplayAttachPoint(attachGOList[toIndex]);
+
+        return pinIndex;
+    }
+
+    //
+    // Check if clothespin has reach the target 
+    //
+    private bool CheckReached(int index)
+    {
+        return clothespinList[index].ReachedFinal;
+    }
+
     //
     // Get target locations
     //
     private void GetAllTargetTransform()
     {
+        // First horizontal ones and then vertical ones
         foreach (string name in horizontalAttachPoint)
         {
             GameObject attachPoint = GameObject.Find(name);
-            horizontalTargets.Add(attachPoint.transform);
+            attachGOList.Add(attachPoint);
         }
 
         foreach (string name in verticalAttachPoint)
         {
             GameObject attachPoint = GameObject.Find(name);
-            verticalTargets.Add(attachPoint.transform);
+            attachGOList.Add(attachPoint);
         }
 
     }
@@ -61,32 +122,45 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     // Set closthespin initial and target transform
     //
-    private void SetClothespinTargetTransform(int index, Vector3 initPosition, Quaternion initRotation, 
-                                                Vector3 finalPosition, Quaternion finalRotation)
+    private void SetClothespinInitTransform(int index, Vector3 initPosition, Quaternion initRotation)
     {
         if (index > clothespinList.Count - 1)
             throw new System.ArgumentOutOfRangeException("The requested pin index is invalid.");
 
-        clothespinList[index].SetTargetTransform(initPosition, initRotation, finalPosition, finalRotation);
+        clothespinList[index].SetInitTransform(initPosition, initRotation);
             
     }
 
 
+    private void SetClothespinFinalTransform(int index, Vector3 finalPosition, Quaternion finalRotation)
+    {
+        if (index > clothespinList.Count - 1)
+            throw new System.ArgumentOutOfRangeException("The requested pin index is invalid.");
+
+        clothespinList[index].SetFinalTransform(finalPosition, finalRotation);
+        
+    }
+
+    private void DisplayAttachPoint(GameObject attachPoint)
+    {
+        foreach (GameObject target in attachGOList)
+            target.GetComponent<MeshRenderer>().enabled = false;
+        attachPoint.GetComponent<MeshRenderer>().enabled = true;
+    }
 
     //
     // Initialise pin locations
     //
     private void InitClothespin()
     {
-        foreach (Transform target in horizontalTargets)
+        for (int i = 0; i < horizontalAttachPoint.Length; i++)
         {
+            GameObject target = attachGOList[i];
             GameObject pinGO = Instantiate(clothespinPrefab,
-                    target.transform.position, 
+                    target.transform.position,
                     target.transform.rotation);
             clothespinList.Add(pinGO.GetComponentInChildren<ClothespinManager>());
-
         }
-
     }
 
     // Select clothespin as target

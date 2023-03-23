@@ -7,10 +7,10 @@ public class ClothespinManager : MonoBehaviour
     //
     // Flow control state
     //
-    public enum ClothespinState { Idle, Selected, InHand, LeaveInit, ReachTarget, Wrong}
+    public enum ClothespinState { Idle, Selected, InHand, LeaveInit, ReachTarget, Wrong }
     private ClothespinState pinState;
     // Grasp State
-    private bool grasped;
+    private bool tempGrasped;
 
     //
     // Transform control
@@ -20,9 +20,11 @@ public class ClothespinManager : MonoBehaviour
     private Vector3 finalPosition;
     private Quaternion finalRotation;
     [SerializeField]
-    private Vector3 posTol { get; set; }
+    private Vector3 posTol = new Vector3(0.01f, 0.01f, 0.01f);
+    public Vector3 PosTol { get => posTol; set { posTol = value; } }
     [SerializeField]
-    private float angTol { get; set; }
+    private float angTol = 360.0f;
+    public float AngTol { get => angTol; set { angTol = value; } }
 
     //
     // Color and display
@@ -65,18 +67,18 @@ public class ClothespinManager : MonoBehaviour
     private bool thumbFingerTouched = false;
     private bool touchRod = true;
 
+    [SerializeField]
+    private bool reachedFinal = false;
+    public bool ReachedFinal { get => reachedFinal; set { reachedFinal = value; } }
 
     // Start is called before the first frame update
-    void Awake()
+    void Start()
     {
         minLevel = initialLevel;
         animator = GetComponent<Animator>();
         openLevel = initialLevel;
         animator.SetFloat("InputAxis1", openLevel);
         pinRenderer = GetComponentsInChildren<Renderer>();
-
-        posTol = new Vector3(0.02f,0.02f,0.02f);
-        angTol = 360.0f;
     }
 
     // Collider
@@ -129,11 +131,11 @@ public class ClothespinManager : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        grasped = indexFingerTouched && thumbFingerTouched;
+        tempGrasped = indexFingerTouched && thumbFingerTouched;
         switch (pinState)
         {
             case ClothespinState.Idle:
-                if (grasped)
+                if (tempGrasped)
                 {
                     ChangeClothespinColor(wrongColour);
                     pinState = ClothespinState.Wrong;
@@ -147,7 +149,7 @@ public class ClothespinManager : MonoBehaviour
                 
                 break;
             case ClothespinState.Selected:
-                if (grasped)
+                if (tempGrasped)
                 {
                     ChangeClothespinColor(correctColour);
                     pinState = ClothespinState.InHand;
@@ -161,7 +163,7 @@ public class ClothespinManager : MonoBehaviour
                 }
                 break;
             case ClothespinState.InHand:
-                if (grasped)
+                if (tempGrasped)
                 {
                     OpenClothespin();
                     FollowHand(true);
@@ -181,7 +183,7 @@ public class ClothespinManager : MonoBehaviour
                 }
                 break;
             case ClothespinState.LeaveInit:
-                if (grasped)
+                if (tempGrasped)
                 {
                     OpenClothespin();
                     // Leaving the initial position & rotation
@@ -207,7 +209,7 @@ public class ClothespinManager : MonoBehaviour
                 }
                 break;
             case ClothespinState.ReachTarget:
-                if (grasped)
+                if (tempGrasped)
                 {
                     ChangeClothespinColor(correctColour);
                 }
@@ -217,12 +219,15 @@ public class ClothespinManager : MonoBehaviour
                     {
                         FollowHand(false);
                         CloseClothespin();
+                        this.initPosition = GetPosition();
+                        this.initRotation = GetRotation();
+                        reachedFinal = true;
                         pinState = ClothespinState.Idle;
                     }
                 }
                 break;
             case ClothespinState.Wrong:
-                if (grasped)
+                if (tempGrasped)
                 {
                     OpenClothespin();
                 }
@@ -261,17 +266,37 @@ public class ClothespinManager : MonoBehaviour
     }
 
     //
-    // Set the target init and final transform of the clothespin
+    // Get the clothespin position
     //
-    public void SetTargetTransform(Vector3 initPosition, Quaternion initRotation, Vector3 finalPosition, Quaternion finalRotation)
+    public Vector3 GetPosition()
+    {
+        return this.transform.parent.parent.position;
+    }
+
+    //
+    // Get the clothespin rotation
+    //
+    public Quaternion GetRotation()
+    {
+        return this.transform.parent.parent.rotation;
+    }
+
+    //
+    // Set the target init transform of the clothespin
+    //
+    public void SetInitTransform(Vector3 initPosition, Quaternion initRotation)
     {
         this.initPosition = initPosition;
         this.initRotation = initRotation;
+    }
+    //
+    // Set the target final transform of the clothespin
+    //
+    public void SetFinalTransform(Vector3 finalPosition, Quaternion finalRotation)
+    {
         this.finalPosition = finalPosition;
         this.finalRotation = finalRotation;
     }
-
-    
 
     #endregion
 
@@ -346,7 +371,7 @@ public class ClothespinManager : MonoBehaviour
 
     private void CloseClothespin()
     {
-        openLevel -= deltaLevel * 2;
+        openLevel -= deltaLevel;
         if (openLevel > maxLevel)
         {
             openLevel = maxLevel;
