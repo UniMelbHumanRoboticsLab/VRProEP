@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ClothespinManager : MonoBehaviour
+public class PhysicalClothespinManager : MonoBehaviour
 {
     //
     // Flow control state
@@ -44,36 +44,11 @@ public class ClothespinManager : MonoBehaviour
 
 
     //
-    // Animation
-    //
-    [SerializeField]
-    private Animator animator;
-
-    private float openLevel;
-
-    [SerializeField]
-    private float deltaLevel = 0.01f;
-    [SerializeField]
-    private float maxLevel = 1.0f;
-    [SerializeField]
-    private float minLevel = 0.0f;
-    [SerializeField]
-    private float initialLevel = 0.5f;
-    [SerializeField]
-    private float springCoeff = 4.0f;
-
-    //
     // State control
     //
     private bool indexFingerTouched = false;
     private bool thumbFingerTouched = false;
     private bool touchRod = true;
-    private int iGrasped = 0;
-    private int iNotGrasped = 0;
-
-    [SerializeField]
-    private int maxI = 1000;
-
 
     [SerializeField]
     private bool reachedFinal = false;
@@ -82,10 +57,6 @@ public class ClothespinManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        minLevel = initialLevel;
-        animator = GetComponent<Animator>();
-        openLevel = initialLevel;
-        animator.SetFloat("InputAxis1", openLevel);
         pinRenderer = GetComponentsInChildren<Renderer>();
     }
 
@@ -93,17 +64,18 @@ public class ClothespinManager : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // Check if touched by subject
-        //other.tag == "IndexFingerCollider" ||
+        Debug.Log("Collision happens!");
+        
         if (other.CompareTag("IndexFingerCollider"))
         {
             indexFingerTouched = true;
-            //Debug.Log("Index touched!");
+            Debug.Log("Index touched!");
         }
 
         if (other.CompareTag("ThumbFingerCollider"))
         {
             thumbFingerTouched = true;
-            //Debug.Log("Thumb touched!");
+            Debug.Log("Thumb touched!");
         }
 
         if (other.CompareTag("ClothespinRackRod"))
@@ -117,19 +89,19 @@ public class ClothespinManager : MonoBehaviour
     {
         // Check if touched by subject
         //other.tag == "IndexFingerCollider" ||
-        if (other.CompareTag("IndexFingerCollider"))
+        if (other.tag == "IndexFingerCollider")
         {
             indexFingerTouched = false;
             //Debug.Log("Index leave!");
         }
 
-        if (other.CompareTag("ThumbFingerCollider"))
+        if (other.tag == "ThumbFingerCollider")
         {
             thumbFingerTouched = false;
             //Debug.Log("Thumb leave!");
         }
 
-        if (other.CompareTag("ClothespinRackRod"))
+        if (other.tag == "ClothespinRackRod")
         {
             touchRod = false;
             Debug.Log("Rod leave!");
@@ -140,19 +112,6 @@ public class ClothespinManager : MonoBehaviour
     void FixedUpdate()
     {
         tempGrasped = indexFingerTouched && thumbFingerTouched;
-        if (tempGrasped)
-        {
-            iGrasped++;
-            iGrasped = Mathf.Min(maxI, iGrasped);
-            iNotGrasped = 0;
-        } 
-        else
-        {
-            iNotGrasped++;
-            iNotGrasped = Mathf.Min(maxI, iNotGrasped);
-            iGrasped = 0;
-        }
-            
         switch (pinState)
         {
             case ClothespinState.Idle:
@@ -164,7 +123,7 @@ public class ClothespinManager : MonoBehaviour
                 else
                 {
                     ChangeClothespinColor(idleColour);
-                    CloseClothespin();
+                    
                     pinState = ClothespinState.Idle;
                 }
                 
@@ -178,7 +137,7 @@ public class ClothespinManager : MonoBehaviour
                 else
                 {
                     ChangeClothespinColor(selectedColour);
-                    CloseClothespin();
+                    
                     pinState = ClothespinState.Selected;
                     
                 }
@@ -186,7 +145,7 @@ public class ClothespinManager : MonoBehaviour
             case ClothespinState.InHand:
                 if (tempGrasped)
                 {
-                    OpenClothespin();
+                    
                     FollowHand(true);
                     if (CheckAtTargetTransform(initPosition,initRotation, posTol, angTol))
                     {
@@ -196,7 +155,7 @@ public class ClothespinManager : MonoBehaviour
                 else
                 {
                     ChangeClothespinColor(selectedColour);
-                    CloseClothespin();
+                    
                     FollowHand(false);
                     SetTransform(initPosition, initRotation);
                     pinState = ClothespinState.Selected;
@@ -206,7 +165,7 @@ public class ClothespinManager : MonoBehaviour
             case ClothespinState.LeaveInit:
                 if (tempGrasped)
                 {
-                    OpenClothespin();
+                    
                     // Leaving the initial position & rotation
                     if (!CheckAtTargetTransform(initPosition, initRotation, posTol, angTol))
                     {
@@ -223,7 +182,7 @@ public class ClothespinManager : MonoBehaviour
                 else
                 {
                     ChangeClothespinColor(selectedColour);
-                    CloseClothespin();
+                    
                     FollowHand(false);
                     SetTransform(initPosition, initRotation);
                     pinState = ClothespinState.Selected;
@@ -239,7 +198,7 @@ public class ClothespinManager : MonoBehaviour
                     if (CheckAtTargetTransform(finalPosition, finalRotation, posTol, angTol))
                     {
                         FollowHand(false);
-                        CloseClothespin();
+                        
                         this.initPosition = GetPosition();
                         this.initRotation = GetRotation();
                         reachedFinal = true;
@@ -250,13 +209,12 @@ public class ClothespinManager : MonoBehaviour
             case ClothespinState.Wrong:
                 if (tempGrasped)
                 {
-                    OpenClothespin();
+                    
                 }
                 else
                 {
                     pinState = ClothespinState.Idle;
                     ChangeClothespinColor(idleColour);
-                    CloseClothespin();
                 }
                 break;
         }
@@ -372,42 +330,6 @@ public class ClothespinManager : MonoBehaviour
         }
     }
 
-    private void OpenClothespin()
-    {
-        openLevel += deltaLevel * (1 - (1.0f * iGrasped / (1.0f * maxI)));
-
-        if (openLevel > maxLevel)
-        {
-            openLevel = maxLevel;
-            return;
-        }
-
-        else if (openLevel < minLevel)
-        {
-            openLevel = minLevel;
-            return;
-        }
-            
-        animator.SetFloat("InputAxis1", openLevel);
-    }
-
-    private void CloseClothespin()
-    {
-
-        openLevel -= springCoeff * (1.0f * iNotGrasped/ (1.0f * maxI));
-
-        if (openLevel > maxLevel)
-        {
-            openLevel = maxLevel;
-            return;
-        }
-        else if (openLevel < minLevel)
-        {
-            openLevel = minLevel;
-            return;
-        }  
-        animator.SetFloat("InputAxis1", openLevel);
-    }
     #endregion
 
 

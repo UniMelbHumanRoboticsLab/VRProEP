@@ -976,6 +976,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3900194632808980364}
     m_Modifications:
+    - target: {fileID: 4702269574979711115, guid: 0aa3ae9ea2a4b4c49ba5e5dd4d6f2a5b,
+        type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6003602637557579258, guid: 0aa3ae9ea2a4b4c49ba5e5dd4d6f2a5b,
         type: 3}
       propertyPath: m_RootOrder
@@ -1035,6 +1040,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: ACESHandRigged_R
+      objectReference: {fileID: 0}
+    - target: {fileID: 7863147087553870449, guid: 0aa3ae9ea2a4b4c49ba5e5dd4d6f2a5b,
+        type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0aa3ae9ea2a4b4c49ba5e5dd4d6f2a5b, type: 3}

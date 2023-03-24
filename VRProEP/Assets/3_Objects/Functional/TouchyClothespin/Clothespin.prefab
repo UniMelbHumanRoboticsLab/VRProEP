@@ -353,10 +353,12 @@ MonoBehaviour:
   movingColour: {r: 0.972549, g: 0.6395708, b: 0.07058822, a: 1}
   wrongColour: {r: 0.8867924, g: 0.12967247, b: 0.12967247, a: 1}
   animator: {fileID: 0}
-  deltaLevel: 0.03
+  deltaLevel: 0.02
   maxLevel: 1
   minLevel: 0
   initialLevel: 0.6
+  springCoeff: 1.5
+  maxI: 200
   reachedFinal: 0
 --- !u!54 &702352267945085124
 Rigidbody:

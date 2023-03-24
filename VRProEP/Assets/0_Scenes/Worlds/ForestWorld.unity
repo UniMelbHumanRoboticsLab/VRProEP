@@ -2054,6 +2054,120 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 386990591}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &453284469
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3761597153630493498, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_ConnectedAnchor.x
+      value: 0.000000111760144
+      objectReference: {fileID: 0}
+    - target: {fileID: 3761597153630493498, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_ConnectedAnchor.y
+      value: -0.00000005722121
+      objectReference: {fileID: 0}
+    - target: {fileID: 3761597153630493498, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_ConnectedAnchor.z
+      value: -0.00000001862668
+      objectReference: {fileID: 0}
+    - target: {fileID: 4407601503447736577, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_ConnectedAnchor.x
+      value: 0.000000111760144
+      objectReference: {fileID: 0}
+    - target: {fileID: 4407601503447736577, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_ConnectedAnchor.y
+      value: -0.00000005722121
+      objectReference: {fileID: 0}
+    - target: {fileID: 4407601503447736577, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_ConnectedAnchor.z
+      value: -0.00000001862668
+      objectReference: {fileID: 0}
+    - target: {fileID: 5625324626307143023, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_Name
+      value: PhysicalClothespin
+      objectReference: {fileID: 0}
+    - target: {fileID: 5625324626307143023, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6352138970299404272, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_ConnectedAnchor.y
+      value: 0.000000057221214
+      objectReference: {fileID: 0}
+    - target: {fileID: 6352138970299404272, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_ConnectedAnchor.z
+      value: 0.000000018626668
+      objectReference: {fileID: 0}
+    - target: {fileID: 6690453297331828960, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 23
+      objectReference: {fileID: 0}
+    - target: {fileID: 6690453297331828960, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.138
+      objectReference: {fileID: 0}
+    - target: {fileID: 6690453297331828960, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.19
+      objectReference: {fileID: 0}
+    - target: {fileID: 6690453297331828960, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.29299998
+      objectReference: {fileID: 0}
+    - target: {fileID: 6690453297331828960, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6690453297331828960, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6690453297331828960, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6690453297331828960, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6690453297331828960, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6690453297331828960, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6690453297331828960, guid: 4f0a39c649d9d19478969d015e1f8e26,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4f0a39c649d9d19478969d015e1f8e26, type: 3}
 --- !u!114 &467681319 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 9140484503144454110, guid: 20c0654ad1ca82446ae78e930c556187,
@@ -3388,6 +3502,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: ClothespinTask
       objectReference: {fileID: 0}
+    - target: {fileID: 817194226685331379, guid: b1f57071856472a4d80510ef960e22d8,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 946447128519415044, guid: b1f57071856472a4d80510ef960e22d8,
         type: 3}
       propertyPath: clothespinPrefab
@@ -3479,6 +3598,7 @@ GameObject:
   - component: {fileID: 748793692}
   - component: {fileID: 748793691}
   - component: {fileID: 748793690}
+  - component: {fileID: 748793695}
   m_Layer: 0
   m_Name: Cube (1)
   m_TagString: Untagged
@@ -3576,6 +3696,41 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 22
   m_LocalEulerAnglesHint: {x: -40, y: 180, z: 0}
+--- !u!59 &748793695
+HingeJoint:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748793689}
+  m_ConnectedBody: {fileID: 167153016}
+  m_Anchor: {x: 0, y: 0.5, z: 0}
+  m_Axis: {x: 1, y: 0, z: 0}
+  m_AutoConfigureConnectedAnchor: 1
+  m_ConnectedAnchor: {x: -2.55, y: 0.4999998, z: -0.00000040978193}
+  m_UseSpring: 1
+  m_Spring:
+    spring: 0
+    damper: 0
+    targetPosition: 30
+  m_UseMotor: 0
+  m_Motor:
+    targetVelocity: 0
+    force: 0
+    freeSpin: 0
+  m_UseLimits: 0
+  m_Limits:
+    min: 0
+    max: 0
+    bounciness: 0
+    bounceMinVelocity: 0.2
+    contactDistance: 0
+  m_BreakForce: Infinity
+  m_BreakTorque: Infinity
+  m_EnableCollision: 0
+  m_EnablePreprocessing: 1
+  m_MassScale: 1
+  m_ConnectedMassScale: 1
 --- !u!1 &797790721
 GameObject:
   m_ObjectHideFlags: 0
