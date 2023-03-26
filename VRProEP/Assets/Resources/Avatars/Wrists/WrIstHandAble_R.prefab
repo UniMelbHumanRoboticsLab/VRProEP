@@ -1046,7 +1046,8 @@ PrefabInstance:
       propertyPath: m_IsKinematic
       value: 1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2808917583491726615, guid: 0aa3ae9ea2a4b4c49ba5e5dd4d6f2a5b, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 0aa3ae9ea2a4b4c49ba5e5dd4d6f2a5b, type: 3}
 --- !u!4 &2396396783138718579 stripped
 Transform:

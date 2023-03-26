@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1814239036}
-  m_IndirectSpecularColor: {r: 0.070523, g: 0.3536324, b: 0.9700316, a: 1}
+  m_IndirectSpecularColor: {r: 0.07052275, g: 0.35373604, b: 0.97078824, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1843,6 +1843,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: WrIstHandAble_R
+      objectReference: {fileID: 0}
+    - target: {fileID: 345488241995722796, guid: 95f5d18daafa9aa41aced9cb674d41e7,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3900194632808980364, guid: 95f5d18daafa9aa41aced9cb674d41e7,
         type: 3}
@@ -4937,7 +4942,7 @@ PrefabInstance:
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: amputeeAvatar
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
@@ -4977,7 +4982,7 @@ PrefabInstance:
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
       propertyPath: fullTrackerEnable
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8320610425934508015, guid: 258682ab411a72c4a87bf0334391016e,
         type: 3}
