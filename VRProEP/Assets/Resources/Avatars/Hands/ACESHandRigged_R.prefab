@@ -730,6 +730,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 0}
+  pinchAction: 0
+  externalControl: 0
   deltaLevel: 0.05
   maxLevel: 1
   minLevel: 0

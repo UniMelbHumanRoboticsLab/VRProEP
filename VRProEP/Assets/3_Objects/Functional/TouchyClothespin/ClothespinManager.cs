@@ -340,6 +340,10 @@ public class ClothespinManager : MonoBehaviour
     }
 
     //
+    //
+    //
+
+    //
     // Check if the clothespin is at the 
     //
     private bool CheckAtTargetTransform(Vector3 targetPosition, Quaternion targetRotation, Vector3 posTol, float angTol)

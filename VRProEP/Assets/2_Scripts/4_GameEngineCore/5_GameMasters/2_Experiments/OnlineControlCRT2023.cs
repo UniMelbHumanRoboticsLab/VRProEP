@@ -148,7 +148,7 @@ public class OnlineControlCRT2023 : GameMaster
 
     // Flow control
     private bool loopTraining = true;
-    private bool inPractice = false;
+    private bool finishPractice = false;
     private bool hasReached = false;
     private bool taskComplete = false;
     private bool emgIsRecording = false;
@@ -173,7 +173,7 @@ public class OnlineControlCRT2023 : GameMaster
     // Configuration class:
     // Modify this class to be able to configure your experiment from a configuration file
     //
-    private class AugmentedFeedbackConfigurator
+    private class OnlineCRTConfigurator
     {
         public int[] iterationsPerTarget = {2};
         public int iterationBatchSize = 3;
@@ -181,7 +181,7 @@ public class OnlineControlCRT2023 : GameMaster
         public float holdingTime = 0.5f;
         public float maxTaskTime = 100.0f;
     }
-    private AugmentedFeedbackConfigurator configurator;
+    private OnlineCRTConfigurator configurator;
 
     //
     // Configuration class:
@@ -189,13 +189,8 @@ public class OnlineControlCRT2023 : GameMaster
     //
     private class CustomisedConfigurator
     {
-        public List<int> targetOrder;
-        public Vector3 shoulderCentreOffset;
         public Vector3 residualFollowerPosOffset;
         public Vector3 residualFollowerAngOffset;
-        public float uarmLengthOffset;
-        public float farmLengthOffset;
-        public float handLengthOffset;
     }
     private CustomisedConfigurator customConfigurator;
 
@@ -276,14 +271,14 @@ public class OnlineControlCRT2023 : GameMaster
     {
 
         // Choose if to try the training again
-        if (GetCurrentStateName() == State.STATE.TRAINING && inPractice)
+        if (GetCurrentStateName() == State.STATE.TRAINING && finishPractice)
         {
             if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any))
                 loopTraining = true;
             else if (padAction.GetStateDown(SteamVR_Input_Sources.Any))
                 loopTraining = false;
         }
-
+        
         // Override fixed update to start the emg recording when the start performing the task
         if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK  && delsysEnable && !emgIsRecording )
         {
@@ -325,7 +320,7 @@ public class OnlineControlCRT2023 : GameMaster
             //SaveSystem.LoadUserData("ML1996175");
             //SaveSystem.LoadUserData("JL1993177");
 
-
+            
             Debug.Log("Load Avatar to Debug.");
 
             if (amputeeAvatar)
@@ -357,6 +352,10 @@ public class OnlineControlCRT2023 : GameMaster
             
 
         }
+
+        // Setup crt task position
+        crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
+        crtManager.Distance = SaveSystem.ActiveUser.forearmLength + SaveSystem.ActiveUser.handLength / 2.0f;
 
     }
 
@@ -406,7 +405,7 @@ public class OnlineControlCRT2023 : GameMaster
 
 
         // Convert configuration file to configuration class.
-        configurator = JsonUtility.FromJson<AugmentedFeedbackConfigurator>(configAsset.text);
+        configurator = JsonUtility.FromJson<OnlineCRTConfigurator>(configAsset.text);
 
         // Load from config file
         holdingTime = configurator.holdingTime;
@@ -483,8 +482,6 @@ public class OnlineControlCRT2023 : GameMaster
         // Send the player to the experiment centre position
         TeleportToStartPosition();
         #endregion
-
-
 
         #region Initialize world positioning
 
@@ -609,6 +606,10 @@ public class OnlineControlCRT2023 : GameMaster
         }
 
 
+        #endregion
+
+        #region Initialize clothespin relocation task manager
+        crtManager.Initialise();
         #endregion
 
 
@@ -759,8 +760,6 @@ public class OnlineControlCRT2023 : GameMaster
          */
         #endregion
 
-
-
         // Now that you are done, set the flag to indicate we are done.
 
     }
@@ -772,23 +771,13 @@ public class OnlineControlCRT2023 : GameMaster
     /// </summary>
     public override void InitialiseExperiment()
     {
-        //Spwan grid
-        #region Spawn grid
-        bool hasConfigured = false;
+        #region 
         // Convert customised setting file to configuration class. 
         string fileName = SaveSystem.ActiveSaveFolder + "/" + ExperimentSystem.ActiveExperimentID + "/customised_settings.json";
         if (File.Exists(fileName))
         {
-            hasConfigured = true;
             string json = File.ReadAllText(fileName);
             customConfigurator = JsonUtility.FromJson<CustomisedConfigurator>(json);
-           
-            /*
-            crtManager.ShoulderCentreOffset = customConfigurator.shoulderCentreOffset;
-            crtManager.FarmLengthOffset = customConfigurator.farmLengthOffset;
-            crtManager.UarmLengthOffset = customConfigurator.uarmLengthOffset;
-            crtManager.HandLengthOffset = customConfigurator.handLengthOffset;
-            */
 
             // If prosthesis avatar, we also need to set the prosthesis offset
             if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
@@ -800,55 +789,18 @@ public class OnlineControlCRT2023 : GameMaster
             }
             Debug.Log("Load customised experiment settings");
         }
-        
-        /*
-        crtManager.AddJointPose(TargetPoseGridManager.SFE_POSE, sfePose);
-        crtManager.AddJointPose(TargetPoseGridManager.EFE_POSE, efePose);
-        crtManager.AddJointPose(TargetPoseGridManager.WPS_POSE, wpsPose);
-        
-        crtManager.CombJointPose(new string[] { TargetPoseGridManager.SFE_POSE, TargetPoseGridManager.EFE_POSE, TargetPoseGridManager.WPS_POSE });
-
-        crtManager.SpawnTargetGrid();
-        Debug.Log("Spawn the grid!");
-        */
-
         #endregion
-
-
 
         #region Iteration settings
-        // Set iterations variables for flow control.
-        //targetNumber = crtManager.TargetNumber;
-        //Debug.Log("Total target number: " + targetNumber);
-        //iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget[sessionNumber-1];
-        /*
-        if (!hasConfigured || customConfigurator.targetOrder.Count != targetNumber * iterationsPerTarget[sessionNumber - 1])
-        {
-            // Create the list of target indexes and shuffle it.
-            List<int> tempOrder = new List<int>();
-            for (int i = 0; i < targetNumber; i++)
-            {
-                for (int j = 0; j < iterationsPerTarget[sessionNumber - 1]; j++)
-                {
-                    tempOrder.Add(i);
-
-                }
-            }
-
-            targetOrder = crtManager.SequentialRandomise(tempOrder, iterationBatchSize);
-        }
-        else
-        {
-            targetOrder = new List<int>(customConfigurator.targetOrder);
-        }
         
-
-        Debug.Log("Total trials:" + targetOrder.Count);
-        Debug.Log("Current target pose number: " + targetOrder[iterationNumber - 1]);
-        Debug.Log("Target order:" + string.Join(",", targetOrder));
-        */
-
+        iterationsPerSession[sessionNumber - 1] = crtManager.PathNumber * iterationsPerTarget[sessionNumber - 1];
+        Debug.Log("Total trials: " + iterationsPerSession[sessionNumber - 1]);
         #endregion
+
+
+
+
+
     }
 
     /// <summary>
@@ -1044,7 +996,7 @@ public class OnlineControlCRT2023 : GameMaster
 
             while (loopTraining)
             {
-                inPractice = true;
+                
                 PrepareForStart();
                 HudManager.colour = HUDManager.HUDColour.Orange;
                 HUDCountDown(1);
@@ -1067,10 +1019,12 @@ public class OnlineControlCRT2023 : GameMaster
                 HandleIterationInitialisation();
 
                 // Do you want to retry?
+                finishPractice = true;
                 InstructionManager.DisplayText("To retry (Press the trigger)" + "\n\n" + "To continue (Press the touchpad)");
                 yield return WaitForTrainingInstruction();
+                finishPractice = false;
             }
-            inPractice = false;
+            
 
             //
             // End
@@ -1100,7 +1054,7 @@ public class OnlineControlCRT2023 : GameMaster
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             while (loopTraining)
             {
-                inPractice = true;
+                
                 PrepareForStart();
                 HudManager.colour = HUDManager.HUDColour.Orange;
                 HUDCountDown(1);
@@ -1123,11 +1077,11 @@ public class OnlineControlCRT2023 : GameMaster
                 HandleIterationInitialisation();
 
                 // Do you want to retry?
+                finishPractice = true;
                 InstructionManager.DisplayText("To retry (Press the trigger)" + "\n\n" + "To continue (Press the touchpad)");
                 yield return WaitForTrainingInstruction();
+                finishPractice = false;
             }
-            inPractice = false;
-
 
             //
             // End
@@ -1182,10 +1136,6 @@ public class OnlineControlCRT2023 : GameMaster
     {
         // Here you can do stuff like preparing objects/assets, like setting a different colour to the object
 
-        // Select target
-        //crtManager.ResetTargetSelection();
-        //crtManager.SelectTarget(targetOrder[iterationNumber - 1]);
-
     }
 
     /// <summary>
@@ -1195,8 +1145,6 @@ public class OnlineControlCRT2023 : GameMaster
     public override void StartFailureReset()
     {
         // If our subject fails, do some resetting. 
-        // Clear bottle selection
-        //crtManager.ResetTargetSelection();
 
     }
 
@@ -1534,6 +1482,7 @@ public class OnlineControlCRT2023 : GameMaster
         //StartCoroutine(HandleIterationInitialisationCoroutine());
         
         base.HandleIterationInitialisation();
+        crtManager.NextTrial();
         Debug.Log("Current target pose number: " + iterationNumber);
 
     }
@@ -1568,52 +1517,14 @@ public class OnlineControlCRT2023 : GameMaster
     public override void HandleSessionInitialisation()
     {
 
-        //HudManager.DisplayText("New session");
-        /*
-        if (gridManager.CurrentTargetType == TargetPoseGridManager.TargetType.Ball)
-        {
-            GameObject[] targets = GameObject.FindGameObjectsWithTag("TouchyBall");
-            foreach (GameObject target in targets)
-            {
-                Destroy(target);
-            }
-            targetOrder.Clear();
-
-            // Generate new grid
-            gridManager.CurrentTargetType = TargetPoseGridManager.TargetType.Bottle;
-            gridManager.SpawnTargetGrid();
-            gridManager.ResetTargetSelection();
-            Debug.Log("Spawn the grid!");
-        }
-        */
-
         base.HandleSessionInitialisation();
 
         #region Iteration settings
-
-        /*
-        // Set iterations variables for flow control.
-        targetNumber = crtManager.TargetNumber;
-        iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget[sessionNumber - 1];
-
-
-        // Create the list of target indexes and shuffle it.
-        for (int i = 0; i < targetNumber; i++)
-        {
-            for (int j = 0; j < iterationsPerTarget[sessionNumber - 1]; j++)
-            {
-                targetOrder.Add(i);
-                Debug.Log(targetOrder[targetOrder.Count-1]);
-            }
-                
-
-        }
-
-        targetOrder.Shuffle();
-        */
+        iterationsPerSession[sessionNumber - 1] = crtManager.PathNumber * iterationsPerTarget[sessionNumber - 1];
+        Debug.Log("Total trials: " + iterationsPerSession[sessionNumber - 1]);
         #endregion
 
-        
+
 
     }
 

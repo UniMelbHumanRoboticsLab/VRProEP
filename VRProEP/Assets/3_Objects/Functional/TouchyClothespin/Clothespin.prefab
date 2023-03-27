@@ -349,11 +349,11 @@ MonoBehaviour:
   angTol: 360
   idleColour: {r: 0.9716981, g: 0.9716981, b: 0.9716981, a: 1}
   selectedColour: {r: 0.16834284, g: 0.17705147, b: 0.9150943, a: 1}
-  correctColour: {r: 0.1253275, g: 0.9433962, b: 0.07564971, a: 1}
+  correctColour: {r: 0.0745098, g: 0.94509804, b: 0.8422461, a: 1}
   movingColour: {r: 0.972549, g: 0.6395708, b: 0.07058822, a: 1}
   wrongColour: {r: 0.8867924, g: 0.12967247, b: 0.12967247, a: 1}
   animator: {fileID: 0}
-  deltaLevel: 0.02
+  deltaLevel: 0.03
   maxLevel: 1
   minLevel: 0
   initialLevel: 0.6
@@ -658,7 +658,7 @@ Transform:
   m_GameObject: {fileID: 5625324626307143023}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  m_LocalScale: {x: 0.9, y: 0.9, z: 0.9}
   m_Children:
   - {fileID: 5678301131621863693}
   m_Father: {fileID: 0}

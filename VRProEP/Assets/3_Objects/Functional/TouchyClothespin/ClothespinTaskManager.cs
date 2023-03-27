@@ -1,9 +1,19 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VRProEP.GameEngineCore;
 
 public class ClothespinTaskManager : MonoBehaviour
 {
+    [SerializeField]
+    private float height;
+    public float Height { get => height; set { height = value; } }
+
+    [SerializeField]
+    private float distance;
+    public float Distance { get => distance; set { distance = value; } }
+
+
     [SerializeField]
     private GameObject clothespinPrefab;
 
@@ -17,7 +27,7 @@ public class ClothespinTaskManager : MonoBehaviour
     private List<GameObject> attachGOList;
 
     [SerializeField]
-    private int currentTrial;
+    private int currentTrial = 0;
 
     [SerializeField]
     private int currentPinIndex;
@@ -28,6 +38,8 @@ public class ClothespinTaskManager : MonoBehaviour
     private readonly int GET_FINAL_INDEX = 1;
     private readonly int GET_PIN_INDEX = 2;
 
+    public int PathNumber { get => TASK_PATH.GetLength(0); }
+
     // Flow control
     private bool trialComplete = false;
     public bool TrialComplete { get => trialComplete; set { trialComplete = value; } }
@@ -35,6 +47,32 @@ public class ClothespinTaskManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+        // If the selected pin reached
+        if (currentTrial != 0 && CheckReached(currentPinIndex))
+        {
+            // Reset flag
+            clothespinList[currentPinIndex].ReachedFinal = false;
+            trialComplete = true;
+
+            //NextTrial();
+        }
+    }
+
+
+    #region public methods
+    //
+    // Initialise the task
+    //
+    public void Initialise()
+    {
+        SetupPosition();
         GetAllTargetTransform();
         InitClothespin();
         currentTrial = 1;
@@ -44,29 +82,31 @@ public class ClothespinTaskManager : MonoBehaviour
         SetupTarget(currentTrial);
     }
 
-    // Update is called once per frame
-    void Update()
+    //
+    // Setup the next trial
+    //
+    public void NextTrial()
     {
-
-        // If the selected pin reached
-        if (CheckReached(currentPinIndex))
-        {
-            // Reset flag
-            clothespinList[currentPinIndex].ReachedFinal = false;
-            trialComplete = true;
-            // Update target
-            currentTrial++;
-            currentPinIndex = SetupTarget(currentTrial);
-        }
+        // Update target
+        trialComplete = false;
+        currentTrial++;
+        currentPinIndex = SetupTarget(currentTrial);
     }
-
-
-    #region public methods
-
     #endregion
 
 
     #region private methods
+
+    //
+    // Set up rack position
+    //
+    private void SetupPosition()
+    {
+        Vector3 temp = new Vector3(-distance, height, 0);
+        this.transform.position += temp;
+    }
+
+
     //
     // Set up target
     //
