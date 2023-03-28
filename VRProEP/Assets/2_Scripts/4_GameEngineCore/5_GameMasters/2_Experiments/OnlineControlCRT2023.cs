@@ -356,6 +356,7 @@ public class OnlineControlCRT2023 : GameMaster
         // Setup crt task position
         crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
         crtManager.Distance = 0;
+        
         //SaveSystem.ActiveUser.forearmLength;
 
     }
@@ -610,7 +611,17 @@ public class OnlineControlCRT2023 : GameMaster
         #endregion
 
         #region Initialize clothespin relocation task manager
+        
         crtManager.Initialise();
+
+        if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
+            if (sessionNumber == 1)
+                crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AblePoseRecord;
+            else if (sessionNumber == 2)
+                crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AbleDataCollect;
+            else if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+                crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.ProstEvaluation;
+
         #endregion
 
 

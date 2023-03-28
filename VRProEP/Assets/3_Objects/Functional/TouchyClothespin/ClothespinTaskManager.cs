@@ -3,8 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using VRProEP.GameEngineCore;
 
+// SteamVR
+using Valve.VR;
+using Valve.VR.InteractionSystem;
+
 public class ClothespinTaskManager : MonoBehaviour
 {
+    public enum TaskType { AblePoseRecord, AbleDataCollect, ProstEvaluation}
+    private TaskType currentTaskType;
+    public TaskType CurrentTaskType { get => CurrentTaskType; set { currentTaskType = value; } }
+
 
     [SerializeField]
     private float height;
@@ -28,6 +36,9 @@ public class ClothespinTaskManager : MonoBehaviour
     private List<GameObject> attachGOList;
 
     [SerializeField]
+    private List<GameObject> poseGOList;
+
+    [SerializeField]
     private int currentTrial = 0;
 
     [SerializeField]
@@ -45,6 +56,10 @@ public class ClothespinTaskManager : MonoBehaviour
     private bool trialComplete = false;
     public bool TrialComplete { get => trialComplete; set { trialComplete = value; } }
 
+    // Buttons
+    protected SteamVR_Action_Boolean padAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("InterfaceEnableButton");
+    protected SteamVR_Action_Boolean buttonAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("ObjectInteractButton");
+
     // Start is called before the first frame update
     void Start()
     {
@@ -54,20 +69,40 @@ public class ClothespinTaskManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-        // If the selected pin reached
-        if (currentTrial != 0 && CheckReached(currentPinIndex))
+        // The task has been initliased
+        if (currentTrial != 0)
         {
-            // Reset flag
-            clothespinList[currentPinIndex].ReachedFinal = false;
-            trialComplete = true;
+            // If the trigger is pulled, record the current hand transform
+            if (currentTaskType == TaskType.AblePoseRecord)
+            {
+                if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || padAction.GetStateDown(SteamVR_Input_Sources.Any))
+                {
+                    GameObject tempHandGO = GameObject.FindGameObjectWithTag("Hand");
+                    GameObject tempGO = new GameObject();
+                    tempGO.transform.position = tempHandGO.transform.position;
+                    tempGO.transform.rotation = tempHandGO.transform.rotation;
+                    tempGO.transform.localScale = tempHandGO.transform.localScale;
+                    poseGOList.Add(tempGO);
+                    Debug.Log("Hand pose recorded!");
+                }
+            }
+            
 
-            //NextTrial();
+            // If the selected pin reached
+            if (CheckReached(currentPinIndex))
+            {
+                // Reset flag
+                clothespinList[currentPinIndex].ReachedFinal = false;
+                trialComplete = true;
+            }
+            
         }
     }
 
 
     #region public methods
+
+
     //
     // Initialise the task
     //
@@ -88,11 +123,33 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     public void NextTrial()
     {
+        // Check reach based on different task types
+        switch (currentTaskType)
+        {
+            case TaskType.AblePoseRecord:
+                break;
+            case TaskType.AbleDataCollect:
+                break;
+            case TaskType.ProstEvaluation:
+
+                break;
+
+        }
         // Update target
         trialComplete = false;
         currentTrial++;
         currentPinIndex = SetupTarget(currentTrial);
     }
+
+
+    //
+    // Set experiment type
+    //
+    public void SetTaskType(TaskType type)
+    {
+        this.currentTaskType = type;
+    }
+
     #endregion
 
 
@@ -137,7 +194,10 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     private bool CheckReached(int index)
     {
-        return clothespinList[index].ReachedFinal;
+        
+
+        return clothespinList[index].ReachedFinal; ;
+
     }
 
     //
