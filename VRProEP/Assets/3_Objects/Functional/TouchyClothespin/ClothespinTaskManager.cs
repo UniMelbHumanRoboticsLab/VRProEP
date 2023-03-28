@@ -5,6 +5,7 @@ using VRProEP.GameEngineCore;
 
 public class ClothespinTaskManager : MonoBehaviour
 {
+
     [SerializeField]
     private float height;
     public float Height { get => height; set { height = value; } }

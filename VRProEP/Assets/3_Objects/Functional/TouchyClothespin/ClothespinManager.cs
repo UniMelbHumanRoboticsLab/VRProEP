@@ -232,7 +232,10 @@ public class ClothespinManager : MonoBehaviour
             case ClothespinState.ReachTarget:
                 if (tempGrasped)
                 {
-                    ChangeClothespinColor(correctColour);
+                    if (CheckAtTargetTransform(finalPosition, finalRotation, posTol, angTol))
+                        ChangeClothespinColor(correctColour);
+                    else
+                        pinState = ClothespinState.LeaveInit;
                 }
                 else
                 {
@@ -245,6 +248,8 @@ public class ClothespinManager : MonoBehaviour
                         reachedFinal = true;
                         pinState = ClothespinState.Idle;
                     }
+                    else
+                        pinState = ClothespinState.LeaveInit;
                 }
                 break;
             case ClothespinState.Wrong:

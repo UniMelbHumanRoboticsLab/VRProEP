@@ -355,7 +355,8 @@ public class OnlineControlCRT2023 : GameMaster
 
         // Setup crt task position
         crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
-        crtManager.Distance = SaveSystem.ActiveUser.forearmLength + SaveSystem.ActiveUser.handLength / 2.0f;
+        crtManager.Distance = 0;
+        //SaveSystem.ActiveUser.forearmLength;
 
     }
 
@@ -567,7 +568,7 @@ public class OnlineControlCRT2023 : GameMaster
             }
 
             // Hand tracking sensor
-            GameObject handGO = GameObject.FindGameObjectWithTag("Bottle");
+            GameObject handGO = GameObject.FindGameObjectWithTag("Hand");
             handTracker = new VirtualPositionTracker(handGO.transform);
             ExperimentSystem.AddSensor(handTracker);
         }
