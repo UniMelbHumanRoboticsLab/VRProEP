@@ -205,7 +205,6 @@ public class OnlineControlCRT2023 : GameMaster
         return emgDataFilename;
     }
 
-
     private bool IsAtRightPosition(float qShoudlerRef, float qElbowRef, float tolerance)
     {
 
@@ -262,6 +261,27 @@ public class OnlineControlCRT2023 : GameMaster
 
     }
 
+    private void InitCRTManager()
+    {
+        // Setup crt task position
+        crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
+        crtManager.Distance = 0; //SaveSystem.ActiveUser.forearmLength;
+
+        if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
+        {
+            //if (sessionNumber == 1)
+                //crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AblePoseRecord;
+            //else if (sessionNumber == 2)
+                crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AbleDataCollect;
+        }
+        else if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+        {
+            crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.ProstEvaluat;
+        }
+
+        crtManager.Initialise();
+
+    }
     #endregion
 
     // Here are all the methods you need to write for your experiment.
@@ -353,11 +373,7 @@ public class OnlineControlCRT2023 : GameMaster
 
         }
 
-        // Setup crt task position
-        crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
-        crtManager.Distance = 0;
-        
-        //SaveSystem.ActiveUser.forearmLength;
+       
 
     }
 
@@ -612,14 +628,7 @@ public class OnlineControlCRT2023 : GameMaster
 
         #region Initialize clothespin relocation task manager
 
-        if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
-            crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AbleDataCollect;
-        else if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
-            crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.ProstEvaluat;
-
-        crtManager.Initialise();
-
-       
+        InitCRTManager();
 
         #endregion
 
@@ -803,15 +812,9 @@ public class OnlineControlCRT2023 : GameMaster
         #endregion
 
         #region Iteration settings
-        
-        iterationsPerSession[sessionNumber - 1] = crtManager.PathNumber * iterationsPerTarget[sessionNumber - 1];
-        Debug.Log("Total trials: " + iterationsPerSession[sessionNumber - 1]);
+        iterationsPerSession[sessionNumber - 1] = crtManager.PathNumber * crtManager.TotalPathSegment * iterationsPerTarget[sessionNumber - 1];
+        Debug.Log("Total trials in the Session " + sessionNumber + ": " + iterationsPerSession[sessionNumber - 1]);
         #endregion
-
-
-
-
-
     }
 
     /// <summary>
@@ -825,7 +828,6 @@ public class OnlineControlCRT2023 : GameMaster
         instructionsDone = false;
         inInstructions = true;
 
-        //crtManager.CalibrationPose();
         Debug.Log("Calibrate the avatar. Press up arrow to continue.");
         InstructionManager.DisplayText("We also neeed to calibrate your avatar. Relax your shoulder and bend your elbow like the white and blue lines show." );
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
@@ -834,11 +836,6 @@ public class OnlineControlCRT2023 : GameMaster
 
         // Save the customised settings
         customConfigurator = new CustomisedConfigurator();
-        //customConfigurator.targetOrder = new List<int>(targetOrder);
-        //customConfigurator.shoulderCentreOffset = crtManager.ShoulderCentreOffset;
-        //customConfigurator.farmLengthOffset = crtManager.FarmLengthOffset;
-        //customConfigurator.uarmLengthOffset = crtManager.UarmLengthOffset;
-        //customConfigurator.handLengthOffset = crtManager.HandLengthOffset;
         if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
         {
             GameObject tempResidualGO = GameObject.FindGameObjectWithTag("ResidualLimbAvatar");
@@ -1251,9 +1248,9 @@ public class OnlineControlCRT2023 : GameMaster
         //Vector3 errorTemp = crtManager.GetPosError();
         //logData += "," + errorTemp.x + "," + errorTemp.y + "," + errorTemp.z + ","  + crtManager.GetAngError();
 
-       //
-       // Log current data and clear before next run.
-       //
+        //
+        // Log current data and clear before next run.
+        //
         taskDataLogger.AppendData(logData);
         logData = "";
 
@@ -1431,11 +1428,6 @@ public class OnlineControlCRT2023 : GameMaster
 
         string iterationResults = iterationNumber + "," + iterationNumber + "," + iterationDoneTime.ToString();
 
-        //foreach (float element in crtManager.QUpperLimb[targetOrder[iterationNumber-1]])
-        //{
-            //iterationResults += "," + element;
-        //}
-
         // Log results
         performanceDataLogger.AppendData(iterationResults);
         performanceDataLogger.SaveLog();
@@ -1450,10 +1442,6 @@ public class OnlineControlCRT2023 : GameMaster
     {
         string iterationResults = iterationNumber + "," + iterationNumber + "," + iterationDoneTime.ToString(); //+ "," + feedbackScore.ToString();
 
-        //foreach (float element in crtManager.QUpperLimb[targetOrder[iterationNumber - 1]])
-        //{
-            //iterationResults += "," + element;
-        //}
         // Log results
         performanceDataLogger.AppendData(iterationResults);
         performanceDataLogger.SaveLog();
@@ -1527,15 +1515,11 @@ public class OnlineControlCRT2023 : GameMaster
     /// </summary>
     public override void HandleSessionInitialisation()
     {
-
         base.HandleSessionInitialisation();
 
-        #region Iteration settings
-        iterationsPerSession[sessionNumber - 1] = crtManager.PathNumber * iterationsPerTarget[sessionNumber - 1];
-        Debug.Log("Total trials: " + iterationsPerSession[sessionNumber - 1]);
-        #endregion
-
-
+        InitCRTManager();
+        iterationsPerSession[sessionNumber - 1] = crtManager.PathNumber *crtManager.TotalPathSegment *  iterationsPerTarget[sessionNumber - 1];
+        Debug.Log("Total trials in the Session " + sessionNumber + ": "+ iterationsPerSession[sessionNumber - 1]);
 
     }
 

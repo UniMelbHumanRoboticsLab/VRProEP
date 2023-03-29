@@ -9,7 +9,7 @@ public class ReachHandManager : MonoBehaviour
 
     [Header("Objects")]
     [SerializeField]
-    private GameObject hand;
+    private GameObject avatarHand;
     
     [Header("Tolerance")]
     [SerializeField]
@@ -28,13 +28,10 @@ public class ReachHandManager : MonoBehaviour
     private Color correctColor;
     [SerializeField]
     private Color wrongColor;
-
-
-    private ReachHandState handState = ReachHandState.Idle;
-    
-    private Renderer[] allRenderer;
     private Renderer handRenderer;
-    private Renderer baseRenderer;
+
+    // State
+    private ReachHandState handState = ReachHandState.Idle;
     public ReachHandState HandState { get => handState; }
 
 
@@ -56,22 +53,19 @@ public class ReachHandManager : MonoBehaviour
 
     private float holdTime;
 
+    // Trial complete flag
+    [SerializeField]
+    private bool reachedFinal = false;
+    public bool ReachedFinal { get => reachedFinal; set { reachedFinal = value; } }
+
     void Update()
     {
        
-        //Debug.Log(BottleState);
-        //Debug.Log(bottleState);
-        /*
-            if (CheckReaching())
-                Debug.Log("The bottle is inside of the area");
-            else
-                Debug.Log("The bottle is outside of the area");
-            */
     }
 
     void Awake()
     {
-        hand = GameObject.FindGameObjectWithTag("Hand");
+        avatarHand = GameObject.FindGameObjectWithTag("Hand");
         handRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
 
         handRenderer.material.color = idleColor;
@@ -84,12 +78,12 @@ public class ReachHandManager : MonoBehaviour
     /// <returns >
     private void OnTriggerStay(Collider other)
     {
-        Debug.Log("Collide");
+        //Debug.Log("Collide");
+
         // Check if hand is gone to return to idle.
-        if (other.tag == "Hand")
+        if (other.tag == "ThumbFingerCollider" || other.tag == "IndexFingerCollider")
         {
-            //hand = GameObject.FindGameObjectWithTag("Hand");
-            //Debug.Log("Collide");
+            //Debug.Log("Hand collide");
             if (CheckReached())
             {
                 switch (handState)
@@ -103,7 +97,7 @@ public class ReachHandManager : MonoBehaviour
                         handRenderer.material.color = correctColor;
                         break;
                     case ReachHandState.Correct:
-
+                        reachedFinal = true;
                         break;
                     case ReachHandState.Wrong:
 
@@ -129,6 +123,7 @@ public class ReachHandManager : MonoBehaviour
         }
     }
 
+    #region private methods
     /// <summary>
     /// Check if the bottle reaches the target postion within the error tolerance.
     /// </summary>
@@ -145,49 +140,27 @@ public class ReachHandManager : MonoBehaviour
         // Previous
         bool positionReachedPrev = Mathf.Abs(errorPos.x) < positionTolerance.x && Mathf.Abs(errorPos.y) < positionTolerance.y && Mathf.Abs(errorPos.z) < positionTolerance.z;
         bool orientationReachedPrev = Mathf.Abs(errorAng) <= rotationToleranceAngle;
-        //bool orientationReachedPrev = Mathf.Abs(errorAngVec.x) < rotationTolerance.x && Mathf.Abs(errorAngVec.y) < rotationTolerance.y && Mathf.Abs(errorAngVec.z) < rotationTolerance.z;
         bool reachedPrev = positionReachedPrev & orientationReachedPrev;
 
         // Current
-        this.errorPos = this.transform.position - hand.transform.position;
-
-        // Just check frontal orientation
-        /*
-        Quaternion targetRotation = this.gameObject.transform.rotation;
-        Quaternion bottleInHandRotation = Quaternion.Inverse(targetRotation) * bottleInHand.transform.rotation;
-        Vector3 targetAxis = Vector3.up;
-        Vector3 bottleAxis = bottleInHandRotation * Vector3.up;
-        this.errorAng = Vector2.Angle( new Vector2(targetAxis.y, targetAxis.z), new Vector2(bottleAxis.y, bottleAxis.z));
-        */
+        this.errorPos = this.transform.position - avatarHand.transform.position;
 
         // Quaternion angle difference method
-        Quaternion targetRotation = this.gameObject.transform.localRotation;
-        Quaternion bottleInHandRotation = hand.transform.localRotation;
-        Quaternion relative = Quaternion.Inverse(bottleInHandRotation) * targetRotation;
-        //this.errorAng = Quaternion.Angle(targetRotation, bottleInHandRotation) / 2.0f;
+        Quaternion targetRotation = this.gameObject.transform.rotation;
+        Quaternion avatarHandRotation = avatarHand.transform.rotation;
+        Quaternion relative = Quaternion.Inverse(avatarHandRotation) * targetRotation;
         this.errorAng = 2.0f * Mathf.Rad2Deg * Mathf.Atan2(Mathf.Sqrt(relative.x * relative.x + relative.y * relative.y + relative.z * relative.z),relative.w);
         if (errorAng > 180.0f)
             errorAng = 360.0f - errorAng;
 
-        /*
-        Quaternion targetRotation = this.gameObject.transform.localRotation;
-        Matrix4x4 m1 = Matrix4x4.Rotate(targetRotation);
-        Quaternion bottleInHandRotation = bottleInHand.transform.localRotation;
-        Matrix4x4 m2 = Matrix4x4.Rotate(bottleInHandRotation);
-        Vector3 temp = 0.5f * (Vector3.Cross(m1.GetColumn(0),m2.GetColumn(0)) + Vector3.Cross(m1.GetColumn(1), m2.GetColumn(1)) + Vector3.Cross(m1.GetColumn(2), m2.GetColumn(2)));
-        this.errorAngVec.x = Mathf.Rad2Deg * Mathf.Asin(temp.x);
-        this.errorAngVec.y = Mathf.Rad2Deg * Mathf.Asin(temp.y);
-        this.errorAngVec.z = Mathf.Rad2Deg * Mathf.Asin(temp.z);
-        */
 
         positionReached = Mathf.Abs(errorPos.x) < positionTolerance.x && Mathf.Abs(errorPos.y) < positionTolerance.y && Mathf.Abs(errorPos.z) < positionTolerance.z;
         orientationReached =  Mathf.Abs(errorAng) <= rotationToleranceAngle;
-        //orientationReached = Mathf.Abs(errorAngVec.x) < rotationTolerance.x && Mathf.Abs(errorAngVec.y) < rotationTolerance.y && Mathf.Abs(errorAngVec.z) < rotationTolerance.z;
         reached = positionReached & orientationReached;
 
         // Debug Log
-        Debug.Log(errorPos);
-        //Debug.Log(errorAng);
+        Debug.Log(errorPos.ToString("F3"));
+        Debug.Log(errorAng.ToString("F3"));
 
         if (reachedPrev && reached)
             holdTime += Time.fixedDeltaTime;
@@ -216,19 +189,9 @@ public class ReachHandManager : MonoBehaviour
         isWaiting = false;
        // Debug.Log(bottleRenderer.material.color);
     }
+    #endregion
 
     #region public methods
-    /// <summary>
-    /// Set the in hand bottle gameobject
-    /// </summary>
-    /// <param GameObject bottleInHand>
-    /// <returns>
-    public void SetBottlInHand(GameObject bottleInHand)
-    {
-        this.hand = bottleInHand;
-    }
-
-
     /// <summary>
     /// Set bottle the selected one.
     /// </summary>
@@ -239,6 +202,7 @@ public class ReachHandManager : MonoBehaviour
 
         handState = ReachHandState.Selected;
         handRenderer.material.color = selectedColor;
+        reachedFinal = false;
     }
 
     /// <summary>

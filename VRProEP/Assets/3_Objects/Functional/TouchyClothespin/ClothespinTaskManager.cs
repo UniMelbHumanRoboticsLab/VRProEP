@@ -13,7 +13,6 @@ public class ClothespinTaskManager : MonoBehaviour
     private TaskType currentTaskType;
     public TaskType CurrentTaskType { get => CurrentTaskType; set { currentTaskType = value; } }
 
-
     [SerializeField]
     private float height;
     public float Height { get => height; set { height = value; } }
@@ -37,6 +36,8 @@ public class ClothespinTaskManager : MonoBehaviour
 
     [SerializeField]
     private List<GameObject> poseGOList;
+    private GameObject poseBufferGO;
+
 
     [SerializeField]
     private int currentTrial = 0;
@@ -44,13 +45,25 @@ public class ClothespinTaskManager : MonoBehaviour
     [SerializeField]
     private int currentPinIndex;
 
+    [SerializeField]
+    private int currentSegment;
+
     // Relocation task path, {from, to, pinIndex}. Target numbering: [horizontal, vertical]
     public readonly int[,] TASK_PATH = new int[,] { {0, 2, 0}, {1, 3, 1}, {3, 1, 1},{2, 0, 0} };
-    private readonly int GET_INIT_INDEX = 0;
-    private readonly int GET_FINAL_INDEX = 1;
-    private readonly int GET_PIN_INDEX = 2;
-
+    private const int GET_INIT_INDEX = 0;
+    private const int GET_FINAL_INDEX = 1;
+    private const int GET_PIN_INDEX = 2;
     public int PathNumber { get => TASK_PATH.GetLength(0); }
+
+    // Task segmentation 
+    private const int REACH_INIT = 1;
+    private const int PINCH = 2;
+    private const int REACH_FINAL = 3;
+    private const int OPEN_HAND = 4;
+    private const int SEG_NUM = OPEN_HAND;
+
+    private int totalPathSegment = 1;
+    public int TotalPathSegment { get => totalPathSegment; }
 
     // Flow control
     private bool trialComplete = false;
@@ -70,15 +83,31 @@ public class ClothespinTaskManager : MonoBehaviour
 
     private GameObject handGO;
 
+    // Flags
+    private bool rackInit = false;
+    private bool reachHandInit = false;
+
+    [SerializeField]
+    private bool debug;
+
+    private void Awake()
+    {
+        // Temporary debug
+        if (debug)
+        {
+            for (int i = 1; i <= 4; i++)
+            {
+                GameObject temp = GameObject.Find("HandPose_" + i);
+                poseGOList.Add(temp);
+            }
+        }
+    }
     // Start is called before the first frame update
     void Start()
     {
-        // Temporary debug
-        GameObject tempGO = new GameObject();
-        tempGO.transform.position = GameObject.FindGameObjectWithTag("Respawn").transform.position;
-        tempGO.transform.rotation = GameObject.FindGameObjectWithTag("Respawn").transform.rotation;
-        poseGOList.Add(tempGO);
-       
+        poseBufferGO = new GameObject("PoseBuffer");
+        poseBufferGO.SetActive(false);
+
     }
 
     // Update is called once per frame
@@ -91,14 +120,24 @@ public class ClothespinTaskManager : MonoBehaviour
             switch (currentTaskType)
             {
                 case TaskType.AblePoseRecord:
-                    if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || padAction.GetStateDown(SteamVR_Input_Sources.Any))
+                    // Record the current avatar transform when pressed trigger to grasp
+                    GameObject tempHandGO = GameObject.FindGameObjectWithTag("Hand");
+                    if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any))
                     {
-                        GameObject tempHandGO = GameObject.FindGameObjectWithTag("Hand");
-                        GameObject tempGO = new GameObject();
-                        tempGO.transform.position = tempHandGO.transform.position;
-                        tempGO.transform.rotation = tempHandGO.transform.rotation;
-                        tempGO.transform.localScale = tempHandGO.transform.localScale;
-                        poseGOList.Add(tempGO);
+                        poseBufferGO.SetActive(true);
+                        poseBufferGO.transform.position = tempHandGO.transform.position;
+                        poseBufferGO.transform.rotation = tempHandGO.transform.rotation;
+                        poseBufferGO.transform.localScale = tempHandGO.transform.localScale;
+
+                    }
+                    // If the clothespin is confirmed to reach final target and in idle, record the previously recorded avatar hand pose.
+                    if (poseBufferGO.activeSelf && clothespinList[currentPinIndex].PinState == ClothespinManager.ClothespinState.Idle)
+                    {
+                        GameObject temp = new GameObject("HandPose");
+                        temp.transform.position = poseBufferGO.transform.position;
+                        temp.transform.rotation = poseBufferGO.transform.rotation;
+                        poseBufferGO.SetActive(false);
+                        poseGOList.Add(temp);
                         Debug.Log("Hand pose recorded!");
                     }
                     break;
@@ -112,7 +151,7 @@ public class ClothespinTaskManager : MonoBehaviour
             }
 
             // Check if the selected pin reached
-            if (CheckReached(currentPinIndex,currentTrial))
+            if (CheckReached(currentPinIndex))
             {
                 // Reset flag
                 clothespinList[currentPinIndex].ReachedFinal = false;
@@ -133,19 +172,36 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     public void Initialise()
     {
+        // For first session - never initialised
+        if (!rackInit)
+        {
+            SetupRackPosition();
+            GetAllTargetTransform();
+            InitClothespin();
+            rackInit = true;
+        }
+        
 
-        SetupRackPosition();
-        GetAllTargetTransform();
-        InitClothespin();
+        // Init some constants
+        totalPathSegment = 1;
         currentTrial = 1;
         currentPinIndex = 0;
-        SetupTarget(currentTrial);
+        currentSegment = 1;
+        SetupTargetPin(currentTrial);
 
         // For able-bodied data collection we need to have the hand displayed as target
         if (currentTaskType == TaskType.AbleDataCollect)
         {
-            InitialiseHand();
-            SetupHandPose(0);
+            totalPathSegment = SEG_NUM;
+            currentSegment = 1;
+            if (!reachHandInit)
+            {
+                InitialiseHand();
+                reachHandInit = true;
+            }
+            
+            // Select the first
+            SetupHandPose(currentTrial,currentSegment);
         }
            
     }
@@ -155,21 +211,31 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     public void NextTrial()
     {
-        // Check reach based on different task types
-        switch (currentTaskType)
+        // Reset flag
+        trialComplete = false;
+
+        // Update variables
+        if (currentTaskType == TaskType.AbleDataCollect)
         {
-            case TaskType.AblePoseRecord:
-                break;
-            case TaskType.AbleDataCollect:
-                break;
-            case TaskType.ProstEvaluat:
-                break;
+            currentSegment++;
+            if (currentSegment == REACH_FINAL)
+                SetupHandPose(currentTrial, currentSegment);
+            else if (currentSegment > totalPathSegment) // If finish all the segments of the path 
+            {
+                currentSegment = 1;
+                currentTrial++;
+                SetupHandPose(currentTrial, currentSegment);
+                currentPinIndex = SetupTargetPin(currentTrial);
+            }
 
         }
-        // Update target
-        trialComplete = false;
-        currentTrial++;
-        currentPinIndex = SetupTarget(currentTrial);
+        else
+        {
+            currentTrial++;
+            currentPinIndex = SetupTargetPin(currentTrial);
+        }
+       
+        
     }
 
 
@@ -224,13 +290,22 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     // 
     //
-    private void SetupHandPose(int index)
+    private void SetupHandPose(int trial, int segment)
     {
+        int index = 0;
+
+        int trialInCycle = (trial - 1) % TASK_PATH.GetLength(0);
+        // Setup the new target
+        if(segment == REACH_INIT)
+            index = TASK_PATH[trialInCycle, GET_INIT_INDEX];
+        else if (segment == REACH_FINAL)
+            index = TASK_PATH[trialInCycle, GET_FINAL_INDEX];
+
+
         handGO.transform.position = poseGOList[index].transform.position;
         handGO.transform.rotation = poseGOList[index].transform.rotation;
 
         handGO.GetComponent<ReachHandManager>().SetSelected();
-        //handGO.GetComponentInChildren<SkinnedMeshRenderer>().material.color = clothespinList[0].SelectedColour;
     }
 
     //
@@ -239,14 +314,14 @@ public class ClothespinTaskManager : MonoBehaviour
     private void SetupRackPosition()
     {
         Vector3 temp = new Vector3(-distance, height, 0);
-        this.transform.position += temp;
+        this.transform.position = temp;
     }
 
 
     //
     // Set up target
     //
-    private int SetupTarget(int trial)
+    private int SetupTargetPin(int trial)
     {
         int trialInCycle = (trial - 1) % TASK_PATH.GetLength(0);
         //if (trialInCycle == TASK_PATH.GetLength(0) - 1)
@@ -270,30 +345,38 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     // Check if clothespin has reach the target 
     //
-    private bool CheckReached(int index, int trial)
+    private bool CheckReached(int pinIndex)
     {
         bool reached = false;
 
         if (currentTaskType == TaskType.AblePoseRecord || currentTaskType == TaskType.ProstEvaluat)
-            reached = clothespinList[index].ReachedFinal;
-        else if (currentTaskType == TaskType.AbleDataCollect)
-            reached = CheckReachedPose(trial); // For able-bodied data collection reach the pose instead.
+            reached = clothespinList[pinIndex].ReachedFinal;
+        else if (currentTaskType == TaskType.AbleDataCollect) // For able-bodied data collection reach the pose instead.
+        {
+            switch (currentSegment)
+            {
+                case REACH_INIT:
+                    reached = handGO.GetComponent<ReachHandManager>().ReachedFinal;
+                    break;
+                case PINCH:
+                    reached = buttonAction.GetStateDown(SteamVR_Input_Sources.Any);
+                    break;
+                case REACH_FINAL:
+                    reached = handGO.GetComponent<ReachHandManager>().ReachedFinal;
+                    break;
+                case OPEN_HAND:
+                    reached = padAction.GetStateDown(SteamVR_Input_Sources.Any);
+                    break;
+                default:
+                    break;
+            }
+        }
 
         return reached; 
 
     }
 
-    //
-    // Check if the target hand pose is reached
-    //
-    private bool CheckReachedPose(int trial)
-    {
-        bool reached = false;
-        int poseIndex = (trial -1) % attachGOList.Count;
-
-
-        return reached;
-    }
+ 
 
     //
     // Get target locations

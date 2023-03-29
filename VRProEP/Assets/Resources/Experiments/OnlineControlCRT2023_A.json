@@ -1,1 +1,1 @@
-{"iterationsPerTarget": [1,3,3], "iterationBatchSize": 2, "initIteration": 1, "holdingTime": 1.0, "maxTaskTime": 1000.0}
+{"iterationsPerTarget": [1,3,3], "iterationBatchSize": 4, "initIteration": 1, "holdingTime": 1.0, "maxTaskTime": 1000.0}

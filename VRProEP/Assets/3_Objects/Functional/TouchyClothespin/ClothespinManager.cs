@@ -9,6 +9,7 @@ public class ClothespinManager : MonoBehaviour
     //
     public enum ClothespinState { Idle, Selected, InHand, LeaveInit, ReachTarget, Wrong }
     private ClothespinState pinState;
+    public ClothespinState PinState { get => pinState; }
     // Grasp State
     private bool tempGrasped;
 
@@ -114,7 +115,7 @@ public class ClothespinManager : MonoBehaviour
         if (other.CompareTag("ClothespinRackRod"))
         {
             touchRod = true;
-            Debug.Log("Rod touched!");
+            //Debug.Log("Rod touched!");
         }
     }
 
@@ -137,7 +138,7 @@ public class ClothespinManager : MonoBehaviour
         if (other.CompareTag("ClothespinRackRod"))
         {
             touchRod = false;
-            Debug.Log("Rod leave!");
+            //Debug.Log("Rod leave!");
         }
     }
 
@@ -193,7 +194,7 @@ public class ClothespinManager : MonoBehaviour
                 {
                     OpenClothespin();
                     FollowHand(true);
-                    if (CheckAtTargetTransform(initPosition,initRotation, posTol, angTol))
+                    if (!CheckAtTargetTransform(initPosition,initRotation, posTol, angTol))
                     {
                         pinState = ClothespinState.LeaveInit;
                     }
