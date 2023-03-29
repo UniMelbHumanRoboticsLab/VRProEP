@@ -9,9 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3900194632808980364}
+  - component: {fileID: 3410645739438983949}
   m_Layer: 0
   m_Name: WrIstHandAble_R
-  m_TagString: Untagged
+  m_TagString: Hand
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32,6 +33,22 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!54 &3410645739438983949
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345488241995722796}
+  serializedVersion: 2
+  m_Mass: 0.0000001
+  m_Drag: 0
+  m_AngularDrag: 0
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &1037186722122973429
 GameObject:
   m_ObjectHideFlags: 0
@@ -1071,11 +1088,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: ACESHandRigged_R
-      objectReference: {fileID: 0}
-    - target: {fileID: 7863147087553870449, guid: 0aa3ae9ea2a4b4c49ba5e5dd4d6f2a5b,
-        type: 3}
-      propertyPath: m_IsKinematic
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 2808917583491726615, guid: 0aa3ae9ea2a4b4c49ba5e5dd4d6f2a5b, type: 3}

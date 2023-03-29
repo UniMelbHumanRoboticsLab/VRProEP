@@ -609,7 +609,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2333964716989099206}
   - component: {fileID: 2709574641617710763}
-  - component: {fileID: 7863147087553870449}
   m_Layer: 0
   m_Name: Thumb
   m_TagString: ThumbFingerCollider
@@ -645,22 +644,6 @@ CapsuleCollider:
   m_Height: 0.045
   m_Direction: 1
   m_Center: {x: 4.819684e-10, y: 0.007537935, z: -1.0199425e-10}
---- !u!54 &7863147087553870449
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7138911566244668380}
-  serializedVersion: 2
-  m_Mass: 0.0000001
-  m_Drag: 0
-  m_AngularDrag: 0
-  m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &7280716490383380457
 GameObject:
   m_ObjectHideFlags: 0
@@ -672,10 +655,9 @@ GameObject:
   - component: {fileID: 6003602637557579258}
   - component: {fileID: 4457181596354809984}
   - component: {fileID: 8102016301526750258}
-  - component: {fileID: 1247608299400899511}
   m_Layer: 0
   m_Name: ACESHandRigged_R
-  m_TagString: Hand
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -734,22 +716,6 @@ MonoBehaviour:
   deltaLevel: 0.05
   maxLevel: 1
   minLevel: 0
---- !u!54 &1247608299400899511
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7280716490383380457}
-  serializedVersion: 2
-  m_Mass: 0.0000001
-  m_Drag: 0
-  m_AngularDrag: 0
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &7574811928157235881
 GameObject:
   m_ObjectHideFlags: 0
@@ -760,7 +726,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4424637406712359862}
   - component: {fileID: 5110256929702235276}
-  - component: {fileID: 4702269574979711115}
   m_Layer: 0
   m_Name: Index
   m_TagString: IndexFingerCollider
@@ -796,22 +761,6 @@ CapsuleCollider:
   m_Height: 0.05
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!54 &4702269574979711115
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7574811928157235881}
-  serializedVersion: 2
-  m_Mass: 0.0000001
-  m_Drag: 0
-  m_AngularDrag: 0
-  m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &7740959307390387606
 GameObject:
   m_ObjectHideFlags: 0

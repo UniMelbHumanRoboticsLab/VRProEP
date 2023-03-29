@@ -50,12 +50,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8130a78c8c98dd64a898aad6be7a958d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  height: 0
+  distance: 0
   clothespinPrefab: {fileID: 5625324626307143023, guid: 98f65da1157e9d940bc9862e047c914d,
     type: 3}
   clothespinList: []
   attachGOList: []
+  poseGOList: []
   currentTrial: 0
   currentPinIndex: 0
+  handRPrefab: {fileID: 4180373363171369688, guid: 5ca8950eb4b5d1543b9416062ac58211,
+    type: 3}
+  handLPrefab: {fileID: 4180373363171369688, guid: 49f92939e0db66b478951120bed3705b,
+    type: 3}
+  mMaterial: {fileID: 2100000, guid: 25908bce42a2a8b49b2fcfa213bd1ad8, type: 2}
 --- !u!1 &4295877400609646706
 GameObject:
   m_ObjectHideFlags: 0

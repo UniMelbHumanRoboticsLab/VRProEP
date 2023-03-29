@@ -9,7 +9,7 @@ using Valve.VR.InteractionSystem;
 
 public class ClothespinTaskManager : MonoBehaviour
 {
-    public enum TaskType { AblePoseRecord, AbleDataCollect, ProstEvaluation}
+    public enum TaskType { AblePoseRecord, AbleDataCollect, ProstEvaluat}
     private TaskType currentTaskType;
     public TaskType CurrentTaskType { get => CurrentTaskType; set { currentTaskType = value; } }
 
@@ -60,10 +60,25 @@ public class ClothespinTaskManager : MonoBehaviour
     protected SteamVR_Action_Boolean padAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("InterfaceEnableButton");
     protected SteamVR_Action_Boolean buttonAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("ObjectInteractButton");
 
+    // Hand Models
+    [SerializeField]
+    private GameObject handRPrefab;
+    [SerializeField]
+    private GameObject handLPrefab;
+    [SerializeField]
+    private Material mMaterial;
+
+    private GameObject handGO;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        // Temporary debug
+        GameObject tempGO = new GameObject();
+        tempGO.transform.position = GameObject.FindGameObjectWithTag("Respawn").transform.position;
+        tempGO.transform.rotation = GameObject.FindGameObjectWithTag("Respawn").transform.rotation;
+        poseGOList.Add(tempGO);
+       
     }
 
     // Update is called once per frame
@@ -72,30 +87,40 @@ public class ClothespinTaskManager : MonoBehaviour
         // The task has been initliased
         if (currentTrial != 0)
         {
-            // If the trigger is pulled, record the current hand transform
-            if (currentTaskType == TaskType.AblePoseRecord)
+            // Handle extra updates for different task types
+            switch (currentTaskType)
             {
-                if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || padAction.GetStateDown(SteamVR_Input_Sources.Any))
-                {
-                    GameObject tempHandGO = GameObject.FindGameObjectWithTag("Hand");
-                    GameObject tempGO = new GameObject();
-                    tempGO.transform.position = tempHandGO.transform.position;
-                    tempGO.transform.rotation = tempHandGO.transform.rotation;
-                    tempGO.transform.localScale = tempHandGO.transform.localScale;
-                    poseGOList.Add(tempGO);
-                    Debug.Log("Hand pose recorded!");
-                }
-            }
-            
+                case TaskType.AblePoseRecord:
+                    if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || padAction.GetStateDown(SteamVR_Input_Sources.Any))
+                    {
+                        GameObject tempHandGO = GameObject.FindGameObjectWithTag("Hand");
+                        GameObject tempGO = new GameObject();
+                        tempGO.transform.position = tempHandGO.transform.position;
+                        tempGO.transform.rotation = tempHandGO.transform.rotation;
+                        tempGO.transform.localScale = tempHandGO.transform.localScale;
+                        poseGOList.Add(tempGO);
+                        Debug.Log("Hand pose recorded!");
+                    }
+                    break;
+                case TaskType.AbleDataCollect:
+                    // Do nothing
+                    break;
+                case TaskType.ProstEvaluat:
+                    // Do nothing
+                    break;
 
-            // If the selected pin reached
-            if (CheckReached(currentPinIndex))
+            }
+
+            // Check if the selected pin reached
+            if (CheckReached(currentPinIndex,currentTrial))
             {
                 // Reset flag
                 clothespinList[currentPinIndex].ReachedFinal = false;
                 trialComplete = true;
             }
-            
+
+
+
         }
     }
 
@@ -108,14 +133,21 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     public void Initialise()
     {
-        SetupPosition();
+
+        SetupRackPosition();
         GetAllTargetTransform();
         InitClothespin();
         currentTrial = 1;
         currentPinIndex = 0;
-
-        // First trial;
         SetupTarget(currentTrial);
+
+        // For able-bodied data collection we need to have the hand displayed as target
+        if (currentTaskType == TaskType.AbleDataCollect)
+        {
+            InitialiseHand();
+            SetupHandPose(0);
+        }
+           
     }
 
     //
@@ -130,8 +162,7 @@ public class ClothespinTaskManager : MonoBehaviour
                 break;
             case TaskType.AbleDataCollect:
                 break;
-            case TaskType.ProstEvaluation:
-
+            case TaskType.ProstEvaluat:
                 break;
 
         }
@@ -154,11 +185,58 @@ public class ClothespinTaskManager : MonoBehaviour
 
 
     #region private methods
+    //
+    // Initilise hand model
+    //
+    private void InitialiseHand()
+    {
+        //
+        // Left sign
+        //
+        float sign = 1.0f;
+        string side = "R";
+        if (SaveSystem.ActiveUser.lefty)
+        {
+            sign = -1.0f;
+            side = "L";
+        }
+
+        if (!SaveSystem.ActiveUser.lefty) //Check to use the left or right hand prefab
+            handGO = Instantiate(handRPrefab); 
+
+        else
+            handGO = Instantiate(handLPrefab);
+
+        
+        // Load hand scale
+        string objectPath = "Avatars/Hands/ACESHand_" + side;
+        string objectDataAsJson = Resources.Load<TextAsset>(objectPath).text;
+        AvatarObjectData activeHandData = JsonUtility.FromJson<AvatarObjectData>(objectDataAsJson);
+        if (activeHandData == null)
+            throw new System.Exception("The requested hand information was not found.");
+
+
+        float scaleFactor = SaveSystem.ActiveUser.handLength / activeHandData.dimensions.x;
+        handGO.transform.localScale = new Vector3(sign * scaleFactor, sign * scaleFactor, sign * scaleFactor);
+
+    }
+
+    //
+    // 
+    //
+    private void SetupHandPose(int index)
+    {
+        handGO.transform.position = poseGOList[index].transform.position;
+        handGO.transform.rotation = poseGOList[index].transform.rotation;
+
+        handGO.GetComponent<ReachHandManager>().SetSelected();
+        //handGO.GetComponentInChildren<SkinnedMeshRenderer>().material.color = clothespinList[0].SelectedColour;
+    }
 
     //
     // Set up rack position
     //
-    private void SetupPosition()
+    private void SetupRackPosition()
     {
         Vector3 temp = new Vector3(-distance, height, 0);
         this.transform.position += temp;
@@ -192,12 +270,29 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     // Check if clothespin has reach the target 
     //
-    private bool CheckReached(int index)
+    private bool CheckReached(int index, int trial)
     {
-        
+        bool reached = false;
 
-        return clothespinList[index].ReachedFinal; ;
+        if (currentTaskType == TaskType.AblePoseRecord || currentTaskType == TaskType.ProstEvaluat)
+            reached = clothespinList[index].ReachedFinal;
+        else if (currentTaskType == TaskType.AbleDataCollect)
+            reached = CheckReachedPose(trial); // For able-bodied data collection reach the pose instead.
 
+        return reached; 
+
+    }
+
+    //
+    // Check if the target hand pose is reached
+    //
+    private bool CheckReachedPose(int trial)
+    {
+        bool reached = false;
+        int poseIndex = (trial -1) % attachGOList.Count;
+
+
+        return reached;
     }
 
     //

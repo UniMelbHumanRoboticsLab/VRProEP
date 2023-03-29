@@ -32,14 +32,19 @@ public class ClothespinManager : MonoBehaviour
     [Header("Colour configuration")]
     [SerializeField]
     private Color idleColour;
+    public  Color IdleColour { get => idleColour; }
     [SerializeField]
     private Color selectedColour;
+    public Color SelectedColour { get => selectedColour;  }
     [SerializeField]
     private Color correctColour;
+    public Color CorrectColour { get => correctColour;  }
     [SerializeField]
     private Color movingColour;
+    public Color MovingColour { get => movingColour;  }
     [SerializeField]
     private Color wrongColour;
+    public Color WrongColour { get => wrongColour;  }
     private Renderer[] pinRenderer;
 
 
