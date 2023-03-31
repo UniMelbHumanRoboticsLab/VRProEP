@@ -269,9 +269,9 @@ public class OnlineControlCRT2023 : GameMaster
 
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
         {
-            //if (sessionNumber == 1)
-                //crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AblePoseRecord;
-            //else if (sessionNumber == 2)
+            if (sessionNumber == 1)
+                crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AblePoseRecord;
+            else if (sessionNumber == 2)
                 crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AbleDataCollect;
         }
         else if (AvatarSystem.AvatarType == AvatarType.Transhumeral)

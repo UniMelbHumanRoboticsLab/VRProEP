@@ -180,9 +180,10 @@ public class ClothespinTaskManager : MonoBehaviour
             InitClothespin();
             rackInit = true;
         }
-        
 
-        // Init some constants
+
+        // Init some constants & flags
+        trialComplete = false;
         totalPathSegment = 1;
         currentTrial = 1;
         currentPinIndex = 0;
