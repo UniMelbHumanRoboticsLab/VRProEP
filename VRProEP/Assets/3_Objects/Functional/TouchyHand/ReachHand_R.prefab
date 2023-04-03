@@ -82,7 +82,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: WrIstHandAble_R
       objectReference: {fileID: 0}
+    - target: {fileID: 651398693270487166, guid: 95f5d18daafa9aa41aced9cb674d41e7,
+        type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 917693873870960374, guid: 95f5d18daafa9aa41aced9cb674d41e7,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1225578168653978965, guid: 95f5d18daafa9aa41aced9cb674d41e7,
+        type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 1507368913991620100, guid: 95f5d18daafa9aa41aced9cb674d41e7,
         type: 3}
       propertyPath: m_TagString
       value: Untagged
@@ -101,6 +116,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsKinematic
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2666815694491029556, guid: 95f5d18daafa9aa41aced9cb674d41e7,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3697863921171041794, guid: 95f5d18daafa9aa41aced9cb674d41e7,
         type: 3}
