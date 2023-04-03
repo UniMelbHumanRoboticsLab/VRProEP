@@ -50,6 +50,8 @@ public class ClothespinTaskManager : MonoBehaviour
 
     // Relocation task path, {from, to, pinIndex}. Target numbering: [horizontal, vertical]
     public readonly int[,] TASK_PATH = new int[,] { {0, 2, 0}, {1, 3, 1}, {3, 1, 1},{2, 0, 0} };
+    public readonly int[,] TASK_PATH_HAND_RECORD = new int[,] { { 0, 3, 0 }, { 1, 2, 1 }, { 2, 1, 1 }, { 3, 0, 0 } };
+
     private const int GET_INIT_INDEX = 0;
     private const int GET_FINAL_INDEX = 1;
     private const int GET_PIN_INDEX = 2;
@@ -298,9 +300,9 @@ public class ClothespinTaskManager : MonoBehaviour
         int trialInCycle = (trial - 1) % TASK_PATH.GetLength(0);
         // Setup the new target
         if(segment == REACH_INIT)
-            index = TASK_PATH[trialInCycle, GET_INIT_INDEX];
+            index = TASK_PATH_HAND_RECORD[trialInCycle, GET_INIT_INDEX];
         else if (segment == REACH_FINAL)
-            index = TASK_PATH[trialInCycle, GET_FINAL_INDEX];
+            index = TASK_PATH_HAND_RECORD[trialInCycle, GET_FINAL_INDEX];
 
 
         handGO.transform.position = poseGOList[index].transform.position;
