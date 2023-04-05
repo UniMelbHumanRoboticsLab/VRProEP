@@ -43,10 +43,16 @@ public class ACESHandAnimation : MonoBehaviour
         {
             Pinch();
         }
+        else
+        {
+            Open();
+        }
+        /*
         else if (Input.GetKey(KeyCode.LeftArrow) || padAction.GetState(SteamVR_Input_Sources.Any))
         {
             Open();
         }
+        */
     }
 
     public void Pinch()
