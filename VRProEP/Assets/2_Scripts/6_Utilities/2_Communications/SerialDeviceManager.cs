@@ -6,13 +6,14 @@ using System.Threading;
 
 public class SerialDeviceManager : RunAbleThread
 {
-    private SerialPort port;
+    protected int baudrate;
+    protected string com;
+    protected string receivedData;
 
     public SerialDeviceManager(string com, int baudrate)
     {
-        InitPort(com, baudrate);
-        port.Open();
-        
+        this.com = com;
+        this.baudrate = baudrate;
     }
 
     //
@@ -20,29 +21,33 @@ public class SerialDeviceManager : RunAbleThread
     //
     protected override void Run()
     {
-        while (Running)
+        using (SerialPort port = new SerialPort())
         {
-            try
+            InitPort(port, com, baudrate);
+            port.Open();
+            while (Running)
             {
-                string data = port.ReadLine();
-                Debug.Log("Serial received: " + data);
+                try
+                {
+                    receivedData = port.ReadLine();
+                    Debug.Log("Serial received: " + receivedData);
+                }
+                catch (System.TimeoutException) { }
+                catch (ThreadAbortException) { return; }
             }
-            catch (System.TimeoutException) { }
-            catch (ThreadAbortException) { return; }
+            port.Close();
         }
-        port.Close();
+           
     }
 
 
     //
     // Setup serial port
     //
-    private void InitPort(string com, int baudrate)
+    protected void InitPort(SerialPort port, string com, int baudrate)
     {
-        // Connect to the first
-        port = new SerialPort(com);
-
         // Set the baud rate, parity, data bits, and stop bits
+        port.PortName = com;
         port.BaudRate = baudrate;
         port.Parity = Parity.None;
         port.DataBits = 8;
