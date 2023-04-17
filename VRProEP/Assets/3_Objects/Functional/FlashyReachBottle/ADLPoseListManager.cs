@@ -9,6 +9,7 @@ public class ADLPoseListManager : MonoBehaviour
     // List of poses
     [SerializeField]
     private Sprite[] poseSpriteList;
+    public int PoseNumber { get => poseSpriteList.Length; }
 
     private List<string> poses = new List<string>();// List of poses
     private List<AudioClip> poseAudioClips = new List<AudioClip>();

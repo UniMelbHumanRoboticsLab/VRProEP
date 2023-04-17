@@ -29,6 +29,8 @@ public class DataCollection2022GM : GameMaster
     [SerializeField]
     private bool delsysEMGEnable = false;
     [SerializeField]
+    private bool armbandFMGEnable = false;
+    [SerializeField]
     private bool trackerEnable = false;
     [SerializeField]
     private bool fourTrackerEnable = false;
@@ -163,6 +165,13 @@ public class DataCollection2022GM : GameMaster
         //string emgDataFilename =  Path.Combine(taskDataLogger.ActiveDataPath, "session_" + sessionNumber , "i" + "_" + iterationNumber + "EMG.csv");
         string emgDataFilename = taskDataLogger.ActiveDataPath + "/session_" + sessionNumber + "/i" + "_" + iterationNumber + "EMG.csv";
         return emgDataFilename;
+    }
+
+    private string ConfigFMGFilePath()
+    {
+        //string emgDataFilename =  Path.Combine(taskDataLogger.ActiveDataPath, "session_" + sessionNumber , "i" + "_" + iterationNumber + "EMG.csv");
+        string fmgDataFilename = taskDataLogger.ActiveDataPath + "/session_" + sessionNumber + "/i" + "_" + iterationNumber + "FMG.csv";
+        return fmgDataFilename;
     }
 
     private IEnumerator DisplayTaskText(int index)
@@ -466,8 +475,12 @@ public class DataCollection2022GM : GameMaster
         //
         // Target ADL poses
         //
-        poseListManager.AddPose("Gesture 1");
-        poseListManager.AddPose("Gesture 2");
+        for (int i = 1; i <= poseListManager.PoseNumber; i++)
+        {
+            string pose = "Gesture" + i.ToString();
+            poseListManager.AddPose("Gesture1");
+        }
+        
 
         //
         // Timer slider bar
