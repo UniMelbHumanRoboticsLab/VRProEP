@@ -122,6 +122,8 @@ public class DataCollection2022GM : GameMaster
     // Delsys EMG background data collection
     private DelsysEMG delsysEMG = new DelsysEMG();
 
+    // FMG arm band data collection
+    private TactileArmBandManager armBandFMG;
 
     // Target management variables
     private int targetNumber = 9; // The total number of targets
@@ -146,14 +148,6 @@ public class DataCollection2022GM : GameMaster
 
     // Timer slide bar
     private Slider timerSliderBar;
-
-
-    private class VariationTestConfigurator
-    {
-        public int iterationsPerTarget = 10;
-        public int sessionNumber = 2;
-    }
-    private VariationTestConfigurator configurator;
 
     //Audio
     AudioSource audio;
@@ -255,9 +249,11 @@ public class DataCollection2022GM : GameMaster
     //
     private class Configurator
     {
-        
+        public int iterationsPerTarget = 10;
+        public int totalSessionNumber = 2;
+        public int initSessionNumber = 1;
     }
-    private Configurator config;
+    private Configurator configurator;
 
     #endregion
 
@@ -276,10 +272,16 @@ public class DataCollection2022GM : GameMaster
                 if (delsysEMGEnable)
                 {
                     delsysEMG.StartRecording(ConfigEMGFilePath());
-                    emgIsRecording = true;
+                    //emgIsRecording = true;
                 }
 
-                Debug.Log("Ite:" + iterationNumber + ". Start task");
+                if (armbandFMGEnable)
+                {
+                    armBandFMG.FileName = ConfigFMGFilePath();
+                    armBandFMG.StartRecording();
+                }
+
+                    Debug.Log("Ite:" + iterationNumber + ". Start task");
                 audio.clip = startAudioClip;
                 audio.Play();
                 taskStarted = true;
@@ -350,11 +352,11 @@ public class DataCollection2022GM : GameMaster
         //configAsset = Resources.Load<TextAsset>("Experiments/" + ExperimentSystem.ActiveExperimentID);
 
         // Convert configuration file to configuration class.
-        configurator = JsonUtility.FromJson<VariationTestConfigurator>(configAsset.text);
+        configurator = JsonUtility.FromJson<Configurator>(configAsset.text);
 
         // Load from config file
         iterationsPerTarget = configurator.iterationsPerTarget;
-        for (int i = 0; i < configurator.sessionNumber-1; i++)
+        for (int i = 0; i <= configurator.totalSessionNumber-1; i++)
         {
             iterationsPerSession.Add(0);
         }
@@ -394,7 +396,7 @@ public class DataCollection2022GM : GameMaster
             ExperimentSystem.SetActiveExperimentID(this.gameObject.name + "_Debug");
 
         // Make sure flow control is initialised
-        sessionNumber = 1;
+        sessionNumber = configurator.initSessionNumber;
         iterationNumber = 1;
 
         //
@@ -427,6 +429,11 @@ public class DataCollection2022GM : GameMaster
 
         #endregion
 
+        #region Initialize FMG armband sensors
+        if (armbandFMGEnable)
+            armBandFMG = new TactileArmBandManager("COM7", 115200);
+        
+        #endregion
 
         #region  Initialize motion sensors
         //
@@ -478,7 +485,7 @@ public class DataCollection2022GM : GameMaster
         for (int i = 1; i <= poseListManager.PoseNumber; i++)
         {
             string pose = "Gesture" + i.ToString();
-            poseListManager.AddPose("Gesture1");
+            poseListManager.AddPose(pose);
         }
         
 
@@ -495,8 +502,11 @@ public class DataCollection2022GM : GameMaster
         if (delsysEMGEnable)
             delsysEMG.StartAcquisition();
 
-
-
+        //
+        // Start FMG readings
+        //
+        if (armbandFMGEnable)
+            armBandFMG.StartAcquisition();
     }
 
     /// <summary>
@@ -993,7 +1003,8 @@ public class DataCollection2022GM : GameMaster
         // Stop data reading and save data
         startRecording = false;
         delsysEMG.StopRecording();
-        emgIsRecording = false;
+        armBandFMG.StopRecording();
+        //emgIsRecording = false;
 
         base.HandleTaskCompletion();
         // Reset flags
@@ -1117,9 +1128,17 @@ public class DataCollection2022GM : GameMaster
     public override void EndExperiment()
     {
         base.EndExperiment();
-        delsysEMG.StopAcquisition();
-        delsysEMG.Close();
+        if (delsysEMGEnable)
+        {
+            delsysEMG.StopAcquisition();
+            delsysEMG.Close();
+        }
+        if (armbandFMGEnable)
+        {
+            armBandFMG.StopAcquisition();
+        }
         
+
         // You can do your own end of experiment stuff here
     }
 
@@ -1141,6 +1160,15 @@ public class DataCollection2022GM : GameMaster
     {
         //ZMQSystem.AddPushData(zmq, new float[] { 0.0f });
         //ZMQSystem.CloseZMQSocket(zmqPort, ZMQSystem.SocketType.Pusher);
+        if (delsysEMGEnable)
+        {
+            delsysEMG.StopAcquisition();
+            delsysEMG.Close();
+        }
+        if (armbandFMGEnable)
+        {
+            armBandFMG.StopAcquisition();
+        }
         NetMQConfig.Cleanup(false);
     }
 }

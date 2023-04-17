@@ -1024,6 +1024,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
+      propertyPath: armbandFMGEnable
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
+        type: 3}
       propertyPath: skipInstructions
       value: 1
       objectReference: {fileID: 0}
