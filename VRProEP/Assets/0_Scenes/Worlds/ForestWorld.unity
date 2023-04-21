@@ -5841,6 +5841,11 @@ PrefabInstance:
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: zmqPushEnable
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
+        type: 3}
+      propertyPath: udpInputEnable
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
@@ -5856,7 +5861,7 @@ PrefabInstance:
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: fullTrackerEnable
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3173896575985748330, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
@@ -5921,7 +5926,7 @@ PrefabInstance:
     - target: {fileID: 7057585951369286232, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8311324623452099690, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
@@ -6706,7 +6711,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1320977837
 MonoBehaviour:
   m_ObjectHideFlags: 0

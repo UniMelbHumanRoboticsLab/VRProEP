@@ -11,6 +11,9 @@ public class ACESHandAnimation : MonoBehaviour
     private Animator animator;
 
     [SerializeField]
+    private int udpChannel = 0;
+
+    [SerializeField]
     private bool pinchAction;
     public bool PinchAction { get => pinchAction; set { pinchAction = value; } }
 
@@ -38,8 +41,8 @@ public class ACESHandAnimation : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-
-        if (Input.GetKey(KeyCode.RightArrow) || buttonAction.GetState(SteamVR_Input_Sources.Any))
+        if (Input.GetKey(KeyCode.RightArrow) || buttonAction.GetState(SteamVR_Input_Sources.Any) || 
+            (UDPClothespinManager.ClothespinState)UDPInputSystem.GetInput(UDPInputSystem.InputType.UDPClothespinButton, udpChannel) == UDPClothespinManager.ClothespinState.Pinch)
         {
             Pinch();
         }

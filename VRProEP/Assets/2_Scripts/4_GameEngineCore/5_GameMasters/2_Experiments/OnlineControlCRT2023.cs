@@ -87,6 +87,10 @@ public class OnlineControlCRT2023 : GameMaster
     private bool avatarCalibration;
 
     [Header("Flags")]
+    // Allow inputs from udp devices
+    [SerializeField]
+    private bool udpInputEnable;
+
     // If allow using controller to complete tasks
     [SerializeField]
     private bool dummyControlEnable;
@@ -326,6 +330,15 @@ public class OnlineControlCRT2023 : GameMaster
     // having to load it from the menus.
     private void Awake()
     {
+        if (udpInputEnable)
+        {
+            UDPClothespinManager udpClopin;
+            string ipAddress = "192.168.137.19";
+            int port = 2390;
+            udpClopin = new UDPClothespinManager(ipAddress, port);
+            UDPInputSystem.AddInput(UDPInputSystem.InputType.UDPClothespinButton, udpClopin);
+        }
+
         if (debug)
         {
             //
@@ -1558,6 +1571,8 @@ public class OnlineControlCRT2023 : GameMaster
             delsysEMG.StopAcquisition();
             delsysEMG.Close();
         }
+
+        UDPInputSystem.CloseInput();
     }
 
     /// <summary>
@@ -1598,6 +1613,8 @@ public class OnlineControlCRT2023 : GameMaster
             delsysEMG.StopAcquisition();
             delsysEMG.Close();
         }
+
+        UDPInputSystem.CloseInput();
 
         NetMQConfig.Cleanup(false);
     }
