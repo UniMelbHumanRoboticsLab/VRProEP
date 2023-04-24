@@ -5,9 +5,17 @@ using VRProEP.Utilities;
 
 public class UDPClothespinManager : UDPSensorManager
 {
-    public UDPClothespinManager(string ipAddress, int port): base(ipAddress, port, "ClothesPinWiFi") {}
+    private const int SAMPLE_INTERVAL = 5;
+    public UDPClothespinManager(string ipAddress, int port): base(ipAddress, port, "ClothesPinWiFi", SAMPLE_INTERVAL) {}
 
-    public enum ClothespinState { Open, Pinch};
+    public enum ClothespinState { Open, Pinch, Null};
+
+    private ClothespinState prevState;
+
+    public ClothespinState GetPrevClothespinState()
+    {
+        return prevState;
+    }
 
     public ClothespinState GetClothespinState()
     {
@@ -19,6 +27,7 @@ public class UDPClothespinManager : UDPSensorManager
         if (value[0] == 1)
             state = ClothespinState.Pinch;
 
+        prevState = state;
         return state;
     }
 

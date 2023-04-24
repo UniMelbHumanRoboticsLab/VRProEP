@@ -31,9 +31,9 @@ public class OnlineControlCRT2023 : GameMaster
     [SerializeField]
     private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pxHand,pyHand,pzHand,paHand,pbHand,pgHand,pEfe,pDotEfe,pWps,pDotWps,errorX,errorY,errorZ,errorAng";
     [SerializeField]
-    private string performanceDataFormat = "i,loc,t_f,qt_sfe,qt_saa,qt_sr,qt_efe,qt_wps,qt_wfe,qt_waa";
+    private string performanceDataFormat = "i, t_f, i_clothespin, target_pose";
 
-    
+
 
     [Header("Experiment configuration: Start position")]
     [SerializeField]
@@ -124,6 +124,11 @@ public class OnlineControlCRT2023 : GameMaster
     [SerializeField]
     private bool checkStartPosition;
 
+
+    [SerializeField]
+    string udpIPAddress = "192.168.137.19";
+    [SerializeField]
+    int udpPort = 2390;
     #endregion
 
     // Additional data logging
@@ -333,9 +338,8 @@ public class OnlineControlCRT2023 : GameMaster
         if (udpInputEnable)
         {
             UDPClothespinManager udpClopin;
-            string ipAddress = "192.168.137.19";
-            int port = 2390;
-            udpClopin = new UDPClothespinManager(ipAddress, port);
+            
+            udpClopin = new UDPClothespinManager(udpIPAddress, udpPort);
             UDPInputSystem.AddInput(UDPInputSystem.InputType.UDPClothespinButton, udpClopin);
         }
 
@@ -1439,7 +1443,11 @@ public class OnlineControlCRT2023 : GameMaster
         //StartCoroutine(HandleResultAnalysisCoroutine());
         //Debug.Log("Try feedback");
 
-        string iterationResults = iterationNumber + "," + iterationNumber + "," + iterationDoneTime.ToString();
+        string iterationResults = "";
+        if (crtManager.CurrentTaskType == ClothespinTaskManager.TaskType.AbleDataCollect)
+            iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose;
+        else
+            iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() ;
 
         // Log results
         performanceDataLogger.AppendData(iterationResults);
@@ -1453,7 +1461,11 @@ public class OnlineControlCRT2023 : GameMaster
     /// </summary>
     private void AltHandleResultAnalysis()
     {
-        string iterationResults = iterationNumber + "," + iterationNumber + "," + iterationDoneTime.ToString(); //+ "," + feedbackScore.ToString();
+        string iterationResults = "";
+        if (crtManager.CurrentTaskType == ClothespinTaskManager.TaskType.AbleDataCollect)
+            iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose;
+        else
+            iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() ;
 
         // Log results
         performanceDataLogger.AppendData(iterationResults);
@@ -1534,6 +1546,8 @@ public class OnlineControlCRT2023 : GameMaster
         iterationsPerSession[sessionNumber - 1] = crtManager.PathNumber *crtManager.TotalPathSegment *  iterationsPerTarget[sessionNumber - 1];
         Debug.Log("Total trials in the Session " + sessionNumber + ": "+ iterationsPerSession[sessionNumber - 1]);
 
+        performanceDataLogger.AddNewLogFile(AvatarSystem.AvatarType.ToString(), sessionNumber, performanceDataFormat); // Add new performance data log file
+
     }
 
     /// <summary>
@@ -1572,7 +1586,8 @@ public class OnlineControlCRT2023 : GameMaster
             delsysEMG.Close();
         }
 
-        UDPInputSystem.CloseInput();
+        if(udpInputEnable)
+            UDPInputSystem.CloseInput();
     }
 
     /// <summary>
@@ -1614,7 +1629,8 @@ public class OnlineControlCRT2023 : GameMaster
             delsysEMG.Close();
         }
 
-        UDPInputSystem.CloseInput();
+        if(udpInputEnable)
+            UDPInputSystem.CloseInput();
 
         NetMQConfig.Cleanup(false);
     }

@@ -11,7 +11,25 @@ public class ClothespinTaskManager : MonoBehaviour
 {
     public enum TaskType { AblePoseRecord, AbleDataCollect, ProstEvaluat}
     private TaskType currentTaskType;
-    public TaskType CurrentTaskType { get => CurrentTaskType; set { currentTaskType = value; } }
+    public TaskType CurrentTaskType { get => currentTaskType; set { currentTaskType = value; } }
+
+    // Relocation task path, {segment, {from, to, pinIndex}}. Target numbering: [horizontal, vertical]
+    public readonly int[,] TASK_PATH = new int[,] { { 0, 2, 0 }, { 1, 3, 1 }, { 3, 1, 1 }, { 2, 0, 0 } };
+    public readonly int[,] TASK_PATH_HAND_RECORD = new int[,] { { 0, 3, 0 }, { 1, 2, 1 }, { 2, 1, 1 }, { 3, 0, 0 } };
+
+    private const int GET_INIT_INDEX = 0;
+    private const int GET_FINAL_INDEX = 1;
+    private const int GET_PIN_INDEX = 2;
+
+    // Task segmentation 
+    private const int REACH_INIT = 1;
+    private const int PINCH = 2;
+    private const int REACH_FINAL = 3;
+    private const int OPEN_HAND = 4;
+    private const int SEG_NUM = OPEN_HAND;
+
+    private readonly string[] horizontalAttachPoint = { "AttachPoint_H2_1", "AttachPoint_H2_2" };
+    private readonly string[] verticalAttachPoint = { "AttachPoint_V1_1", "AttachPoint_V1_2" };
 
     [SerializeField]
     private float height;
@@ -28,8 +46,6 @@ public class ClothespinTaskManager : MonoBehaviour
     [SerializeField]
     private List<ClothespinManager> clothespinList;
 
-    private readonly string[] horizontalAttachPoint = { "AttachPoint_H2_1", "AttachPoint_H2_2" };
-    private readonly string[] verticalAttachPoint = { "AttachPoint_V1_1", "AttachPoint_V1_2" };
 
     [SerializeField]
     private List<GameObject> attachGOList;
@@ -44,25 +60,16 @@ public class ClothespinTaskManager : MonoBehaviour
 
     [SerializeField]
     private int currentPinIndex;
+    public int CurrentPinIndex { get => currentPinIndex; }
 
     [SerializeField]
     private int currentSegment;
 
-    // Relocation task path, {from, to, pinIndex}. Target numbering: [horizontal, vertical]
-    public readonly int[,] TASK_PATH = new int[,] { {0, 2, 0}, {1, 3, 1}, {3, 1, 1},{2, 0, 0} };
-    public readonly int[,] TASK_PATH_HAND_RECORD = new int[,] { { 0, 3, 0 }, { 1, 2, 1 }, { 2, 1, 1 }, { 3, 0, 0 } };
-
-    private const int GET_INIT_INDEX = 0;
-    private const int GET_FINAL_INDEX = 1;
-    private const int GET_PIN_INDEX = 2;
+    [SerializeField]
+    private string currentTargetPose;
+    public string CurrentTargetPose { get => currentTargetPose; }
+    
     public int PathNumber { get => TASK_PATH.GetLength(0); }
-
-    // Task segmentation 
-    private const int REACH_INIT = 1;
-    private const int PINCH = 2;
-    private const int REACH_FINAL = 3;
-    private const int OPEN_HAND = 4;
-    private const int SEG_NUM = OPEN_HAND;
 
     private int totalPathSegment = 1;
     public int TotalPathSegment { get => totalPathSegment; }
@@ -113,7 +120,7 @@ public class ClothespinTaskManager : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         // The task has been initliased
         if (currentTrial != 0)
@@ -123,8 +130,12 @@ public class ClothespinTaskManager : MonoBehaviour
             {
                 case TaskType.AblePoseRecord:
                     // Record the current avatar transform when pressed trigger to grasp
+                    int udpChannel = 0;
+                    UDPClothespinManager.ClothespinState prevPinState = (UDPClothespinManager.ClothespinState)UDPInputSystem.GetPrevInput(UDPInputSystem.InputType.UDPClothespinButton, udpChannel);
+                    UDPClothespinManager.ClothespinState pinState = (UDPClothespinManager.ClothespinState)UDPInputSystem.GetInput(UDPInputSystem.InputType.UDPClothespinButton, udpChannel);
                     GameObject tempHandGO = GameObject.FindGameObjectWithTag("Hand");
-                    if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any))
+                    if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || 
+                        (prevPinState == UDPClothespinManager.ClothespinState.Open && pinState == UDPClothespinManager.ClothespinState.Pinch))
                     {
                         poseBufferGO.SetActive(true);
                         poseBufferGO.transform.position = tempHandGO.transform.position;
@@ -202,9 +213,10 @@ public class ClothespinTaskManager : MonoBehaviour
                 InitialiseHand();
                 reachHandInit = true;
             }
-            
+
             // Select the first
             SetupHandPose(currentTrial,currentSegment);
+            SetupTargetPose(currentTrial, currentSegment);
         }
            
     }
@@ -230,6 +242,8 @@ public class ClothespinTaskManager : MonoBehaviour
                 SetupHandPose(currentTrial, currentSegment);
                 currentPinIndex = SetupTargetPin(currentTrial);
             }
+
+            SetupTargetPose(currentTrial, currentSegment);
 
         }
         else
@@ -291,7 +305,35 @@ public class ClothespinTaskManager : MonoBehaviour
     }
 
     //
-    // 
+    // Set current target pose name - only valide when task type is AbleDataCollection
+    //
+    private void SetupTargetPose(int trial, int segment)
+    {
+        int trialInCycle = (trial - 1) % TASK_PATH.GetLength(0);
+
+        // Set the target pose name
+        switch (segment)
+        {
+            case REACH_INIT:
+                currentTargetPose = attachGOList[TASK_PATH[trialInCycle, GET_INIT_INDEX]].name.ToString();
+                break;
+            case PINCH:
+                currentTargetPose = "Pinch";
+                break;
+            case REACH_FINAL:
+                currentTargetPose = attachGOList[TASK_PATH[trialInCycle, GET_FINAL_INDEX]].name.ToString();
+                break;
+            case OPEN_HAND:
+                currentTargetPose = "Open";
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    //
+    // Setup the hand pose in able data collection mode
     //
     private void SetupHandPose(int trial, int segment)
     {
@@ -299,17 +341,17 @@ public class ClothespinTaskManager : MonoBehaviour
 
         int trialInCycle = (trial - 1) % TASK_PATH.GetLength(0);
         // Setup the new target
-        if(segment == REACH_INIT)
+        if (segment == REACH_INIT)
             index = TASK_PATH_HAND_RECORD[trialInCycle, GET_INIT_INDEX];
         else if (segment == REACH_FINAL)
             index = TASK_PATH_HAND_RECORD[trialInCycle, GET_FINAL_INDEX];
-
 
         handGO.transform.position = poseGOList[index].transform.position;
         handGO.transform.rotation = poseGOList[index].transform.rotation;
 
         handGO.GetComponent<ReachHandManager>().SetSelected();
     }
+
 
     //
     // Set up rack position
@@ -320,6 +362,8 @@ public class ClothespinTaskManager : MonoBehaviour
         this.transform.position = temp;
     }
 
+
+   
 
     //
     // Set up target
@@ -350,6 +394,10 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     private bool CheckReached(int pinIndex)
     {
+        int udpChannel = 0;
+        UDPClothespinManager.ClothespinState prevPinState = (UDPClothespinManager.ClothespinState)UDPInputSystem.GetPrevInput(UDPInputSystem.InputType.UDPClothespinButton, udpChannel);
+        UDPClothespinManager.ClothespinState pinState = (UDPClothespinManager.ClothespinState)UDPInputSystem.GetInput(UDPInputSystem.InputType.UDPClothespinButton, udpChannel);
+
         bool reached = false;
 
         if (currentTaskType == TaskType.AblePoseRecord || currentTaskType == TaskType.ProstEvaluat)
@@ -362,13 +410,15 @@ public class ClothespinTaskManager : MonoBehaviour
                     reached = handGO.GetComponent<ReachHandManager>().ReachedFinal;
                     break;
                 case PINCH:
-                    reached = buttonAction.GetStateDown(SteamVR_Input_Sources.Any);
+                    reached = buttonAction.GetStateDown(SteamVR_Input_Sources.Any) ||
+                                (prevPinState == UDPClothespinManager.ClothespinState.Open && pinState == UDPClothespinManager.ClothespinState.Pinch);
                     break;
                 case REACH_FINAL:
                     reached = handGO.GetComponent<ReachHandManager>().ReachedFinal;
                     break;
                 case OPEN_HAND:
-                    reached = padAction.GetStateDown(SteamVR_Input_Sources.Any);
+                    reached = buttonAction.GetStateUp(SteamVR_Input_Sources.Any) ||
+                                (prevPinState == UDPClothespinManager.ClothespinState.Pinch && pinState == UDPClothespinManager.ClothespinState.Open);
                     break;
                 default:
                     break;

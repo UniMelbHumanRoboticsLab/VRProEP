@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Collections;
 
 
 //
@@ -12,6 +13,7 @@ public static class UDPInputSystem
 {
     public enum InputType { UDPClothespinButton }
     private static List<UDPClothespinManager> udpPinList = new List<UDPClothespinManager>();
+    public static int UDPPinCount {get=> udpPinList.Count; }
 
     //
     // Add an input source to the system
@@ -30,7 +32,10 @@ public static class UDPInputSystem
         {
             case InputType.UDPClothespinButton:
                 if (channel > (udpPinList.Count - 1))
-                    throw new ArgumentOutOfRangeException("The requested input channel is out of range!");
+                {
+                    Debug.LogWarning("The requested input channel is out of range!");
+                    return UDPClothespinManager.ClothespinState.Null;
+                }
                 else
                     return udpPinList[channel].GetClothespinState();
                 
@@ -38,6 +43,30 @@ public static class UDPInputSystem
                 return null;
         }
     }
+
+    //
+    // Get an input state, a time step before
+    //
+    public static object GetPrevInput(InputType type, int channel)
+    {
+        switch (type)
+        {
+            case InputType.UDPClothespinButton:
+                if (channel > (udpPinList.Count - 1))
+                {
+                    Debug.LogWarning("The requested input channel is out of range!");
+                    return UDPClothespinManager.ClothespinState.Null;
+                }
+                else
+                    return udpPinList[channel].GetPrevClothespinState();
+
+            default:
+                return null;
+        }
+    }
+
+
+
 
     //
     // Close all input.

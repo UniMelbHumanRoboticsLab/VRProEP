@@ -40,6 +40,7 @@ namespace VRProEP.Utilities
         // Threading data
         private Thread thread;
         private bool runThread = true;
+        private int threadSleepTime = 50;
 
         // Sensor data
         private List<float> sensorValues;
@@ -75,6 +76,35 @@ namespace VRProEP.Utilities
             // Create and start communication thread
             thread = new Thread(new ThreadStart(GetDataFromDevice));
             thread.Start();            
+        }
+
+
+        /// <summary>
+        /// Manager for sensors implemented with UDP protocol.
+        /// </summary>
+        /// <param name="ipAddress">The IP address of the sensor to connect to.</param>
+        /// <param name="port">The UDP port to use for data transfer.</param>
+        /// <param name="deviceName">The device name.</param>
+        /// <param name="sleepTime">Thread sleep time.</param>
+        public UDPSensorManager(string ipAddress, int port, string deviceName, int sleepTime)
+        {
+            channelSize = 1;
+            this.deviceName = deviceName;
+
+            // Set WiFi data
+            udpType = UDPType.UDP_Async;
+            ip = IPAddress.Parse(ipAddress);
+            this.port = port;
+            sensorValues = new List<float>(channelSize);
+            sensorValues.Add(0.0f);
+            this.threadSleepTime = sleepTime;
+
+            // Connect
+            EstablishConnection();
+
+            // Create and start communication thread
+            thread = new Thread(new ThreadStart(GetDataFromDevice));
+            thread.Start();
         }
 
         /// <summary>
@@ -174,7 +204,7 @@ namespace VRProEP.Utilities
                 }
 
                 // Sleep for 50ms.
-                Thread.Sleep(50);
+                Thread.Sleep(this.threadSleepTime);
             }
         }
 

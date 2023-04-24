@@ -41,8 +41,10 @@ public class ACESHandAnimation : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (Input.GetKey(KeyCode.RightArrow) || buttonAction.GetState(SteamVR_Input_Sources.Any) || 
-            (UDPClothespinManager.ClothespinState)UDPInputSystem.GetInput(UDPInputSystem.InputType.UDPClothespinButton, udpChannel) == UDPClothespinManager.ClothespinState.Pinch)
+
+        UDPClothespinManager.ClothespinState pinState = (UDPClothespinManager.ClothespinState)UDPInputSystem.GetInput(UDPInputSystem.InputType.UDPClothespinButton, udpChannel);
+
+        if (Input.GetKey(KeyCode.RightArrow) || buttonAction.GetState(SteamVR_Input_Sources.Any) || pinState == UDPClothespinManager.ClothespinState.Pinch)
         {
             Pinch();
         }
@@ -50,6 +52,8 @@ public class ACESHandAnimation : MonoBehaviour
         {
             Open();
         }
+
+
         /*
         else if (Input.GetKey(KeyCode.LeftArrow) || padAction.GetState(SteamVR_Input_Sources.Any))
         {

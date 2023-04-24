@@ -402,7 +402,7 @@ MonoBehaviour:
   taskDataFormat: 
   ablebodiedDataFormat: loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,errorX,errorY,errorZ,errorAng
   transhumeralDataFormat: loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pxHand,pyHand,pzHand,paHand,pbHand,pgHand,pEfe,pDotEfe,pWps,pDotWps,errorX,errorY,errorZ,errorAng
-  performanceDataFormat: i,loc,t_f,qt_sfe,qt_saa,qt_sr,qt_efe,qt_wps,qt_wfe,qt_waa
+  performanceDataFormat: i, t_f, i_clothespin, target_pose
   startShoulderAngle: -90
   startElbowAngle: 90
   startTolerance: 15
@@ -419,6 +419,7 @@ MonoBehaviour:
   amputeeAvatar: 0
   controlllerHand: 0
   avatarCalibration: 0
+  udpInputEnable: 0
   dummyControlEnable: 0
   fullTrackerEnable: 0
   delsysEnable: 0
@@ -427,6 +428,8 @@ MonoBehaviour:
   zmqReqEnable: 0
   skipXR: 0
   checkStartPosition: 0
+  udpIPAddress: 192.168.137.19
+  udpPort: 2390
 --- !u!1 &8311324623452099690
 GameObject:
   m_ObjectHideFlags: 0
