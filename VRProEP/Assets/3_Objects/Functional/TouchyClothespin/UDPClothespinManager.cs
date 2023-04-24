@@ -10,15 +10,15 @@ public class UDPClothespinManager : UDPSensorManager
 
     public enum ClothespinState { Open, Pinch, Null};
 
-    private ClothespinState prevState;
+    private ClothespinState currentState = ClothespinState.Null;
+    public ClothespinState CurrentState { get => currentState; }
+    private ClothespinState prevState = ClothespinState.Null;
+    public ClothespinState PrevState { get => prevState; }
 
-    public ClothespinState GetPrevClothespinState()
-    {
-        return prevState;
-    }
 
     public ClothespinState GetClothespinState()
     {
+        prevState = currentState;
         // Get current sensor data from memory.
         float[] value = GetCurrentSensorValues();
         //Debug.Log("Reading length: " + value.Length + ". First value: " + value[0] );
@@ -27,7 +27,7 @@ public class UDPClothespinManager : UDPSensorManager
         if (value[0] == 1)
             state = ClothespinState.Pinch;
 
-        prevState = state;
+        currentState = state;
         return state;
     }
 

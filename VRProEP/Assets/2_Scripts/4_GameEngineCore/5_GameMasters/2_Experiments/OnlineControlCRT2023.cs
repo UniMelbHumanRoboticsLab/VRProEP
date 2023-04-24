@@ -27,9 +27,9 @@ public class OnlineControlCRT2023 : GameMaster
     #region Unity objects
     [SerializeField]
     //private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
-    private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,errorX,errorY,errorZ,errorAng";
+    private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,aDotFA,bDotFA,gDotFA,aFA,bFA,gFA,xFA,yFA,zFA";
     [SerializeField]
-    private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pxHand,pyHand,pzHand,paHand,pbHand,pgHand,pEfe,pDotEfe,pWps,pDotWps,errorX,errorY,errorZ,errorAng";
+    private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,pEfe,pDotEfe,pWps,pDotWps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,aDotFA,bDotFA,gDotFA,aFA,bFA,gFA,xFA,yFA,zFA";
     [SerializeField]
     private string performanceDataFormat = "i, t_f, i_clothespin, target_pose";
 
@@ -90,6 +90,7 @@ public class OnlineControlCRT2023 : GameMaster
     // Allow inputs from udp devices
     [SerializeField]
     private bool udpInputEnable;
+    private UDPClothespinManager udpClopin;
 
     // If allow using controller to complete tasks
     [SerializeField]
@@ -337,8 +338,6 @@ public class OnlineControlCRT2023 : GameMaster
     {
         if (udpInputEnable)
         {
-            UDPClothespinManager udpClopin;
-            
             udpClopin = new UDPClothespinManager(udpIPAddress, udpPort);
             UDPInputSystem.AddInput(UDPInputSystem.InputType.UDPClothespinButton, udpClopin);
         }
@@ -1190,6 +1189,8 @@ public class OnlineControlCRT2023 : GameMaster
         //
         logData += taskTime.ToString();
 
+       
+
 
         // Get kinematic postural features and push through zmq
         if (fullTrackerEnable)
@@ -1230,7 +1231,20 @@ public class OnlineControlCRT2023 : GameMaster
                 //Debug.Log("ZMQ pushed");
             }
         }
-       
+
+        // Log UDP clothespin state
+        if (udpInputEnable)
+        {
+            UDPClothespinManager.ClothespinState state = udpClopin.GetClothespinState();
+            logData += "," + state.ToString();
+        }
+
+        // If in transhumeral prosthesis mode add prosthetic elbow and wrist states
+        if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+        {
+            logData += "," + -multiJointManager.ElbowState[0] + "," + -multiJointManager.ElbowState[1];
+            logData += "," + -multiJointManager.WristPronState[0] + "," + -multiJointManager.WristPronState[1];
+        }
 
         /*
         // Read from all user sensors
@@ -1254,12 +1268,10 @@ public class OnlineControlCRT2023 : GameMaster
         }
 
 
-        // If in transhumeral prosthesis mode add prosthetic elbow and wrist states
-        if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
-        {
-            logData += "," + -multiJointManager.ElbowState[0] + "," + - multiJointManager.ElbowState[1];
-            logData += "," + -multiJointManager.WristPronState[0] + "," + - multiJointManager.WristPronState[1];
-        }
+        
+
+        
+
 
         // Log task error
         //Vector3 errorTemp = crtManager.GetPosError();

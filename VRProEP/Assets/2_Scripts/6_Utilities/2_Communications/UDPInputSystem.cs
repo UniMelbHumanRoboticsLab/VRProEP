@@ -37,7 +37,7 @@ public static class UDPInputSystem
                     return UDPClothespinManager.ClothespinState.Null;
                 }
                 else
-                    return udpPinList[channel].GetClothespinState();
+                    return udpPinList[channel].CurrentState;
                 
             default:
                 return null;
@@ -58,7 +58,7 @@ public static class UDPInputSystem
                     return UDPClothespinManager.ClothespinState.Null;
                 }
                 else
-                    return udpPinList[channel].GetPrevClothespinState();
+                    return udpPinList[channel].PrevState;
 
             default:
                 return null;
