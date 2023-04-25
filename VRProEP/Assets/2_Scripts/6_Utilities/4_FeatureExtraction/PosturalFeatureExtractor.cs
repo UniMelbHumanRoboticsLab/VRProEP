@@ -37,12 +37,19 @@ public static class PosturalFeatureExtractor
 
     public static float[] ExtractTrunkPose(Quaternion qC7TrackerRef, Quaternion qC7Tracker)
     {
+        Vector3 initialTrunkAxial =  Vector3.up;
+        Vector3 initialTrunkLateral = Vector3.right;
 
-        Vector3 initialTrunkAxial = qC7TrackerRef * Vector3.up;
-        Vector3 initialTrunkLateral = qC7TrackerRef * Vector3.right;
-        
-        Vector3 currentTrunkAxial = qC7Tracker * Vector3.up;
-        Vector3 currentTrunkLateral = qC7Tracker * Vector3.right;
+        Vector3 currentTrunkAxial = Quaternion.Inverse(qC7TrackerRef) * qC7Tracker * Vector3.up;
+        Vector3 currentTrunkLateral = Quaternion.Inverse(qC7TrackerRef) * qC7Tracker * Vector3.right;
+
+        //Vector3 initialTrunkAxial = qC7TrackerRef * Vector3.up;
+        //Vector3 initialTrunkLateral = qC7TrackerRef * Vector3.right;
+
+        //Vector3 currentTrunkAxial = qC7Tracker * Vector3.up;
+        //Vector3 currentTrunkLateral = qC7Tracker * Vector3.right;
+
+
         //Debug.Log(currentTrunkSaggital);
         //Debug.Log(initialTrunkSaggital);
 
@@ -56,7 +63,7 @@ public static class PosturalFeatureExtractor
         // Trunk Left right bending
         Vector2 vXY1 = new Vector2(currentTrunkLateral.x, currentTrunkLateral.y);
         Vector2 vXY2 = new Vector2(initialTrunkLateral.x, initialTrunkLateral.y);
-        if (vXY1.y > 0) sgn = 1; else sgn = -1;
+        if (vXY1.y > 0) sgn = -1; else sgn = 1;
         trunkLRB = sgn * Vector2.Angle(vXY1, vXY2) * Mathf.Deg2Rad;
         //Debug.Log("Trunk LRB: " + Mathf.Rad2Deg * trunkLRB);
 
