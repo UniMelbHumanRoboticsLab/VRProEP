@@ -275,7 +275,7 @@ public class OnlineControlCRT2023 : GameMaster
     {
         // Setup crt task position
         crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
-        crtManager.Distance = SaveSystem.ActiveUser.forearmLength;
+        crtManager.Distance = SaveSystem.ActiveUser.forearmLength /1.5f;
 
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
         {
