@@ -27,6 +27,14 @@ public class ClothespinManager : MonoBehaviour
     private float angTol = 360.0f;
     public float AngTol { get => angTol; set { angTol = value; } }
 
+    // Error of task execution
+    private Vector3 errorPos;
+    public Vector3 ErrorPos { get => errorPos; }
+
+    private float errorAng;
+    public float ErrorAng { get => errorAng; }
+
+
     //
     // Color and display
     //
@@ -350,9 +358,6 @@ public class ClothespinManager : MonoBehaviour
         
     }
 
-    //
-    //
-    //
 
     //
     // Check if the clothespin is at the 
@@ -362,10 +367,11 @@ public class ClothespinManager : MonoBehaviour
         Transform current = this.transform.parent.parent; // two layer hiearchy
 
         // Position
-        bool posReached = Mathf.Abs(current.position.x - targetPosition.x) < posTol.x
-                    & Mathf.Abs(current.position.y - targetPosition.y) < posTol.y
-                    & Mathf.Abs(current.position.z - targetPosition.z) < posTol.z;
+        Vector3 errorPos = new Vector3(Mathf.Abs(current.position.x - targetPosition.x),
+                                        Mathf.Abs(current.position.y - targetPosition.y),
+                                        Mathf.Abs(current.position.z - targetPosition.z));
 
+        bool posReached = errorPos.x < posTol.x & errorPos.y < posTol.y & errorPos.z < posTol.z;
 
         // Angular
         Quaternion relative = Quaternion.Inverse(current.rotation) * targetRotation;
@@ -374,6 +380,9 @@ public class ClothespinManager : MonoBehaviour
             errorAng = 360.0f - errorAng;
         bool angReached = Mathf.Abs(errorAng) <= angTol;
         angReached = true;
+
+        this.errorPos = new Vector3 (errorPos.x, errorPos.y, errorPos.z);
+        this.errorAng = errorAng;
 
         return posReached & angReached;
     }

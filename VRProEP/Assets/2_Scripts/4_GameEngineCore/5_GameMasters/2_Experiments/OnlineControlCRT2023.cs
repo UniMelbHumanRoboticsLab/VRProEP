@@ -27,9 +27,9 @@ public class OnlineControlCRT2023 : GameMaster
     #region Unity objects
     [SerializeField]
     //private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
-    private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,aDotFA,bDotFA,gDotFA,aFA,bFA,gFA,xFA,yFA,zFA";
+    private string ablebodiedDataFormat = "i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
     [SerializeField]
-    private string transhumeralDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,pEfe,pDotEfe,pWps,pDotWps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,aDotFA,bDotFA,gDotFA,aFA,bFA,gFA,xFA,yFA,zFA";
+    private string transhumeralDataFormat = "i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,pEfe,pDotEfe,pWps,pDotWps,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
     [SerializeField]
     private string performanceDataFormat = "i, t_f, i_clothespin, target_pose";
 
@@ -75,6 +75,10 @@ public class OnlineControlCRT2023 : GameMaster
     private AudioClip returnAudioClip;
     [SerializeField]
     private AudioClip nextAudioClip;
+    [SerializeField]
+    private AudioClip pinchAudioClip;
+    [SerializeField]
+    private AudioClip openAudioClip;
     [SerializeField]
     private AudioClip testAudioClip;
 
@@ -275,7 +279,7 @@ public class OnlineControlCRT2023 : GameMaster
     {
         // Setup crt task position
         crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
-        crtManager.Distance = SaveSystem.ActiveUser.forearmLength /1.5f;
+        crtManager.Distance = SaveSystem.ActiveUser.handLength;
 
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
         {
@@ -348,9 +352,9 @@ public class OnlineControlCRT2023 : GameMaster
             // Debug using the test bot
             //
 
-            //SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
+            SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
             //SaveSystem.LoadUserData("HL1996178");
-            SaveSystem.LoadUserData("RW1995169");
+            //SaveSystem.LoadUserData("RW1995169");
             //SaveSystem.LoadUserData("XG1995174");
             ///SaveSystem.LoadUserData("XY1993188");
             //SaveSystem.LoadUserData("ML1996175");
@@ -1246,6 +1250,12 @@ public class OnlineControlCRT2023 : GameMaster
             logData += "," + -multiJointManager.WristPronState[0] + "," + -multiJointManager.WristPronState[1];
         }
 
+
+        // Log task error
+        logData += "," + crtManager.ErrorPos.x + "," + crtManager.ErrorPos.y + "," + crtManager.ErrorPos.z + ","  + crtManager.ErrorAng;
+
+
+
         /*
         // Read from all user sensors
         foreach (ISensor sensor in AvatarSystem.GetActiveSensors())
@@ -1267,16 +1277,6 @@ public class OnlineControlCRT2023 : GameMaster
    
         }
 
-
-        
-
-        
-
-
-        // Log task error
-        //Vector3 errorTemp = crtManager.GetPosError();
-        //logData += "," + errorTemp.x + "," + errorTemp.y + "," + errorTemp.z + ","  + crtManager.GetAngError();
-
         //
         // Log current data and clear before next run.
         //
@@ -1286,19 +1286,6 @@ public class OnlineControlCRT2023 : GameMaster
         // Update run time
         taskTime += Time.fixedDeltaTime;
 
-        #endregion
-
-        #region Archive 
-        //Debug the zmq data
-        //string debugString="";
-        //foreach (float element in zmqData)
-        //debugString += "," + element.ToString();
-        //Debug.Log(debugString);
-        // Continue with data logging.
-        //base.HandleTaskDataLogging();
-        //HudManager.DisplayText(GameObject.Find("Bottle").transform.localEulerAngles.ToString());
-        //PosturalFeatureExtractor.extractScapularPose(initialPosition[3], initialPosition[2], c7Tracker.GetTrackerTransform().position, 
-        //shoulderTracker.GetTrackerTransform().position, c7Tracker.GetTrackerTransform().rotation);
         #endregion
 
     }
@@ -1436,7 +1423,26 @@ public class OnlineControlCRT2023 : GameMaster
         taskComplete = false;
 
         // Play return audio
-        audio.clip = nextAudioClip;
+        if (crtManager.CurrentTaskType == ClothespinTaskManager.TaskType.AbleDataCollect)
+        {
+            int seg = crtManager.CurrentSegment + 1;
+            switch (seg)
+            {
+                case ClothespinTaskManager.PINCH:
+                    audio.clip = pinchAudioClip;
+                    break;
+                case ClothespinTaskManager.OPEN_HAND:
+                    audio.clip = openAudioClip;
+                    break;
+                default:
+                    audio.clip = nextAudioClip;
+                    break;
+
+            }
+        }
+        else
+            audio.clip = nextAudioClip;
+        
         audio.Play();
 
         // Update the pusher the next iteration happen;

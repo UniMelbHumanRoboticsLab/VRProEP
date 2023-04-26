@@ -9,10 +9,16 @@ using Valve.VR.InteractionSystem;
 
 public class ClothespinTaskManager : MonoBehaviour
 {
-    public enum TaskType { AblePoseRecord, AbleDataCollect, ProstEvaluat}
+    //
+    // Task type of CRT
+    //
+    public enum TaskType { AblePoseRecord, AbleDataCollect, ProstEvaluat }
     private TaskType currentTaskType;
     public TaskType CurrentTaskType { get => currentTaskType; set { currentTaskType = value; } }
 
+    //
+    // Constants and settings
+    //
     // Relocation task path, {segment, {from, to, pinIndex}}. Target numbering: [horizontal, vertical]
     public readonly int[,] TASK_PATH = new int[,] { { 0, 2, 0 }, { 1, 3, 1 }, { 3, 1, 1 }, { 2, 0, 0 } };
     public readonly int[,] TASK_PATH_HAND_RECORD = new int[,] { { 0, 3, 0 }, { 1, 2, 1 }, { 2, 1, 1 }, { 3, 0, 0 } };
@@ -22,11 +28,11 @@ public class ClothespinTaskManager : MonoBehaviour
     private const int GET_PIN_INDEX = 2;
 
     // Task segmentation 
-    private const int REACH_INIT = 1;
-    private const int PINCH = 2;
-    private const int REACH_FINAL = 3;
-    private const int OPEN_HAND = 4;
-    private const int SEG_NUM = OPEN_HAND;
+    public const int REACH_INIT = 1;
+    public const int PINCH = 2;
+    public const int REACH_FINAL = 3;
+    public const int OPEN_HAND = 4;
+    public const int SEG_NUM = OPEN_HAND;
 
     private readonly string[] horizontalAttachPoint = { "AttachPoint_H2_1", "AttachPoint_H2_2" };
     private readonly string[] verticalAttachPoint = { "AttachPoint_V1_1", "AttachPoint_V1_2" };
@@ -39,7 +45,9 @@ public class ClothespinTaskManager : MonoBehaviour
     private float distance;
     public float Distance { get => distance; set { distance = value; } }
 
-
+    //
+    // Gameobjects
+    //
     [SerializeField]
     private GameObject clothespinPrefab;
 
@@ -54,34 +62,6 @@ public class ClothespinTaskManager : MonoBehaviour
     private List<GameObject> poseGOList;
     private GameObject poseBufferGO;
 
-
-    [SerializeField]
-    private int currentTrial = 0;
-
-    [SerializeField]
-    private int currentPinIndex;
-    public int CurrentPinIndex { get => currentPinIndex; }
-
-    [SerializeField]
-    private int currentSegment;
-
-    [SerializeField]
-    private string currentTargetPose;
-    public string CurrentTargetPose { get => currentTargetPose; }
-    
-    public int PathNumber { get => TASK_PATH.GetLength(0); }
-
-    private int totalPathSegment = 1;
-    public int TotalPathSegment { get => totalPathSegment; }
-
-    // Flow control
-    private bool trialComplete = false;
-    public bool TrialComplete { get => trialComplete; set { trialComplete = value; } }
-
-    // Buttons
-    protected SteamVR_Action_Boolean padAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("InterfaceEnableButton");
-    protected SteamVR_Action_Boolean buttonAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("ObjectInteractButton");
-
     // Hand Models
     [SerializeField]
     private GameObject handRPrefab;
@@ -92,10 +72,54 @@ public class ClothespinTaskManager : MonoBehaviour
 
     private GameObject handGO;
 
+    //
+    // Flow control variables and objects
+    //
+    [SerializeField]
+    private int currentTrial = 0;
+
+    [SerializeField]
+    private int currentPinIndex;
+    public int CurrentPinIndex { get => currentPinIndex; }
+
+    [SerializeField]
+    private int currentSegment;
+    public int CurrentSegment { get => currentSegment; }
+
+    [SerializeField]
+    private string currentTargetPose;
+    public string CurrentTargetPose { get => currentTargetPose; }
+
+    public int PathNumber { get => TASK_PATH.GetLength(0); }
+
+    private int totalPathSegment = 1;
+    public int TotalPathSegment { get => totalPathSegment; }
+
+    // Flags
+    private bool trialComplete = false;
+    public bool TrialComplete { get => trialComplete; set { trialComplete = value; } }
+
+    // Buttons
+    protected SteamVR_Action_Boolean padAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("InterfaceEnableButton");
+    protected SteamVR_Action_Boolean buttonAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("ObjectInteractButton");
+
     // Flags
     private bool rackInit = false;
     private bool reachHandInit = false;
 
+    //
+    // Task related variables
+    //
+    // Error of task execution
+    private Vector3 errorPos;
+    public Vector3 ErrorPos { get => errorPos; }
+
+    private float errorAng;
+    public float ErrorAng { get => errorAng; }
+
+    //
+    // Debug?
+    //
     [SerializeField]
     private bool debug;
 
@@ -191,7 +215,13 @@ public class ClothespinTaskManager : MonoBehaviour
             SetupRackPosition();
             GetAllTargetTransform();
             InitClothespin();
+            RenderClothespin(true);
             rackInit = true;
+        }
+        else
+        {
+            InitClothespin();
+            RenderClothespin(true);
         }
 
 
@@ -202,10 +232,12 @@ public class ClothespinTaskManager : MonoBehaviour
         currentPinIndex = 0;
         currentSegment = 1;
         SetupTargetPin(currentTrial);
+        
 
         // For able-bodied data collection we need to have the hand displayed as target
         if (currentTaskType == TaskType.AbleDataCollect)
         {
+            RenderClothespin(false);
             totalPathSegment = SEG_NUM;
             currentSegment = 1;
             if (!reachHandInit)
@@ -425,6 +457,13 @@ public class ClothespinTaskManager : MonoBehaviour
             }
         }
 
+        // Record the task error
+        if (reached)
+        {
+            errorPos = new Vector3 (clothespinList[pinIndex].ErrorPos.x, clothespinList[pinIndex].ErrorPos.y, clothespinList[pinIndex].ErrorPos.z);
+            errorAng = clothespinList[pinIndex].ErrorAng;
+        }
+
         return reached; 
 
     }
@@ -488,10 +527,18 @@ public class ClothespinTaskManager : MonoBehaviour
         for (int i = 0; i < horizontalAttachPoint.Length; i++)
         {
             GameObject target = attachGOList[i];
-            GameObject pinGO = Instantiate(clothespinPrefab,
+            if (!rackInit)
+            {
+                GameObject pinGO = Instantiate(clothespinPrefab,
                     target.transform.position,
                     target.transform.rotation);
-            clothespinList.Add(pinGO.GetComponentInChildren<ClothespinManager>());
+                clothespinList.Add(pinGO.GetComponentInChildren<ClothespinManager>());
+            }
+            else
+            {
+                clothespinList[i].gameObject.transform.parent.parent.position = target.transform.position;
+                clothespinList[i].gameObject.transform.parent.parent.rotation = target.transform.rotation;
+            }
         }
     }
 
@@ -499,6 +546,21 @@ public class ClothespinTaskManager : MonoBehaviour
     private void SelectClothespin(int index)
     {
         clothespinList[index].SetSelect();
+    }
+
+    // 
+    // Render clothespin mode?
+    //
+    private void RenderClothespin(bool flag)
+    {
+        // Make the clothespin invisible
+        foreach (ClothespinManager clothespin in clothespinList)
+        {
+            MeshRenderer[] rendererList = clothespin.gameObject.GetComponentsInChildren<MeshRenderer>();
+            foreach (MeshRenderer renderer in rendererList)
+                renderer.enabled = flag;
+        }
+
     }
 
     #endregion

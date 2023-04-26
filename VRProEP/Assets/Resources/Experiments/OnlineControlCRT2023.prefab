@@ -400,8 +400,8 @@ MonoBehaviour:
   iterationsPerSession: 
   trainingPerSession: 
   taskDataFormat: 
-  ablebodiedDataFormat: loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,errorX,errorY,errorZ,errorAng
-  transhumeralDataFormat: loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,pxHand,pyHand,pzHand,paHand,pbHand,pgHand,pEfe,pDotEfe,pWps,pDotWps,errorX,errorY,errorZ,errorAng
+  ablebodiedDataFormat: i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,aDotFA,bDotFA,gDotFA,aFA,bFA,gFA,xFA,yFA,zFA
+  transhumeralDataFormat: i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,pEfe,pDotEfe,pWps,pDotWps,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB
   performanceDataFormat: i, t_f, i_clothespin, target_pose
   startShoulderAngle: -90
   startElbowAngle: 90
@@ -412,9 +412,11 @@ MonoBehaviour:
   holdingTime: 0
   maxTaskTime: 0
   startPosPhoto: {fileID: 0}
-  holdAudioClip: {fileID: 8300000, guid: 520a431cc0f99e7478b4a53a290c28ff, type: 3}
-  returnAudioClip: {fileID: 8300000, guid: 3cde4d34aa934b545aef79f2da842faf, type: 3}
-  nextAudioClip: {fileID: 8300000, guid: 64f6ec8f208df0b4683c89d42f38ad46, type: 3}
+  holdAudioClip: {fileID: 8300000, guid: 319eb29c9b80fda42827106324d378af, type: 3}
+  returnAudioClip: {fileID: 8300000, guid: 5e1dd0a285c7835478eea9005279fbf6, type: 3}
+  nextAudioClip: {fileID: 8300000, guid: ac77af5ed97a5834b821e9d920fbc0da, type: 3}
+  pinchAudioClip: {fileID: 8300000, guid: 400a40ba8b1ec74488616b7e60fc267e, type: 3}
+  openAudioClip: {fileID: 8300000, guid: b246705e98673bd42ad59e9dba3470b2, type: 3}
   testAudioClip: {fileID: 8300000, guid: 7298cdd19e7244a4f9a880e0058b5c8c, type: 3}
   amputeeAvatar: 0
   controlllerHand: 0
