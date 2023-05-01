@@ -278,7 +278,8 @@ public class OnlineControlCRT2023 : GameMaster
     private void InitCRTManager()
     {
         // Setup crt task position
-        crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
+        //crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
+        crtManager.Height = SaveSystem.ActiveUser.hipHeight;
         crtManager.Distance = SaveSystem.ActiveUser.handLength;
 
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
@@ -352,9 +353,9 @@ public class OnlineControlCRT2023 : GameMaster
             // Debug using the test bot
             //
 
-            SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
+            //SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
             //SaveSystem.LoadUserData("HL1996178");
-            //SaveSystem.LoadUserData("RW1995169");
+            SaveSystem.LoadUserData("RW1995169");
             //SaveSystem.LoadUserData("XG1995174");
             ///SaveSystem.LoadUserData("XY1993188");
             //SaveSystem.LoadUserData("ML1996175");

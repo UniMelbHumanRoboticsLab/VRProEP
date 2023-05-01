@@ -32,6 +32,7 @@ namespace VRProEP.GameEngineCore
         public float trunkLength2SA;
         public float height2SA;
         public float shoulderBreadth;
+        public float hipHeight;
         public UserType type = UserType.Ablebodied;
         public bool lefty = false;
 

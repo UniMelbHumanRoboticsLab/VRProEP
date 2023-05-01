@@ -492,8 +492,11 @@ namespace VRProEP.GameEngineCore
                 throw new System.Exception("The requested forearm information was not found.");
 
             // Instantiate with tracker as parent.
-            float trackerBeltOffset = 0.02f;
-            Vector3 forearmOffset = new Vector3(0, - handLength + activeForearmData.dimensions.y / 2.0f, -trackerBeltOffset);
+            float trackerBeltOffset = 0.06f;
+           // Vector3 forearmOffset = new Vector3(0, - handLength + activeForearmData.dimensions.y / 2.0f, -trackerBeltOffset);
+
+            Vector3 forearmOffset = new Vector3(0, -handLength /2.0f , -trackerBeltOffset);
+
             GameObject forearmGO = Object.Instantiate(forearmPrefab, forearmOffset, forearmPrefab.transform.rotation * Quaternion.Euler(180.0f,0,0), llMotionTrackerGO.transform);
             Collider collider = forearmGO.GetComponent<Collider>();
             collider.isTrigger = true;
@@ -530,7 +533,8 @@ namespace VRProEP.GameEngineCore
                 throw new System.Exception("The requested hand information was not found.");
 
             // Instantiate with prosthesis manager as parent.
-            Vector3 handOffset = new Vector3( 0, - handLength /2.0f, -trackerBeltOffset);
+            Vector3 handOffset = new Vector3( 0, 0, -trackerBeltOffset);
+            //Vector3 handOffset = new Vector3(0, -handLength / 2.0f, -trackerBeltOffset);
             GameObject handGO = Object.Instantiate(handPrefab, handOffset, handPrefab.transform.localRotation * Quaternion.Euler(180.0f, 180.0f, 0), llMotionTrackerGO.transform);
             // Scale hand to fit user's hand
             scaleFactor = handLength / activeHandData.dimensions.x;
