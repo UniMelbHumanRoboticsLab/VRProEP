@@ -1004,6 +1004,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
+      propertyPath: armBandPort
+      value: 8880
+      objectReference: {fileID: 0}
+    - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
+        type: 3}
       propertyPath: maxTaskTime
       value: 1
       objectReference: {fileID: 0}
@@ -1021,6 +1026,11 @@ PrefabInstance:
         type: 3}
       propertyPath: delsysEMGEnable
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
+        type: 3}
+      propertyPath: armBandIPAddress
+      value: 192.168.137.17
       objectReference: {fileID: 0}
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
@@ -1047,6 +1057,16 @@ PrefabInstance:
       propertyPath: positionDataFormat
       value: iteration,t,step,x1,y1,z1,w1,qx1,qy1,qz1, x2,y2,z2,w2,qx2,qy2,qz2, x3,y3,z3,w3,qx3,qy3,qz3,
         x4,y4,z4,w4,qx4,qy4,qz4
+      objectReference: {fileID: 0}
+    - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
+        type: 3}
+      propertyPath: wristBandFMGEnable
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
+        type: 3}
+      propertyPath: foreArmBandFMGEnable
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 962875970167240868, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
@@ -5725,7 +5745,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4504509480011766, guid: 52e4461fc9d22714682af7c05ea1c5f2, type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4504509480011766, guid: 52e4461fc9d22714682af7c05ea1c5f2, type: 3}
       propertyPath: m_LocalPosition.x

@@ -29,7 +29,9 @@ public class DataCollection2022GM : GameMaster
     [SerializeField]
     private bool delsysEMGEnable = false;
     [SerializeField]
-    private bool armbandFMGEnable = false;
+    private bool foreArmBandFMGEnable = false;
+    [SerializeField]
+    private bool wristBandFMGEnable = false;
     [SerializeField]
     private bool trackerEnable = false;
     [SerializeField]
@@ -123,7 +125,18 @@ public class DataCollection2022GM : GameMaster
     private DelsysEMG delsysEMG = new DelsysEMG();
 
     // FMG arm band data collection
-    private TactileArmBandManager armBandFMG;
+    private TCPTactileArmBandManager foreArmBandFMG;
+    [SerializeField]
+    private string foremArmBandIPAddress;
+    [SerializeField]
+    private int foreArmBandPort;
+
+
+    private TCPTactileArmBandManager wristBandFMG;
+    [SerializeField]
+    private string wristBandIPAddress;
+    [SerializeField]
+    private int wristBandPort;
 
     // Target management variables
     private int targetNumber = 9; // The total number of targets
@@ -165,6 +178,13 @@ public class DataCollection2022GM : GameMaster
     {
         //string emgDataFilename =  Path.Combine(taskDataLogger.ActiveDataPath, "session_" + sessionNumber , "i" + "_" + iterationNumber + "EMG.csv");
         string fmgDataFilename = taskDataLogger.ActiveDataPath + "/session_" + sessionNumber + "/i" + "_" + iterationNumber + "FMG.csv";
+        return fmgDataFilename;
+    }
+
+    private string ConfigFMGFilePath(string suffix)
+    {
+        //string emgDataFilename =  Path.Combine(taskDataLogger.ActiveDataPath, "session_" + sessionNumber , "i" + "_" + iterationNumber + "EMG.csv");
+        string fmgDataFilename = taskDataLogger.ActiveDataPath + "/session_" + sessionNumber + "/i" + "_" + iterationNumber + "FMG_" + suffix +".csv";
         return fmgDataFilename;
     }
 
@@ -275,10 +295,15 @@ public class DataCollection2022GM : GameMaster
                     //emgIsRecording = true;
                 }
 
-                if (armbandFMGEnable)
+                if (foreArmBandFMGEnable)
                 {
-                    armBandFMG.FileName = ConfigFMGFilePath();
-                    armBandFMG.StartRecording();
+                    foreArmBandFMG.FileName = ConfigFMGFilePath("FA");
+                    foreArmBandFMG.StartRecording();
+                }
+                if(wristBandFMGEnable)
+                { 
+                    wristBandFMG.FileName = ConfigFMGFilePath("W");
+                    wristBandFMG.StartRecording();
                 }
 
                     Debug.Log("Ite:" + iterationNumber + ". Start task");
@@ -430,8 +455,12 @@ public class DataCollection2022GM : GameMaster
         #endregion
 
         #region Initialize FMG armband sensors
-        if (armbandFMGEnable)
-            armBandFMG = new TactileArmBandManager("COM7", 115200);
+        if (foreArmBandFMGEnable)
+            foreArmBandFMG = new TCPTactileArmBandManager(foremArmBandIPAddress, foreArmBandPort);
+        if(wristBandFMGEnable)
+            wristBandFMG = new TCPTactileArmBandManager(wristBandIPAddress, wristBandPort);
+        
+            
         
         #endregion
 
@@ -505,8 +534,12 @@ public class DataCollection2022GM : GameMaster
         //
         // Start FMG readings
         //
-        if (armbandFMGEnable)
-            armBandFMG.StartAcquisition();
+        if (foreArmBandFMGEnable)
+            foreArmBandFMG.StartAcquisition();
+        if (wristBandFMGEnable)
+            wristBandFMG.StartAcquisition();
+        
+         
     }
 
     /// <summary>
@@ -1003,7 +1036,8 @@ public class DataCollection2022GM : GameMaster
         // Stop data reading and save data
         startRecording = false;
         delsysEMG.StopRecording();
-        armBandFMG.StopRecording();
+        foreArmBandFMG.StopRecording();
+        wristBandFMG.StopRecording();
         //emgIsRecording = false;
 
         base.HandleTaskCompletion();
@@ -1133,11 +1167,11 @@ public class DataCollection2022GM : GameMaster
             delsysEMG.StopAcquisition();
             delsysEMG.Close();
         }
-        if (armbandFMGEnable)
-        {
-            armBandFMG.StopAcquisition();
-        }
-        
+        if (foreArmBandFMGEnable)
+            foreArmBandFMG.StopAcquisition();
+        if (wristBandFMGEnable)
+            wristBandFMG.StopAcquisition();
+
 
         // You can do your own end of experiment stuff here
     }
@@ -1165,11 +1199,11 @@ public class DataCollection2022GM : GameMaster
             delsysEMG.StopAcquisition();
             delsysEMG.Close();
         }
-        if (armbandFMGEnable)
-        {
-            armBandFMG.StopAcquisition();
-        }
-        NetMQConfig.Cleanup(false);
+        if (foreArmBandFMGEnable)
+            foreArmBandFMG.StopAcquisition();
+        if(wristBandFMGEnable)
+            wristBandFMG.StopAcquisition();
+        //NetMQConfig.Cleanup(false);
     }
 }
 
