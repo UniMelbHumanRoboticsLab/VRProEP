@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1814239036}
-  m_IndirectSpecularColor: {r: 0.070523, g: 0.3536324, b: 0.9700316, a: 1}
+  m_IndirectSpecularColor: {r: 0.07052275, g: 0.35373604, b: 0.97078824, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1020,12 +1020,17 @@ PrefabInstance:
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: trackerEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: delsysEMGEnable
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
+        type: 3}
+      propertyPath: foreArmBandPort
+      value: 8880
       objectReference: {fileID: 0}
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
@@ -1061,12 +1066,17 @@ PrefabInstance:
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: wristBandFMGEnable
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: foreArmBandFMGEnable
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
+        type: 3}
+      propertyPath: foremArmBandIPAddress
+      value: 192.168.137.180
       objectReference: {fileID: 0}
     - target: {fileID: 962875970167240868, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
