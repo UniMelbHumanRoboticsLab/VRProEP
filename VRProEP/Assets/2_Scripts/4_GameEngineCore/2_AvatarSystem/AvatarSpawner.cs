@@ -187,8 +187,8 @@ namespace VRProEP.GameEngineCore
                 follower = residualLimbGO.AddComponent<LimbFollower>();
 
             follower.avatarType = avatarType;
-            //follower.offset = new Vector3(0.0f, -activeResidualLimbData.dimensions.x / 1.0f, 0.0f);
-            follower.offset = new Vector3(0.0f, 0.0f, 0.0f);
+            follower.offset = new Vector3(0.0f, -activeResidualLimbData.dimensions.x / 1.0f, 0.0f);
+            //follower.offset = new Vector3(0.0f, 0.0f, 0.0f);
 
             motionTrackerNumber++;
 
@@ -533,7 +533,7 @@ namespace VRProEP.GameEngineCore
                 throw new System.Exception("The requested hand information was not found.");
 
             // Instantiate with prosthesis manager as parent.
-            Vector3 handOffset = new Vector3( 0, 0, -trackerBeltOffset);
+            Vector3 handOffset = new Vector3( 0, -handLength / 3.0f, -trackerBeltOffset);
             //Vector3 handOffset = new Vector3(0, -handLength / 2.0f, -trackerBeltOffset);
             GameObject handGO = Object.Instantiate(handPrefab, handOffset, handPrefab.transform.localRotation * Quaternion.Euler(180.0f, 180.0f, 0), llMotionTrackerGO.transform);
             // Scale hand to fit user's hand
