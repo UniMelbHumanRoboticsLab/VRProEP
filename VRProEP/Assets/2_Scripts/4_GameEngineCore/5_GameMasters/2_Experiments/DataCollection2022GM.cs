@@ -427,14 +427,24 @@ public class DataCollection2022GM : GameMaster
         //
         // Create the default data loggers
         //
-        taskDataLogger = new DataStreamLogger("TaskData/" + AvatarSystem.AvatarType.ToString());
+
+        string suffix = "";
+
+        if (delsysEMGEnable & (foreArmBandFMGEnable || wristBandFMGEnable))
+            suffix = "";
+        else if (delsysEMGEnable)
+            suffix = "_EMG";
+        else if (foreArmBandFMGEnable || wristBandFMGEnable)
+            suffix = "_FMG";
+
+        taskDataLogger = new DataStreamLogger("TaskData" + suffix + "/" + AvatarSystem.AvatarType.ToString());
         ExperimentSystem.AddExperimentLogger(taskDataLogger);
         taskDataLogger.AddNewLogFile(sessionNumber, iterationNumber, taskDataFormat); // Add file
 
         //
         // Create the performance data loggers
         //
-        performanceDataLogger = new DataStreamLogger("PerformanceData");
+        performanceDataLogger = new DataStreamLogger("PerformanceData" + suffix);
         ExperimentSystem.AddExperimentLogger(performanceDataLogger);
         performanceDataLogger.AddNewLogFile(AvatarSystem.AvatarType.ToString(), sessionNumber, performanceDataFormat); // Add file
 
@@ -1206,6 +1216,7 @@ public class DataCollection2022GM : GameMaster
             foreArmBandFMG.StopAcquisition();
         if(wristBandFMGEnable)
             wristBandFMG.StopAcquisition();
+        ExperimentSystem.CloseAllExperimentLoggers();
         //NetMQConfig.Cleanup(false);
     }
 }

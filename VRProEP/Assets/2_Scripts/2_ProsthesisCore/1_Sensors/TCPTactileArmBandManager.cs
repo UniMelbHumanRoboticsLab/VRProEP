@@ -13,7 +13,7 @@ namespace VRProEP.ProsthesisCore
     {
         // Sensor settings
         private int chNum = 0;
-
+        private int recordDataNum = 0;
         // Saving file
         private string fileName;
         private string fileHeader;
@@ -53,12 +53,15 @@ namespace VRProEP.ProsthesisCore
 
                     if (recording)
                     {
+                        
+                        //Debug.Log("TCP devive at:" + ipAddress + ", received: " + receivedData);
                         csvString.Append(receivedData);
                         csvString.Append(Environment.NewLine);
+                        recordDataNum++;
                     }
                     else
                     {
-                        Debug.Log("TCP devive at:" + ipAddress + ", received: " + receivedData);
+                        //Debug.Log("TCP devive at:" + ipAddress + ", received: " + receivedData);
                     }
 
                 }
@@ -75,6 +78,7 @@ namespace VRProEP.ProsthesisCore
         //
         public void StartAcquisition()
         {
+           
             this.Start();
         }
 
@@ -84,6 +88,7 @@ namespace VRProEP.ProsthesisCore
         //
         public void StopAcquisition()
         {
+            
             this.Stop();
         }
 
@@ -93,7 +98,7 @@ namespace VRProEP.ProsthesisCore
         //
         public void StartRecording()
         {
-
+            recordDataNum = 0;
             csvString = new StringBuilder();
             csvString.Append(fileHeader);
             csvString.Append(Environment.NewLine);
@@ -110,6 +115,7 @@ namespace VRProEP.ProsthesisCore
         {
             recording = false;
             File.WriteAllText(fileName, csvString.ToString());
+            Debug.Log("Armband recorded: " + recordDataNum + "rows of data recorded!");
         }
 
 
