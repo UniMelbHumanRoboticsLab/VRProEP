@@ -17,7 +17,10 @@ namespace VRProEP.ProsthesisCore
         // Saving file
         private string fileName;
         private string fileHeader;
+
+        
         public string FileName { get => fileName; set { fileName = value; } }
+        public string FileHeader { get => fileHeader; set { fileHeader = value; } }
         private StringBuilder csvString = new StringBuilder();
 
         // Flags
@@ -42,14 +45,8 @@ namespace VRProEP.ProsthesisCore
                 try
                 {
                     receivedData = reader.ReadLine();
-                    // Config sensor channel number and saving file heading
-                    if (chNum == 0)
-                    {
-                        float[] data = Array.ConvertAll(receivedData.Split(','), float.Parse);
-                        chNum = data.Length;
-                        for (int i = 1; i <= chNum; i++)
-                            fileHeader += "ch" + i + ",";
-                    }
+                    float[] data = Array.ConvertAll(receivedData.Split(','), float.Parse);
+
 
                     if (recording)
                     {
@@ -68,7 +65,10 @@ namespace VRProEP.ProsthesisCore
                 catch (System.TimeoutException) { }
                 catch (ThreadAbortException) { return; }
             }
-            clientSocket.Close();
+            base.reader.Close();
+            base.writer.Close();
+            base.networkStream.Close();
+            base.clientSocket.Close();
             //clientSocket.Dispose();
   
         }

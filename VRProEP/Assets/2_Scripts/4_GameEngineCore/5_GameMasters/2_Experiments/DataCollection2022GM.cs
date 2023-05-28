@@ -45,7 +45,11 @@ public class DataCollection2022GM : GameMaster
     [SerializeField]
     private string positionDataFormat = "pose,t,step,x1,y1,z1,w1,qx1,qy1,qz1, x2,y2,z2,w2,qx2,qy2,qz2, x3,y3,z3,w3,qx3,qy3,qz3, x4,y4,z4,w4,qx4,qy4,qz4";
     [SerializeField]
-    private string performanceDataFormat = "i,pose,name,t_f";
+    private string performanceDataFormat = "i,pose,name,tF";
+    [SerializeField]
+    private string foreArmBandDataFormat = "t,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,ch11,ch12,ch13,ch14,ch15,ch16,aEul,bEul,gEul,xGyro,yGyro,zGyro,xAcc,yAcc,zAcc,xMag,yMag,zMag";
+    [SerializeField]
+    private string wristBandDataFormat = "t,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,aEuler,bEuler,gEuler,xGyro,yGyro,zGyro,xAcc,yAcc,zAcc,xMag,yMag,zMag";
 
 
     [Header("Grid manager")]
@@ -466,9 +470,15 @@ public class DataCollection2022GM : GameMaster
 
         #region Initialize FMG armband sensors
         if (foreArmBandFMGEnable)
+        {
             foreArmBandFMG = new TCPTactileArmBandManager(foremArmBandIPAddress, foreArmBandPort);
-        if(wristBandFMGEnable)
+            foreArmBandFMG.FileHeader = foreArmBandDataFormat;
+        }
+        if (wristBandFMGEnable)
+        {
             wristBandFMG = new TCPTactileArmBandManager(wristBandIPAddress, wristBandPort);
+            wristBandFMG.FileHeader = wristBandDataFormat;
+        }
         
             
         
