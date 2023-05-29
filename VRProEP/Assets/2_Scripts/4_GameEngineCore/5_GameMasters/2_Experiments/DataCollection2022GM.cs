@@ -101,6 +101,7 @@ public class DataCollection2022GM : GameMaster
 
     [SerializeField]
     private AudioClip startAudioClip;
+    private bool startAudioPlayed = false;
 
     [SerializeField]
     private AudioClip holdAudioClip;
@@ -113,7 +114,7 @@ public class DataCollection2022GM : GameMaster
 
     [SerializeField]
     private AudioClip nextAudioClip;
-
+    private bool nextAudioPlayed = false;
 
 
     #endregion
@@ -197,8 +198,12 @@ public class DataCollection2022GM : GameMaster
         poseListManager.SelectPose(index);
         taskPoseText.text = poseListManager.SelectedPose(index) + " "+ iterationNumber.ToString();
         // Play the audio
-        audio.clip = nextAudioClip;
-        audio.Play();
+        if (!audio.isPlaying && !nextAudioPlayed)
+        {
+            audio.PlayOneShot(nextAudioClip);
+            nextAudioPlayed = true;
+        }
+            
         Debug.Log("Ite:" + iterationNumber + ". Next pose:" + poseListManager.SelectedPose(index) + ".");
         yield return new WaitForSecondsRealtime(holdingTime);
         //audio.clip = poseListManager.GetPoseAudio(index);
@@ -310,9 +315,16 @@ public class DataCollection2022GM : GameMaster
                     wristBandFMG.StartRecording();
                 }
 
-                    Debug.Log("Ite:" + iterationNumber + ". Start task");
-                audio.clip = startAudioClip;
-                audio.Play();
+                Debug.Log("Ite:" + iterationNumber + ". Start task");
+                //audio.clip = startAudioClip;
+                //audio.Play();
+                if (!audio.isPlaying && !startAudioPlayed)
+                {
+                    audio.PlayOneShot(startAudioClip);
+                    startAudioPlayed = true;
+                }
+                
+                
                 taskStarted = true;
             }
                
@@ -1069,6 +1081,8 @@ public class DataCollection2022GM : GameMaster
         taskStarted = false;
         taskComplete = false;
 
+        startAudioPlayed = false;
+        nextAudioPlayed = false;
         // Play return audio
         //audio.clip = returnAudioClip;
         //audio.Play();
