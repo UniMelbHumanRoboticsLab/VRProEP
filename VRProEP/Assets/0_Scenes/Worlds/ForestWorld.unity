@@ -5831,7 +5831,7 @@ PrefabInstance:
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: delsysEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
@@ -5841,17 +5841,22 @@ PrefabInstance:
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: udpIPAddress
-      value: 192.168.137.162
+      value: 192.168.137.160
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: amputeeAvatar
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
+        type: 3}
+      propertyPath: zmqPullEnable
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: zmqPushEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
@@ -5866,12 +5871,17 @@ PrefabInstance:
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: avatarCalibration
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: fullTrackerEnable
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
+        type: 3}
+      propertyPath: dummyControlEnable
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3173896575985748330, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
@@ -5928,6 +5938,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4179920273464957163, guid: 29ee5a209f49dc844933a70c4b54035e,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7057585951369286232, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: m_Name
@@ -5967,6 +5982,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9089057517087111479, guid: 29ee5a209f49dc844933a70c4b54035e,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9133830477142122858, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}

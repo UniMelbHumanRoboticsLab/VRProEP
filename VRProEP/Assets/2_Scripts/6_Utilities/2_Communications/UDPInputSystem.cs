@@ -28,12 +28,15 @@ public static class UDPInputSystem
     //
     public static object GetInput(InputType type, int channel)
     {
+        //if (udpPinList.Count == 0)
+            //return UDPClothespinManager.ClothespinState.Null;
+
         switch (type)
         {
             case InputType.UDPClothespinButton:
                 if (channel > (udpPinList.Count - 1))
                 {
-                    Debug.LogWarning("The requested input channel is out of range!");
+                    //Debug.LogWarning("The requested input channel is out of range!");
                     return UDPClothespinManager.ClothespinState.Null;
                 }
                 else
@@ -49,12 +52,15 @@ public static class UDPInputSystem
     //
     public static object GetPrevInput(InputType type, int channel)
     {
+        //if (udpPinList.Count == 0)
+            //return UDPClothespinManager.ClothespinState.Null;
+
         switch (type)
         {
             case InputType.UDPClothespinButton:
                 if (channel > (udpPinList.Count - 1))
                 {
-                    Debug.LogWarning("The requested input channel is out of range!");
+                    //Debug.LogWarning("The requested input channel is out of range!");
                     return UDPClothespinManager.ClothespinState.Null;
                 }
                 else
