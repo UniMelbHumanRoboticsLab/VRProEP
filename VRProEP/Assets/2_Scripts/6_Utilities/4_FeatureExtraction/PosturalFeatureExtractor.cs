@@ -203,7 +203,7 @@ public static class PosturalFeatureExtractor
     public static float[] ExtractWristPose(Quaternion qUpperarmTracker, Quaternion qHandTracker)
     {
         // Need a dummy tracker which is on the real forearm rigid body not on the hand
-        Quaternion qForearmTracker = qUpperarmTracker * Quaternion.Euler(0, 0, elbowFE * Mathf.Rad2Deg);
+        Quaternion qForearmTracker = qUpperarmTracker * Quaternion.Euler(0, 0, -elbowFE * Mathf.Rad2Deg);
 
         // Caculate elbow angles in upperarm's frame
         Quaternion relativeRot = Quaternion.Inverse(qForearmTracker);
