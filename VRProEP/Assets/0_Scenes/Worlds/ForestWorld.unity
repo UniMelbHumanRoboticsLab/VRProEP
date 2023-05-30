@@ -1000,7 +1000,7 @@ PrefabInstance:
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: xrSkip
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
@@ -1035,7 +1035,7 @@ PrefabInstance:
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: foreArmBandPort
-      value: 8880
+      value: 8881
       objectReference: {fileID: 0}
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
@@ -1071,12 +1071,12 @@ PrefabInstance:
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: wristBandFMGEnable
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: wristBandIPAddress
-      value: 192.168.137.37
+      value: 192.168.137.126
       objectReference: {fileID: 0}
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
@@ -1086,7 +1086,7 @@ PrefabInstance:
     - target: {fileID: 695154032237073343, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
       propertyPath: foremArmBandIPAddress
-      value: 192.168.137.185
+      value: 192.168.137.12
       objectReference: {fileID: 0}
     - target: {fileID: 962875970167240868, guid: ba1c21b3c1f1e5c43b073568b563b679,
         type: 3}
