@@ -14,10 +14,16 @@ namespace VRProEP.ProsthesisCore
         // Sensor settings
         private int chNum = 0;
         private int recordDataNum = 0;
+        private int minDataNum;
+        private int maxDataNum;
+
+        public int MinDataNum { get => minDataNum;  set { minDataNum = value; } }
+        public int MaxDataNum { get => maxDataNum;  set { maxDataNum = value; } }
+
         // Saving file
         private string fileName;
         private string fileHeader;
-
+        
         
         public string FileName { get => fileName; set { fileName = value; } }
         public string FileHeader { get => fileHeader; set { fileHeader = value; } }
@@ -31,7 +37,8 @@ namespace VRProEP.ProsthesisCore
         //
         public TCPTactileArmBandManager(string ipAddress, int port) : base(ipAddress, port)
         {
-
+            this.minDataNum = 0;
+            this.maxDataNum = 10000;
         }
 
         //
@@ -115,7 +122,10 @@ namespace VRProEP.ProsthesisCore
         {
             recording = false;
             File.WriteAllText(fileName, csvString.ToString());
-            Debug.Log("Armband recorded: " + recordDataNum + "rows of data recorded!");
+            Debug.Log("Armband recorded: " + recordDataNum + "rows of data.");
+
+            if (recordDataNum < minDataNum || recordDataNum > minDataNum)
+                Debug.LogWarning("Data file: " + fileName + " may not be logged correctly!" + " Only " + recordDataNum + " rows recorded!");
         }
 
 

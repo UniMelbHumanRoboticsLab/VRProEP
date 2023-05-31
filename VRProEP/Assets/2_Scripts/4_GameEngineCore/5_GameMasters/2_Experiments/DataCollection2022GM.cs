@@ -47,7 +47,7 @@ public class DataCollection2022GM : GameMaster
     [SerializeField]
     private string performanceDataFormat = "i,pose,name,tF";
     [SerializeField]
-    private string foreArmBandDataFormat = "t,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,ch11,ch12,ch13,ch14,ch15,ch16,aEul,bEul,gEul,xGyro,yGyro,zGyro,xAcc,yAcc,zAcc,xMag,yMag,zMag";
+    private string foreArmBandDataFormat = "t,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,ch11,ch12,ch13,ch14,ch15,aEul,bEul,gEul,xGyro,yGyro,zGyro,xAcc,yAcc,zAcc,xMag,yMag,zMag";
     [SerializeField]
     private string wristBandDataFormat = "t,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,aEuler,bEuler,gEuler,xGyro,yGyro,zGyro,xAcc,yAcc,zAcc,xMag,yMag,zMag";
 
@@ -484,11 +484,15 @@ public class DataCollection2022GM : GameMaster
         if (foreArmBandFMGEnable)
         {
             foreArmBandFMG = new TCPTactileArmBandManager(foremArmBandIPAddress, foreArmBandPort);
+            foreArmBandFMG.MinDataNum = (int)(maxTaskTime * 10.0f - 1.0f); // 10 Hz, plus/minus 1 data point tolerance
+            foreArmBandFMG.MaxDataNum = (int)(maxTaskTime * 10.0f + 1.0f);
             foreArmBandFMG.FileHeader = foreArmBandDataFormat;
         }
         if (wristBandFMGEnable)
         {
             wristBandFMG = new TCPTactileArmBandManager(wristBandIPAddress, wristBandPort);
+            wristBandFMG.MinDataNum = (int)(maxTaskTime * 10.0f - 1.0f);
+            wristBandFMG.MaxDataNum = (int)(maxTaskTime * 10.0f + 1.0f);
             wristBandFMG.FileHeader = wristBandDataFormat;
         }
         
@@ -906,7 +910,8 @@ public class DataCollection2022GM : GameMaster
         if (checkStartPosition)
         {
             //return Input.GetKey(KeyCode.UpArrow);
-            return (Input.GetKey(KeyCode.UpArrow) || buttonAction.GetState(SteamVR_Input_Sources.Any));
+            //return (Input.GetKey(KeyCode.UpArrow) || buttonAction.GetState(SteamVR_Input_Sources.Any));
+            return true;
         }
 
         else
