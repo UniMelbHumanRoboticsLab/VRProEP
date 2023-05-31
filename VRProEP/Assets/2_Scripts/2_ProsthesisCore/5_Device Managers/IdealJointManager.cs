@@ -43,7 +43,7 @@ namespace VRProEP.ProsthesisCore
             //Configure motor
             jointMotor = this.joint.motor;
             jointMotor.freeSpin = false;
-            jointMotor.force = 1000;
+            jointMotor.force = 10000;
             jointMotor.targetVelocity = MaxAngVel;
             this.joint.useMotor = true;
             this.joint.motor = jointMotor;
