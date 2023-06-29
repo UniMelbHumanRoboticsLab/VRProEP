@@ -124,7 +124,7 @@ namespace VRProEP.ProsthesisCore
             File.WriteAllText(fileName, csvString.ToString());
             Debug.Log("Armband recorded: " + recordDataNum + "rows of data.");
 
-            if (recordDataNum < minDataNum || recordDataNum > minDataNum)
+            if (recordDataNum < minDataNum || recordDataNum > maxDataNum)
                 Debug.LogWarning("Data file: " + fileName + " may not be logged correctly!" + " Only " + recordDataNum + " rows recorded!");
         }
 
