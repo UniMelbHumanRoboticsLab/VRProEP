@@ -47,9 +47,9 @@ public class DataCollection2022GM : GameMaster
     [SerializeField]
     private string performanceDataFormat = "i,pose,name,tF";
     [SerializeField]
-    private string foreArmBandDataFormat = "t,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,ch11,ch12,ch13,ch14,ch15,aEul,bEul,gEul,xGyro,yGyro,zGyro,xAcc,yAcc,zAcc,xMag,yMag,zMag";
+    private string foreArmBandDataFormat = "t,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,ch11,ch12,ch13,ch14,ch15,aEul,bEul,gEul,xGyro,yGyro,zGyro,xAcc,yAcc,zAcc,xMag,yMag,zMag,ch1z,ch2z,ch3z,ch4z,ch5z,ch6z,ch7z,ch8z,ch9z,ch10z,ch11z,ch12z,ch13z,ch14z,ch15z";
     [SerializeField]
-    private string wristBandDataFormat = "t,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,aEuler,bEuler,gEuler,xGyro,yGyro,zGyro,xAcc,yAcc,zAcc,xMag,yMag,zMag";
+    private string wristBandDataFormat = "t,ch1,ch2,ch3,ch4,ch5,ch6,ch7,ch8,ch9,ch10,aEuler,bEuler,gEuler,xGyro,yGyro,zGyro,xAcc,yAcc,zAcc,xMag,yMag,zMag,ch1z,ch2z,ch3z,ch4z,ch5z,ch6z,ch7z,ch8z,ch9z,ch10z";
 
 
     [Header("Grid manager")]
@@ -132,12 +132,16 @@ public class DataCollection2022GM : GameMaster
     // FMG arm band data collection
     private TCPTactileArmBandManager foreArmBandFMG;
     [SerializeField]
+    private int foremArmBandTactileCh;
+    [SerializeField]
     private string foremArmBandIPAddress;
     [SerializeField]
     private int foreArmBandPort;
 
 
     private TCPTactileArmBandManager wristBandFMG;
+    [SerializeField]
+    private int wristBandTactileCh;
     [SerializeField]
     private string wristBandIPAddress;
     [SerializeField]
@@ -160,6 +164,7 @@ public class DataCollection2022GM : GameMaster
     private bool taskComplete = false;
     private bool startRecording = false;
     private bool emgIsRecording = false;
+    private bool failIteration = false;
 
     // Lefty subject sign
     private float leftySign = 1.0f;
@@ -483,14 +488,14 @@ public class DataCollection2022GM : GameMaster
         #region Initialize FMG armband sensors
         if (foreArmBandFMGEnable)
         {
-            foreArmBandFMG = new TCPTactileArmBandManager(foremArmBandIPAddress, foreArmBandPort);
+            foreArmBandFMG = new TCPTactileArmBandManager(foremArmBandTactileCh,foremArmBandIPAddress, foreArmBandPort);
             foreArmBandFMG.MinDataNum = (int)(maxTaskTime * 10.0f - 1.0f); // 10 Hz, plus/minus 1 data point tolerance
             foreArmBandFMG.MaxDataNum = (int)(maxTaskTime * 10.0f + 1.0f);
             foreArmBandFMG.FileHeader = foreArmBandDataFormat;
         }
         if (wristBandFMGEnable)
         {
-            wristBandFMG = new TCPTactileArmBandManager(wristBandIPAddress, wristBandPort);
+            wristBandFMG = new TCPTactileArmBandManager(wristBandTactileCh,wristBandIPAddress, wristBandPort);
             wristBandFMG.MinDataNum = (int)(maxTaskTime * 10.0f - 1.0f);
             wristBandFMG.MaxDataNum = (int)(maxTaskTime * 10.0f + 1.0f);
             wristBandFMG.FileHeader = wristBandDataFormat;
@@ -654,7 +659,7 @@ public class DataCollection2022GM : GameMaster
         iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget;
 
         // Create the list of target indexes and shuffle it.
-        for (int i = 0; i < targetNumber; i++)
+        for (int i = 1; i < targetNumber; i++)
         {
             for (int j = 0; j < iterationsPerTarget; j++)
             {
@@ -664,6 +669,7 @@ public class DataCollection2022GM : GameMaster
                 
         }
         targetOrder.Shuffle();
+        targetOrder.Insert(0, 0);
 
         #endregion
         StartCoroutine(DisplayTaskText(targetOrder[0]));
@@ -1072,25 +1078,59 @@ public class DataCollection2022GM : GameMaster
     {
         // Stop data reading and save data
         startRecording = false;
+
         if (delsysEMGEnable)
             delsysEMG.StopRecording();
-        if(foreArmBandFMGEnable)
-            foreArmBandFMG.StopRecording();
-        if(wristBandFMGEnable)
-            wristBandFMG.StopRecording();
-        //emgIsRecording = false;
 
-        base.HandleTaskCompletion();
+        bool successFA = false;
+        bool successW = false;
+        if(foreArmBandFMGEnable)
+            successFA =  foreArmBandFMG.StopRecording();
+        if(wristBandFMGEnable)
+            successW = wristBandFMG.StopRecording();
+
+        
+
+       
         // Reset flags
         hasReached = false;
         taskStarted = false;
         taskComplete = false;
-
         startAudioPlayed = false;
         nextAudioPlayed = false;
-        // Play return audio
-        //audio.clip = returnAudioClip;
-        //audio.Play();
+
+        base.HandleTaskCompletion();
+
+        // Restart the iteration if the data is not recored properly
+        if (!successW)
+        {
+            Debug.LogWarning("Data point not enought, redo the iteration!");
+            failIteration = true;
+            //HandleFailIteration();
+            return;
+        }
+
+        failIteration = false;
+        
+    }
+
+    /// <summary>
+    /// Handles procedures that occur as soon as the task is completed.
+    /// </summary>
+    private void HandleFailIteration()
+    {
+        hasReached = false;
+        taskComplete = false;
+        if (iterationNumber == 1)
+        {
+            foreArmBandFMG.SetOffset = true;
+            wristBandFMG.SetOffset = true;
+        }
+        logData = "";
+        iterationNumber--;
+        Debug.Log(iterationNumber);
+        failIteration = true;
+        HandleIterationInitialisation();
     }
 
     /// <summary>
@@ -1099,12 +1139,15 @@ public class DataCollection2022GM : GameMaster
     public override void HandleResultAnalysis()
     {
         // Do some analysis
-        //Debug.Log("J = " + J);
-        string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + poseListManager.GetPoseName(targetOrder[iterationNumber - 1]) +"," + doneTime.ToString();
 
-        // Log results
-        performanceDataLogger.AppendData(iterationResults);
-        performanceDataLogger.SaveLog();
+        if (!failIteration)
+        {
+            string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + poseListManager.GetPoseName(targetOrder[iterationNumber - 1]) + "," + doneTime.ToString();
+            // Log results
+            performanceDataLogger.AppendData(iterationResults);
+            performanceDataLogger.SaveLog();
+        }
+        
     }
 
     /// <summary>
@@ -1115,8 +1158,20 @@ public class DataCollection2022GM : GameMaster
     public override void HandleIterationInitialisation()
     {
 
+        //
+        // Update iteration number and flow control
+        //
+        if(!failIteration)
+            iterationNumber++;
+
         subStep = 1;
-        base.HandleIterationInitialisation();
+        taskTime = 0.0f;
+
+        // 
+        // Update log
+        //
+        taskDataLogger.AddNewLogFile(sessionNumber, iterationNumber, taskDataFormat);
+
         StartCoroutine(DisplayTaskText(targetOrder[iterationNumber - 1]));
         
 
@@ -1152,7 +1207,7 @@ public class DataCollection2022GM : GameMaster
 
         // Create the list of target indexes and shuffle it.
         targetOrder.Clear(); //clear the target order
-        for (int i = 0; i < targetNumber; i++)
+        for (int i = 1; i < targetNumber; i++)
         {
             for (int j = 0; j < iterationsPerTarget; j++)
             {
@@ -1163,10 +1218,13 @@ public class DataCollection2022GM : GameMaster
 
         }
 
+
         targetOrder.Shuffle();
 
-        // New file for the performance data logger
-        performanceDataLogger.CloseLog();
+        targetOrder.Insert(0,0);
+
+            // New file for the performance data logger
+            performanceDataLogger.CloseLog();
         performanceDataLogger.AddNewLogFile(AvatarSystem.AvatarType.ToString(), sessionNumber, performanceDataFormat); // Add file
 
         // Display task text

@@ -6,13 +6,14 @@ using System.IO.Ports;
 using System.Threading;
 using System.IO;
 using UnityEngine;
+using System.Linq;
 
 namespace VRProEP.ProsthesisCore
 {
     public class TCPTactileArmBandManager : TCPDeviceManager
     {
         // Sensor settings
-        private int chNum = 0;
+        private int tactileCh = 0;
         private int recordDataNum = 0;
         private int minDataNum;
         private int maxDataNum;
@@ -31,14 +32,24 @@ namespace VRProEP.ProsthesisCore
 
         // Flags
         private bool recording = false;
+        private bool success = true;
+        private bool setOffset = true;
+        public bool SetOffset { get => setOffset; set { setOffset = value; } }
+
+        // Offsets
+        private List<List<float>> offsetBuffer = new List<List<float>>();
+        private List<float> offset = new List<float>();
 
         //
         // Constructor
         //
-        public TCPTactileArmBandManager(string ipAddress, int port) : base(ipAddress, port)
+        public TCPTactileArmBandManager(int tactileCh, string ipAddress, int port) : base(ipAddress, port)
         {
-            this.minDataNum = 0;
-            this.maxDataNum = 10000;
+            this.tactileCh = tactileCh;
+            offset = Enumerable.Repeat(0f, tactileCh).ToList();
+            minDataNum = 0;
+            maxDataNum = 10000;
+            setOffset = true;
         }
 
         //
@@ -53,15 +64,34 @@ namespace VRProEP.ProsthesisCore
                 {
                     receivedData = reader.ReadLine();
                     float[] data = Array.ConvertAll(receivedData.Split(','), float.Parse);
-
+                    //string arrayAsString = string.Join(", ", data);
+                    //Debug.Log("Data: " + arrayAsString);
 
                     if (recording)
                     {
-                        
                         //Debug.Log("TCP devive at:" + ipAddress + ", received: " + receivedData);
-                        csvString.Append(receivedData);
+
+                        
+                        // Offset the data using offset values of relax gesture
+                        List<float> tempoffsetData = new List<float>();
+                        for (int i = 1; i <= tactileCh; i++)
+                        {
+                            tempoffsetData.Add((float)Math.Round(data[i] - offset[i-1]));
+                        }
+                        string offsetData = string.Join(",", tempoffsetData);
+                        
+                        
+                        csvString.Append(receivedData + "," + offsetData);
+                        
+
+                        //csvString.Append(receivedData);
                         csvString.Append(Environment.NewLine);
                         recordDataNum++;
+
+                        if (setOffset)
+                        {
+                            offsetBuffer.Add(data.OfType<float>().ToList().GetRange(1,tactileCh));
+                        }
                     }
                     else
                     {
@@ -118,15 +148,54 @@ namespace VRProEP.ProsthesisCore
         //
         // Stop recording
         //
-        public void StopRecording()
+        public bool StopRecording()
         {
             recording = false;
             File.WriteAllText(fileName, csvString.ToString());
             Debug.Log("Armband recorded: " + recordDataNum + "rows of data.");
 
             if (recordDataNum < minDataNum || recordDataNum > maxDataNum)
+            {
                 Debug.LogWarning("Data file: " + fileName + " may not be logged correctly!" + " Only " + recordDataNum + " rows recorded!");
+
+                success = false;
+                if (setOffset && offsetBuffer != null)
+                {
+                    offsetBuffer.Clear();
+                    Debug.LogWarning("Fail to record offsets value" + fileName);
+                }
+            }
+            else
+            {
+                success = true;
+
+                if (setOffset && offsetBuffer != null)
+                {
+                    offset.Clear();
+                    
+                    for (int i = 0; i < offsetBuffer[0].Count; i++)
+                    {
+                        float temp = 0;
+                        for (int j = 0; j < offsetBuffer.Count; j++)
+                        {
+                            temp += offsetBuffer[j][i];
+                        }
+                        offset.Add(temp / offsetBuffer.Count);
+                    }
+
+                    string arrayAsString = string.Join(", ", offset);
+                    Debug.Log("Set offsets: " + arrayAsString);
+
+                    setOffset = false;
+                }
+
+            }
+
+            
+
+            return success;
         }
+
 
 
 
