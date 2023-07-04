@@ -90,7 +90,10 @@ namespace VRProEP.ProsthesisCore
 
                         if (setOffset)
                         {
-                            offsetBuffer.Add(data.OfType<float>().ToList().GetRange(1,tactileCh));
+                            List<float> temp = new List<float>();
+                            temp = data.OfType<float>().ToList().GetRange(1, tactileCh);
+                            if(!temp.Contains(0.0f))
+                                offsetBuffer.Add(temp);
                         }
                     }
                     else
@@ -175,12 +178,13 @@ namespace VRProEP.ProsthesisCore
                     
                     for (int i = 0; i < offsetBuffer[0].Count; i++)
                     {
-                        float temp = 0;
+                        List<float> temp = new List<float>();
                         for (int j = 0; j < offsetBuffer.Count; j++)
                         {
-                            temp += offsetBuffer[j][i];
+                            temp.Add(offsetBuffer[j][i]);
                         }
-                        offset.Add(temp / offsetBuffer.Count);
+                        //temp.Sort();
+                        offset.Add(temp.Average());
                     }
 
                     string arrayAsString = string.Join(", ", offset);
