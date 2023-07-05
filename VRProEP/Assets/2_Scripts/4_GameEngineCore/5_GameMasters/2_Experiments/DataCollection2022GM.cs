@@ -1101,14 +1101,19 @@ public class DataCollection2022GM : GameMaster
 
         base.HandleTaskCompletion();
 
-        // Restart the iteration if the data is not recored properly
-        if (!successW)
+        if (foreArmBandFMGEnable || foreArmBandFMGEnable)
         {
-            Debug.LogWarning("Data point not enought, redo the iteration!");
-            failIteration = true;
-            //HandleFailIteration();
-            return;
+            // Restart the iteration if the data is not recored properly
+            if (!successFA || !successW)
+            {
+                Debug.LogWarning("Data point not enought, redo the iteration!");
+                failIteration = true;
+                //HandleFailIteration();
+                return;
+            }
         }
+    
+        
 
         failIteration = false;
         
