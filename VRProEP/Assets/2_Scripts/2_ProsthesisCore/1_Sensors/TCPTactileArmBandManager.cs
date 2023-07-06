@@ -67,11 +67,18 @@ namespace VRProEP.ProsthesisCore
                     //string arrayAsString = string.Join(", ", data);
                     //Debug.Log("Data: " + arrayAsString);
 
+
                     if (recording)
                     {
                         //Debug.Log("TCP devive at:" + ipAddress + ", received: " + receivedData);
 
-                        
+                        // Fix the offset issue of the forearm band
+                        for (int i = 1; i <= tactileCh; i++)
+                        {
+                            if (data[i] < -10.0f)
+                                data[i] = data[i] + 2 * 7900;
+                        }
+
                         // Offset the data using offset values of relax gesture
                         List<float> tempoffsetData = new List<float>();
                         for (int i = 1; i <= tactileCh; i++)

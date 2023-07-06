@@ -1189,7 +1189,10 @@ public class DataCollection2022GM : GameMaster
     public override bool IsEndOfSession()
     {
         // You can do your own implementation of this
-        return base.IsEndOfSession();
+        if (!failIteration)
+            return iterationNumber >= iterationsPerSession[sessionNumber - 1];
+        else
+            return false;
        
     }
 
@@ -1207,7 +1210,7 @@ public class DataCollection2022GM : GameMaster
         #region Iteration settings
         // Set iterations variables for flow control.
         targetNumber = poseListManager.TargetNumber;
-        iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget;
+        iterationsPerSession[sessionNumber - 1] = targetNumber * iterationsPerTarget;
 
 
         // Create the list of target indexes and shuffle it.
@@ -1217,24 +1220,29 @@ public class DataCollection2022GM : GameMaster
             for (int j = 0; j < iterationsPerTarget; j++)
             {
                 targetOrder.Add(i);
-                Debug.Log(targetOrder[targetOrder.Count-1]);
+                Debug.Log(targetOrder[targetOrder.Count - 1]);
             }
-                
+
 
         }
 
 
         targetOrder.Shuffle();
 
-        targetOrder.Insert(0,0);
+        targetOrder.Insert(0, 0);
 
-            // New file for the performance data logger
-            performanceDataLogger.CloseLog();
+        if (foreArmBandFMGEnable)
+            foreArmBandFMG.SetOffset = true;
+        if (wristBandFMGEnable)
+            wristBandFMG.SetOffset = true;
+
+        // New file for the performance data logger
+        performanceDataLogger.CloseLog();
         performanceDataLogger.AddNewLogFile(AvatarSystem.AvatarType.ToString(), sessionNumber, performanceDataFormat); // Add file
 
         // Display task text
         StartCoroutine(DisplayTaskText(targetOrder[0]));
-        
+
 
         if (debug)
         {
@@ -1244,6 +1252,7 @@ public class DataCollection2022GM : GameMaster
             }
         }
         #endregion
+
 
 
 
