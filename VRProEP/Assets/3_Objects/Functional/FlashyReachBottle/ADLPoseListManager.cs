@@ -59,8 +59,9 @@ public class ADLPoseListManager : MonoBehaviour
         ResetBottleSelection();
         */
         spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
-        poseSpriteList = Resources.LoadAll<Sprite>("HandGestures");
-       
+        poseSpriteList = Resources.LoadAll<Sprite>("HandGestures"); //HandGestures
+
+
     }
 
     void Update()

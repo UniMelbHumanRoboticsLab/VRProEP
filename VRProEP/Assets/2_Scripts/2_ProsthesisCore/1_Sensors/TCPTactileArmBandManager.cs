@@ -151,9 +151,12 @@ namespace VRProEP.ProsthesisCore
             csvString.Append(Environment.NewLine);
             recording = true;
 
-
+            if (setOffset && offsetBuffer != null)
+            {
+                offset.Clear();
+                offset = Enumerable.Repeat(0f, tactileCh).ToList();
+            }
         }
-
 
         //
         // Stop recording
