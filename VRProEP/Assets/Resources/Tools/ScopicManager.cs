@@ -10,8 +10,10 @@ public class ScopicManager : MonoBehaviour
     private float grasp;
     private float rotation;
 
-    private const float delta = 0.04f;
-    private const float deltaRot = 0.03f;
+    [SerializeField]
+    private float delta = 0.04f;
+    [SerializeField]
+    private float deltaRot = 0.03f;
 
     // Start is called before the first frame update
     void Start()
