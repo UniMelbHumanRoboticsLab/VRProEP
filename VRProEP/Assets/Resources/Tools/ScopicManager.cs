@@ -26,7 +26,7 @@ public class ScopicManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey(KeyCode.Alpha1))
+        if (Input.GetKey(KeyCode.UpArrow)  )
         {
             grasp = grasp - delta;
             if (grasp > 1.0f || grasp < -1.0f)
@@ -35,7 +35,7 @@ public class ScopicManager : MonoBehaviour
             animator.SetFloat("Grasp", grasp);
             Debug.Log("Gripper Close");
         }
-        else if (Input.GetKey(KeyCode.Alpha2))
+        else if (Input.GetKey(KeyCode.DownArrow))
         {
             grasp = grasp + delta;
             if (grasp > 1.0f || grasp < -1.0f)
@@ -44,7 +44,7 @@ public class ScopicManager : MonoBehaviour
             animator.SetFloat("Grasp", grasp);
             Debug.Log("Gripper Open");
         }
-        else if (Input.GetKey(KeyCode.Alpha3))
+        else if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.Alpha1))
         {
             rotation = rotation - deltaRot;
             if (rotation > 1.0f || rotation < -1.0f)
@@ -53,7 +53,7 @@ public class ScopicManager : MonoBehaviour
             animator.SetFloat("Rotate", rotation);
             Debug.Log("Rotate Clock-wise");
         }
-        else if (Input.GetKey(KeyCode.Alpha4))
+        else if (Input.GetKey(KeyCode.LeftArrow))
         {
             rotation = rotation + deltaRot;
             if (rotation > 1.0f || rotation < -1.0f)
