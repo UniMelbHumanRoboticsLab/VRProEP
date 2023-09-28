@@ -304,6 +304,9 @@ public class OnlineControlCRT2023 : GameMaster
 
     protected override void FixedUpdate()
     {
+        // Hot keys: UpArrow: recalibrate pose
+        // Hot keys: F1: resetup CRT rack
+
 
         // Choose if to try the training again
         if (GetCurrentStateName() == State.STATE.TRAINING && finishPractice)
@@ -322,7 +325,7 @@ public class OnlineControlCRT2023 : GameMaster
             emgIsRecording = true;
         }
 
-        if (Input.GetKeyDown(KeyCode.UpArrow) && fullTrackerEnable) //Input.GetKeyDown(KeyCode.UpArrow) padAction.GetStateDown(SteamVR_Input_Sources.Any)
+        if (Input.GetKeyDown(KeyCode.UpArrow) && fullTrackerEnable)
         {
             // Record initial frames
             c7InitOrient = c7Tracker.GetTrackerTransform().rotation;
@@ -332,6 +335,12 @@ public class OnlineControlCRT2023 : GameMaster
             shInitPos = shoulderTracker.GetTrackerTransform().position;
 
             Debug.Log("Recalibrated the poses!");
+        }
+
+        if (Input.GetKeyDown(KeyCode.F1)) 
+        {
+            // Reinitialise the CRT rack
+            crtManager.Initialise();
         }
 
         base.FixedUpdate();

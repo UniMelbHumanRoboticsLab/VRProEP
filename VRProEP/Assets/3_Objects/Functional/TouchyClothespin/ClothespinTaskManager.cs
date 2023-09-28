@@ -105,6 +105,7 @@ public class ClothespinTaskManager : MonoBehaviour
 
     // Flags
     private bool rackInit = false;
+    public bool RackInit { get => RackInit; set { rackInit = value; } }
     private bool reachHandInit = false;
 
     //
@@ -210,19 +211,12 @@ public class ClothespinTaskManager : MonoBehaviour
     public void Initialise()
     {
         // For first session - never initialised
-        if (!rackInit)
-        {
-            SetupRackPosition();
-            GetAllTargetTransform();
-            InitClothespin();
-            RenderClothespin(true);
-            rackInit = true;
-        }
-        else
-        {
-            InitClothespin();
-            RenderClothespin(true);
-        }
+
+        SetupRackPosition();
+        GetAllTargetTransform();
+        InitClothespin();
+        RenderClothespin(true);
+        rackInit = true;
 
 
         // Init some constants & flags
@@ -475,6 +469,8 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     private void GetAllTargetTransform()
     {
+        attachGOList.Clear();
+
         // First horizontal ones and then vertical ones
         foreach (string name in horizontalAttachPoint)
         {
