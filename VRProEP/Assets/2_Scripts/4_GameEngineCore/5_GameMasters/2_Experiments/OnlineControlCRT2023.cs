@@ -181,6 +181,10 @@ public class OnlineControlCRT2023 : GameMaster
     // Audio
     AudioSource audio;
 
+    // Test data
+    private float[][] testData;
+
+
     #region Dynamic configuration
 
     //
@@ -342,6 +346,29 @@ public class OnlineControlCRT2023 : GameMaster
             // Reinitialise the CRT rack
             crtManager.Initialise();
         }
+
+
+        //
+        // Some hotkeys only used in debug mode
+        //
+        if (debug)
+        {
+            #region Test a trajectory
+            int i = 1;
+            if (Input.GetKeyDown(KeyCode.F2))
+            {
+                float[] zmqData = new float[] { 1, 0.0f };
+                var temp = this.testData[i];
+                zmqData = new float[temp.Length];
+                temp.CopyTo(zmqData, 0);
+
+                ZMQSystem.AddPushData(zmqPushPort, zmqData);
+                Debug.Log("ZMQ pushed for test data." + zmqData.ToString());
+            }
+            #endregion
+
+        }
+       
 
         base.FixedUpdate();
 
@@ -661,6 +688,13 @@ public class OnlineControlCRT2023 : GameMaster
         InitCRTManager();
 
         #endregion
+
+        #region Load some test data
+        CSVReader csvReader = new CSVReader();
+        testData = csvReader.ReadCSVData("D:/VRProEP/PhD_OnlineControlCRT/ExampleFeature.csv");
+        Debug.Log("Load test data from csv with " + testData.Length + "rows ," + testData[0].Length + "columns" );
+        #endregion
+
 
 
 
