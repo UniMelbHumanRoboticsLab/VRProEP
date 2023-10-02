@@ -183,7 +183,7 @@ public class OnlineControlCRT2023 : GameMaster
 
     // Test data
     private float[][] testData;
-
+    private int testStep = 0;
 
     #region Dynamic configuration
 
@@ -354,16 +354,20 @@ public class OnlineControlCRT2023 : GameMaster
         if (debug)
         {
             #region Test a trajectory
-            int i = 1;
-            if (Input.GetKeyDown(KeyCode.F2))
+        
+            if (Input.GetKeyDown(KeyCode.T))
             {
                 float[] zmqData = new float[] { 1, 0.0f };
-                var temp = this.testData[i];
+                var temp = zmqData.Concat(this.testData[testStep]).ToArray();
                 zmqData = new float[temp.Length];
                 temp.CopyTo(zmqData, 0);
 
                 ZMQSystem.AddPushData(zmqPushPort, zmqData);
                 Debug.Log("ZMQ pushed for test data." + zmqData.ToString());
+
+                testStep++;
+                if (testStep >= testData.Length)
+                    testStep = 0;
             }
             #endregion
 
@@ -690,9 +694,13 @@ public class OnlineControlCRT2023 : GameMaster
         #endregion
 
         #region Load some test data
-        CSVReader csvReader = new CSVReader();
-        testData = csvReader.ReadCSVData("D:/VRProEP/PhD_OnlineControlCRT/ExampleFeature.csv");
-        Debug.Log("Load test data from csv with " + testData.Length + "rows ," + testData[0].Length + "columns" );
+        if (debug)
+        {
+            CSVReader csvReader = new CSVReader();
+            testData = csvReader.ReadCSVData("C:/Users/tianshiy/OneDrive/Unimelb/PhD/AIM2_CoordinatedControl/OnlineCRT/ExampleFeature.csv");
+            Debug.Log("Load test data from csv with " + testData.Length + "rows ," + testData[0].Length + "columns");
+        }
+        
         #endregion
 
 
