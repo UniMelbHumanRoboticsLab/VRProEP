@@ -181,9 +181,11 @@ public class OnlineControlCRT2023 : GameMaster
     // Audio
     AudioSource audio;
 
-    // Test data
+    // Debug test data
     private float[][] testData;
     private int testStep = 0;
+    private bool testStreamFlag = false;
+
 
     #region Dynamic configuration
 
@@ -354,8 +356,13 @@ public class OnlineControlCRT2023 : GameMaster
         if (debug)
         {
             #region Test a trajectory
-        
-            if (Input.GetKeyDown(KeyCode.T))
+
+            if (Input.GetKeyDown(KeyCode.J))
+                testStreamFlag = true;
+            else if (Input.GetKeyDown(KeyCode.K))
+                testStreamFlag = false;
+
+            if (testStreamFlag || Input.GetKeyDown(KeyCode.T))
             {
                 float[] zmqData = new float[] { 1, 0.0f };
                 var temp = zmqData.Concat(this.testData[testStep]).ToArray();
@@ -697,7 +704,8 @@ public class OnlineControlCRT2023 : GameMaster
         if (debug)
         {
             CSVReader csvReader = new CSVReader();
-            testData = csvReader.ReadCSVData("C:/Users/tianshiy/OneDrive/Unimelb/PhD/AIM2_CoordinatedControl/OnlineCRT/ExampleFeature.csv");
+            //testData = csvReader.ReadCSVData("C:/Users/tianshiy/OneDrive/Unimelb/PhD/AIM2_CoordinatedControl/OnlineCRT/ExampleFeature.csv");
+            testData = csvReader.ReadCSVData(Path.Combine(Application.dataPath, "../Assets/Resources/Experiments/ExampleFeature.csv"));
             Debug.Log("Load test data from csv with " + testData.Length + "rows ," + testData[0].Length + "columns");
         }
         
