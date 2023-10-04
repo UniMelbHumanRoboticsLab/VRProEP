@@ -5,10 +5,13 @@ namespace VRProEP.ProsthesisCore
 {
     public class IdealJointManager : BasicDeviceManager
     {
+        public enum Type{ Position, Velocity}
+        public Type type;
         // sensor and controllers unnecessary for this elbow device.
         private HingeJoint joint;
         private JointSpring jointSpring;
         private JointMotor jointMotor;
+
 
         private float errorP = 0.0f;
         private float errorPP = 0.0f;
@@ -51,7 +54,7 @@ namespace VRProEP.ProsthesisCore
             this.KP = 100.0f;
             this.KI = 60.0f;
             this.KD = 0.0f;
-            
+            type = Type.Velocity;
         }
 
         /// <summary>
@@ -72,6 +75,7 @@ namespace VRProEP.ProsthesisCore
             jointSpring.damper = damper;
             this.joint.useSpring = true;
             this.joint.spring = jointSpring;
+            type = Type.Position;
         }
 
         /// <summary>
@@ -124,52 +128,63 @@ namespace VRProEP.ProsthesisCore
                 throw new System.ArgumentException("Only channel 0 available since 1DOF.");
 
 
+       
+
+
+            if (type == Type.Velocity)
+            {
+                #region PID velocity control
+                float error = Mathf.Rad2Deg * (reference - this.GetJointAngle());
+                jointMotor.targetVelocity = jointMotor.targetVelocity + IncPID(KP, KI, KD, error, errorP, errorPP);
+
+
+                if (jointMotor.targetVelocity > MaxAngVel)
+                {
+                    jointMotor.targetVelocity = MaxAngVel;
+                }
+                else if (jointMotor.targetVelocity < -MaxAngVel)
+                {
+                    jointMotor.targetVelocity = -MaxAngVel;
+                }
+
+
+                joint.motor = jointMotor;
+                //Debug.Log("Reference: " + Mathf.Rad2Deg * reference + " Current State: " + Mathf.Rad2Deg * this.GetJointAngle() + "Controller Output: " + jointMotor.targetVelocity + "Saturation Speed: " + MaxAngVel);
+
+                errorPP = errorP;
+                errorP = error;
+
+                #endregion
+            }
+
+            if (type == Type.Position)
+            {
+                jointSpring.targetPosition = Mathf.Rad2Deg * reference;
+                joint.spring = jointSpring;
+                Debug.Log("Joint manager target position" + Mathf.Rad2Deg * reference);
+            }
+
+
+            #region deprecated
             /*
-            #region Simple stop and go
-            float error = reference - this.GetJointAngle();
+           #region Simple stop and go
+           float error = reference - this.GetJointAngle();
 
-            if ((this.Sign(error) * this.Sign(errorPrev)) < 0)
-            {
-                jointMotor.targetVelocity = 0.0f;
-            }
-            else
-            {
-                jointMotor.targetVelocity = MaxAngVel * this.Sign(error);
-            }
-            joint.motor = jointMotor;
+           if ((this.Sign(error) * this.Sign(errorPrev)) < 0)
+           {
+               jointMotor.targetVelocity = 0.0f;
+           }
+           else
+           {
+               jointMotor.targetVelocity = MaxAngVel * this.Sign(error);
+           }
+           joint.motor = jointMotor;
 
-            //Debug.Log("Reference: " + reference + " Current State: " + this.GetJointAngle() + " " + MaxAngVel * this.Sign(error));
+           //Debug.Log("Reference: " + reference + " Current State: " + this.GetJointAngle() + " " + MaxAngVel * this.Sign(error));
 
-            errorPrev = error;
-            #endregion
-            */
-
-
-
-            #region PID velocity control
-            float error = Mathf.Rad2Deg * (reference - this.GetJointAngle());
-            jointMotor.targetVelocity = jointMotor.targetVelocity + IncPID(KP,KI,KD,error,errorP,errorPP);
-
-
-            if (jointMotor.targetVelocity > MaxAngVel)
-            {
-                jointMotor.targetVelocity = MaxAngVel;
-            }
-            else if (jointMotor.targetVelocity < -MaxAngVel)
-            {
-                jointMotor.targetVelocity = -MaxAngVel;
-            }
-               
-
-            joint.motor = jointMotor;
-            //Debug.Log("Reference: " + Mathf.Rad2Deg * reference + " Current State: " + Mathf.Rad2Deg * this.GetJointAngle() + "Controller Output: " + jointMotor.targetVelocity + "Saturation Speed: " + MaxAngVel);
-
-            errorPP = errorP;
-            errorP = error;
-
-            #endregion
-
-
+           errorPrev = error;
+           #endregion
+           */
 
             /*
             float currentPos = this.GetJointAngle();
@@ -191,7 +206,7 @@ namespace VRProEP.ProsthesisCore
             }
             joint.spring = jointSpring;
             */
-
+            #endregion
         }
 
         /// <summary>

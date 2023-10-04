@@ -100,6 +100,10 @@ public class OnlineControlCRT2023 : GameMaster
     [SerializeField]
     private bool dummyControlEnable;
 
+    // If allow streaming test data
+    [SerializeField]
+    private bool dummyStreamDataEnable;
+
     [SerializeField]
     private bool fullTrackerEnable;
    
@@ -353,7 +357,7 @@ public class OnlineControlCRT2023 : GameMaster
         //
         // Some hotkeys only used in debug mode
         //
-        if (debug)
+        if (dummyStreamDataEnable)
         {
             #region Test a trajectory
 
@@ -370,7 +374,7 @@ public class OnlineControlCRT2023 : GameMaster
                 temp.CopyTo(zmqData, 0);
 
                 ZMQSystem.AddPushData(zmqPushPort, zmqData);
-                Debug.Log("ZMQ pushed for test data." + zmqData.ToString());
+                //Debug.Log("ZMQ pushed for test data." + zmqData.ToString());
 
                 testStep++;
                 if (testStep >= testData.Length)
@@ -701,7 +705,7 @@ public class OnlineControlCRT2023 : GameMaster
         #endregion
 
         #region Load some test data
-        if (debug)
+        if (dummyStreamDataEnable)
         {
             CSVReader csvReader = new CSVReader();
             //testData = csvReader.ReadCSVData("C:/Users/tianshiy/OneDrive/Unimelb/PhD/AIM2_CoordinatedControl/OnlineCRT/ExampleFeature.csv");
@@ -1289,7 +1293,7 @@ public class OnlineControlCRT2023 : GameMaster
 
 
             // Push data to other platform through ZMQ
-            if (zmqPushEnable)
+            if (zmqPushEnable && !dummyStreamDataEnable)
             {
                 ZMQSystem.AddPushData(zmqPushPort, zmqData);
                 //Debug.Log("ZMQ pushed");

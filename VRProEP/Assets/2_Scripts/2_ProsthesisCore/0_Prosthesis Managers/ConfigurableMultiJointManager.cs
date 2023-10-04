@@ -32,9 +32,9 @@ namespace VRProEP.ProsthesisCore
         private float[] xMax = { Mathf.Deg2Rad * -0.1f, Mathf.Deg2Rad * 90.0f, Mathf.Deg2Rad * 0.0f };
 
 
-        public const float MAX_EFE_VEL = 40.0f;
-        public const float MAX_WPS_VEL = 40.0f;
-        public const float MAX_WFE_VEL = 60.0f;
+        public const float MAX_EFE_VEL = 60.0f;
+        public const float MAX_WPS_VEL = 90.0f;
+        public const float MAX_WFE_VEL = 200.0f;
 
         /// <summary>
         /// Initializes the multi joint prosthesis with basic functionality.
@@ -76,7 +76,8 @@ namespace VRProEP.ProsthesisCore
             VirtualEncoderManager virtualElbowEncoder = new VirtualEncoderManager(elbowJoint);
             // Ideal tracking version
             // Create ElbowManager with the given elbowJoint.
-            elbowManager = new IdealJointManager(elbowJoint);
+            //elbowManager = new IdealJointManager(elbowJoint);
+            elbowManager = new IdealJointManager(elbowJoint,2000.0f,200.0f);
             elbowManager.MaxAngVel = MAX_EFE_VEL;
 
 
@@ -93,7 +94,8 @@ namespace VRProEP.ProsthesisCore
             VirtualEncoderManager virtualWristPronEncoder = new VirtualEncoderManager(wristPronJoint);
             // Ideal tracking version
             // Create ElbowManager with the given elbowJoint.
-            wristPronManager = new IdealJointManager(wristPronJoint);
+            //wristPronManager = new IdealJointManager(wristPronJoint);
+            wristPronManager = new IdealJointManager(wristPronJoint,2000.0f,200.0f);
             wristPronManager.MaxAngVel = MAX_WPS_VEL;
 
             //
@@ -168,6 +170,7 @@ namespace VRProEP.ProsthesisCore
             {
                 //Get the readings
                 ElbowState = elbowManager.GetJointStates();
+                Debug.Log("Elbow at: " + ElbowState[0] * Mathf.Rad2Deg);
                 WristPronState = wristPronManager.GetJointStates();
                 WristFlexState = wristFlexManager.GetJointStates();
 

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1814239036}
-  m_IndirectSpecularColor: {r: 0.070523, g: 0.3536324, b: 0.9700316, a: 1}
+  m_IndirectSpecularColor: {r: 0.07052275, g: 0.35373604, b: 0.97078824, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -5861,12 +5861,12 @@ PrefabInstance:
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: amputeeAvatar
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: zmqPullEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
@@ -5891,12 +5891,17 @@ PrefabInstance:
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: fullTrackerEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: dummyControlEnable
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
+        type: 3}
+      propertyPath: dummyStreamDataEnable
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3173896575985748330, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
