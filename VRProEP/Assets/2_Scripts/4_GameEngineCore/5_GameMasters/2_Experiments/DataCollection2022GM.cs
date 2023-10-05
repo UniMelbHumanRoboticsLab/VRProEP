@@ -960,7 +960,7 @@ public class DataCollection2022GM : GameMaster
     {
         
 
-        if (!startRecording && (padAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyUp(KeyCode.RightArrow)))
+        if (!startRecording && (padAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyUp(KeyCode.F1)))
         {
             Debug.Log("Data Recording Started.");
             startRecording = true;
@@ -1040,7 +1040,7 @@ public class DataCollection2022GM : GameMaster
         // You can implement whatever condition you want, maybe touching an object in the virtual world or being in a certain posture.
 
         //gridManager.SelectedTouched && !hasReached
-        if ( (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyDown(KeyCode.UpArrow)) || taskTime >= maxTaskTime  && !hasReached) //Input.GetKey(KeyCode.DownArrow)
+        if ( (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyDown(KeyCode.F2)) || taskTime >= maxTaskTime  && !hasReached) //Input.GetKey(KeyCode.DownArrow)
         {
             doneTime = taskTime;
             //audio.clip = holdAudioClip;
