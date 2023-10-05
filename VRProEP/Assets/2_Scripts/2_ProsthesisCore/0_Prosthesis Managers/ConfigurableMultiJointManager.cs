@@ -170,7 +170,7 @@ namespace VRProEP.ProsthesisCore
             {
                 //Get the readings
                 ElbowState = elbowManager.GetJointStates();
-                Debug.Log("Elbow at: " + ElbowState[0] * Mathf.Rad2Deg);
+                //Debug.Log("Elbow at: " + ElbowState[0] * Mathf.Rad2Deg);
                 WristPronState = wristPronManager.GetJointStates();
                 WristFlexState = wristFlexManager.GetJointStates();
 

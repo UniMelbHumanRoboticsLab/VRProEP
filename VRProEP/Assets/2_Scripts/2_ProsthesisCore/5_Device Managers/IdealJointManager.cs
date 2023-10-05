@@ -161,7 +161,7 @@ namespace VRProEP.ProsthesisCore
             {
                 jointSpring.targetPosition = Mathf.Rad2Deg * reference;
                 joint.spring = jointSpring;
-                Debug.Log("Joint manager target position" + Mathf.Rad2Deg * reference);
+                //Debug.Log("Joint manager target position" + Mathf.Rad2Deg * reference);
             }
 
 

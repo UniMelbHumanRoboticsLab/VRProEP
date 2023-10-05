@@ -207,7 +207,7 @@ public class ClothespinManager : MonoBehaviour
                         pinState = ClothespinState.LeaveInit;
                     }
                 }
-                else if (iNotGrasped >= 45)
+                else if (iNotGrasped >= 60)
                 {
                     ChangeClothespinColor(selectedColour);
                     CloseClothespin();
@@ -219,7 +219,7 @@ public class ClothespinManager : MonoBehaviour
                 }
                 break;
             case ClothespinState.LeaveInit:
-                if (tempGrasped)
+                if (iNotGrasped <= 90)
                 {
                     OpenClothespin();
                     // Leaving the initial position & rotation
@@ -235,7 +235,7 @@ public class ClothespinManager : MonoBehaviour
                     }
 
                 }
-                else if (iNotGrasped >= 45)
+                else 
                 {
                     ChangeClothespinColor(selectedColour);
                     CloseClothespin();
@@ -245,6 +245,7 @@ public class ClothespinManager : MonoBehaviour
 
                     Debug.Log("Lost grasp");
                 }
+                
                 break;
             case ClothespinState.ReachTarget:
                 if (tempGrasped)
