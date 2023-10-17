@@ -25,13 +25,13 @@ public class OnlineControlCRT2023 : GameMaster
 {
     // Here you can place all your Unity (GameObjects or similar)
     #region Unity objects
-    [SerializeField]
+    
     //private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
     private string ablebodiedDataFormat = "i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
-    [SerializeField]
-    private string transhumeralDataFormat = "i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,pEfe,pDotEfe,pWps,pDotWps,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
-    [SerializeField]
-    private string performanceDataFormat = "i, t_f, i_clothespin, target_pose";
+    
+    private string transhumeralDataFormat = "i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,pEfeRef,pEfe,pDotEfe,pWpsRef,pWps,pDotWps,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
+    
+    private string performanceDataFormat = "i, tF, iClothespin, targetPose";
 
 
 
@@ -90,6 +90,12 @@ public class OnlineControlCRT2023 : GameMaster
     [SerializeField]
     private bool avatarCalibration;
 
+    [Header("Additional Flow Control")]
+    [SerializeField]
+    private bool skipWelcomeText;
+    [SerializeField]
+    private bool skipInstructionText;
+
     [Header("Flags")]
     // Allow inputs from udp devices
     [SerializeField]
@@ -147,6 +153,7 @@ public class OnlineControlCRT2023 : GameMaster
     // Prosthesis handling objects
     private GameObject prosthesisManagerGO;
     private ConfigurableMultiJointManager multiJointManager;
+    private ACESHandAnimation handAnimationManager;
 
     // Motion tracking for experiment management and adaptation (check for start position)
     private VIVETrackerManager upperArmTracker;
@@ -289,8 +296,8 @@ public class OnlineControlCRT2023 : GameMaster
     {
         // Setup crt task position
         //crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
-        crtManager.Height = SaveSystem.ActiveUser.hipHeight;
-        crtManager.Distance = SaveSystem.ActiveUser.handLength;
+        crtManager.Height = SaveSystem.ActiveUser.height2SA * 0.55f;
+        crtManager.Distance = 0.0f; // -SaveSystem.ActiveUser.handLength * 0.5f;
 
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
         {
@@ -441,6 +448,8 @@ public class OnlineControlCRT2023 : GameMaster
                 AvatarSystem.LoadPlayer(SaveSystem.ActiveUser.type, AvatarType.AbleBodied);
                 AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.AbleBodied,true,controlllerHand);
             }
+
+            handAnimationManager = GameObject.FindGameObjectWithTag("Hand").GetComponentInChildren<ACESHandAnimation>();
             
 
         }
@@ -659,7 +668,7 @@ public class OnlineControlCRT2023 : GameMaster
             // Hand tracking sensor
             GameObject handGO = GameObject.FindGameObjectWithTag("Hand");
             handTracker = new VirtualPositionTracker(handGO.transform);
-            ExperimentSystem.AddSensor(handTracker);
+            //ExperimentSystem.AddSensor(handTracker);
         }
        
 
@@ -704,6 +713,27 @@ public class OnlineControlCRT2023 : GameMaster
 
         #endregion
 
+        #region Initiliase residual limb follower offsets
+        // Convert customised setting file to configuration class. 
+        string fileName = SaveSystem.ActiveSaveFolder + "/" + ExperimentSystem.ActiveExperimentID + "/customised_settings.json";
+        if (File.Exists(fileName))
+        {
+            string json = File.ReadAllText(fileName);
+            customConfigurator = JsonUtility.FromJson<CustomisedConfigurator>(json);
+
+            // If prosthesis avatar, we also need to set the prosthesis offset
+            if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+            {
+                GameObject tempResidualGO = GameObject.FindGameObjectWithTag("ResidualLimbAvatar");
+                LimbFollower follower = tempResidualGO.GetComponent<LimbFollower>();
+                follower.offset = customConfigurator.residualFollowerPosOffset;
+                follower.angularOffset = customConfigurator.residualFollowerAngOffset;
+                Debug.Log("Load customised experiment settings");
+            }
+            
+        }
+        #endregion
+
         #region Load some test data
         if (dummyStreamDataEnable)
         {
@@ -731,13 +761,10 @@ public class OnlineControlCRT2023 : GameMaster
         welcomeDone = false;
         inWelcome = true;
 
-        if (!avatarCalibration)
+        if (!skipWelcomeText)
         {
-            HudManager.DisplayText("Look to the top left. Instructions will be displayed there.");
+            HudManager.DisplayText("Look to the top right. Instructions will be displayed there.");
             InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-            InstructionManager.DisplayText("Make sure you are standing on top of the green circle. \n\n (Press the trigger button to continue...)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
             InstructionManager.DisplayText("Test audio. \n\n (If you can hear the audio, press the trigger button to continue...)");
@@ -765,17 +792,19 @@ public class OnlineControlCRT2023 : GameMaster
             // Experiment overall intro
             InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me explain what we are doing today." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Today, the experiment will require you to match the position and orientation of the bottles in front of you" + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("Today, the experiment will require you to move the clothespin to the target position" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You will do 2 sessions which woudl take about an hour " + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("You will do 3 sessions which would take about 1 hour " + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("A" + this.RestTime + "sec rest occurs every" + this.RestIterations + "iterations" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
         }
-       
+
+        #region Sensor calibration
         //
-        // Calibration
-        InstructionManager.DisplayText("Before start, we need to do some clibration" + "\n\n (Press the trigger)");
+        // Sensor calibration
+        //
+        InstructionManager.DisplayText("Before start, we need to do clibration on sensors" + "\n\n (Press the trigger)");
         yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
         InstructionManager.DisplayText("Please stand upright and relax your upper limb.");
         Debug.Log("Press Up key to record calibration pose.");
@@ -792,77 +821,50 @@ public class OnlineControlCRT2023 : GameMaster
             shInitPos = shoulderTracker.GetTrackerTransform().position;
         }
 
-
-        // Start
-        Debug.Log("Press Down key to start.");
+        // Start data stream
+        Debug.Log("Press Down key to continue.");
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
-        //yield return new WaitUntil(() => buttonAction.GetStateDown(SteamVR_Input_Sources.Any));
+
+        #endregion
+
+        #region Avatar calibration
+        if (avatarCalibration)
+        {
+            if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+            {
+                Debug.Log("Calibrate the avatar. Press up arrow to continue.");
+                InstructionManager.DisplayText("We also neeed to calibrate your avatar.");
+                yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
+                //yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+                Debug.Log("Calibration done.");
+
+                // Save the customised settings
+                customConfigurator = new CustomisedConfigurator();
+                GameObject tempResidualGO = GameObject.FindGameObjectWithTag("ResidualLimbAvatar");
+                LimbFollower follower = tempResidualGO.GetComponent<LimbFollower>();
+                customConfigurator.residualFollowerPosOffset = follower.offset;
+                customConfigurator.residualFollowerAngOffset = follower.angularOffset;
+
+                // Covert the setting class to json
+                string json = JsonUtility.ToJson(customConfigurator);
+                string fileName = SaveSystem.ActiveSaveFolder + "/" + ExperimentSystem.ActiveExperimentID + "/customised_settings.json";
+                File.WriteAllText(fileName, json);
+            }
+        }
+
+        #endregion
+        
+        // Done calibration
+        InstructionManager.DisplayText("All done! Thanks! Press trigger to continue" + "\n\n (Press the trigger)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+
+
+        // Start EMG stream if enabled
         if (delsysEnable & zmqPushEnable)
             delsysEMG.SetZMQPusher(true);
 
-       
 
         welcomeDone = true;
-
-        #region Debug the zmq communications
-        /*
-        Debug.Log("Press Up key.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
-        delsysEMG.SetZMQPusher(false);
-
-        Debug.Log("Press Down key.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
-        delsysEMG.SetZMQPusher(true);
-
-        Debug.Log("Press Up key.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
-        zmqRequester.newData(new float[] { 1.0f });
-        yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
-        double[] response = zmqRequester.GetReceiveData();
-        Debug.Log("Feedback Score: " + response[0]);
-
-        Debug.Log("Press Down key.");
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.DownArrow));
-        zmqRequester.newData(new float[] { 1.0f });
-        yield return new WaitUntil(() => zmqRequester.ReceivedResponseFlag);
-        response = zmqRequester.GetReceiveData();
-        Debug.Log("Feedback Score: " + response[0]);
-        */
-        #endregion
-
-
-        #region For simple reaching video recording
-        /*
-         for (int i = 1; i < 10; i++)
-         {
-             gridManager.SelectTarget(7);
-             HudManager.DisplayText("Well done (you can return to start position)!");
-             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-             hasReached = false;
-             // For video
-             HudManager.colour = HUDManager.HUDColour.Orange;
-             HUDCountDown(1);
-             yield return new WaitUntil(() => CountdownDone); // And wait 
-             InstructionManager.DisplayText("Reach it!");
-             HudManager.DisplayText("Reach it!");
-             HudManager.colour = HUDManager.HUDColour.Blue;
-             yield return new WaitUntil(() => IsTaskDone());
-             // Signal the subject that the task is done
-
-             //HudManager.DisplayText("Hold on your current position!");
-             //yield return new WaitForSecondsRealtime(1.0f);
-             audio.clip = returnAudioClip;
-             audio.Play();
-             HudManager.colour = HUDManager.HUDColour.Red;
-             HudManager.DisplayText("Well done (you can return to start position)!");
-
-             hasReached = false;
-             taskComplete = false;
-             gridManager.ResetTargetSelection();
-
-         }
-         */
-        #endregion
 
         // Now that you are done, set the flag to indicate we are done.
 
@@ -875,25 +877,7 @@ public class OnlineControlCRT2023 : GameMaster
     /// </summary>
     public override void InitialiseExperiment()
     {
-        #region 
-        // Convert customised setting file to configuration class. 
-        string fileName = SaveSystem.ActiveSaveFolder + "/" + ExperimentSystem.ActiveExperimentID + "/customised_settings.json";
-        if (File.Exists(fileName))
-        {
-            string json = File.ReadAllText(fileName);
-            customConfigurator = JsonUtility.FromJson<CustomisedConfigurator>(json);
-
-            // If prosthesis avatar, we also need to set the prosthesis offset
-            if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
-            {
-                GameObject tempResidualGO = GameObject.FindGameObjectWithTag("ResidualLimbAvatar");
-                LimbFollower follower = tempResidualGO.GetComponent<LimbFollower>();
-                follower.offset = customConfigurator.residualFollowerPosOffset;
-                follower.angularOffset = customConfigurator.residualFollowerAngOffset;
-            }
-            Debug.Log("Load customised experiment settings");
-        }
-        #endregion
+        
 
         #region Iteration settings
         iterationsPerSession[sessionNumber - 1] = crtManager.PathNumber * crtManager.TotalPathSegment * iterationsPerTarget[sessionNumber - 1];
@@ -912,39 +896,11 @@ public class OnlineControlCRT2023 : GameMaster
         instructionsDone = false;
         inInstructions = true;
 
-        Debug.Log("Calibrate the avatar. Press up arrow to continue.");
-        InstructionManager.DisplayText("We also neeed to calibrate your avatar. Relax your shoulder and bend your elbow like the white and blue lines show." );
-        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
-        //yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        Debug.Log("Calibration done.");
-
-        // Save the customised settings
-        customConfigurator = new CustomisedConfigurator();
-        if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
-        {
-            GameObject tempResidualGO = GameObject.FindGameObjectWithTag("ResidualLimbAvatar");
-            LimbFollower follower = tempResidualGO.GetComponent<LimbFollower>();
-            customConfigurator.residualFollowerPosOffset = follower.offset;
-            customConfigurator.residualFollowerAngOffset = follower.angularOffset;
-        }
-        
-
-        // Covert the setting class to json
-        string json = JsonUtility.ToJson(customConfigurator);
-        string fileName = SaveSystem.ActiveSaveFolder + "/" + ExperimentSystem.ActiveExperimentID + "/customised_settings.json";
-        File.WriteAllText(fileName, json);
-
-        // Done calibration
-        InstructionManager.DisplayText("All done! Thanks! Press trigger to continue" + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-        if (!avatarCalibration)
+        if(!skipInstructionText)
         {
             //Instructions
             if (AvatarSystem.AvatarType == AvatarType.AbleBodied) // Able-bodied session
             {
-                InstructionManager.DisplayText("Alright, the bottle targets should have spawned for you." + "\n\n (Press the trigger)");
-                yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
                 InstructionManager.DisplayText("In the 1st session, you will need to match the position and oriention of the bottles in front of you with the bottle in your hand." + "\n\n (Press the trigger)");
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
                 InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
@@ -953,7 +909,7 @@ public class OnlineControlCRT2023 : GameMaster
             }
             else if (AvatarSystem.AvatarType == AvatarType.Transhumeral) // second session
             {
-                InstructionManager.DisplayText("You've finished the 1st session, well done. Let's start the 2nd session" + "\n\n (Press the trigger)");
+                InstructionManager.DisplayText("Well done. Let's start the prosthesis session" + "\n\n (Press the trigger)");
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
                 InstructionManager.DisplayText("Now, you need to complete the same task, but the virtual forearm will not follow yours but controlled by some algorithm ." + "\n\n (Press the trigger)");
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -961,6 +917,8 @@ public class OnlineControlCRT2023 : GameMaster
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             }
         }
+
+
 
         // Now that you are done, set the flag to indicate we are done.
         instructionsDone = true;
@@ -1300,18 +1258,14 @@ public class OnlineControlCRT2023 : GameMaster
             }
         }
 
-        // Log UDP clothespin state
-        if (udpInputEnable)
-        {
-            UDPClothespinManager.ClothespinState state = udpClopin.GetClothespinState();
-            logData += "," + state.ToString();
-        }
+        // Log hand pinch/open state
+        logData += "," + handAnimationManager.State.ToString();
 
         // If in transhumeral prosthesis mode add prosthetic elbow and wrist states
         if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
         {
-            logData += "," + -multiJointManager.ElbowState[0] + "," + -multiJointManager.ElbowState[1];
-            logData += "," + -multiJointManager.WristPronState[0] + "," + -multiJointManager.WristPronState[1];
+            logData += "," + -multiJointManager.ElbowRef + "," + -multiJointManager.ElbowState[0] + "," + -multiJointManager.ElbowState[1];
+            logData += "," + -multiJointManager.WristPronRef + "," + -multiJointManager.WristPronState[0] + "," + -multiJointManager.WristPronState[1];
         }
 
 
@@ -1383,14 +1337,7 @@ public class OnlineControlCRT2023 : GameMaster
             Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + iterationDoneTime.ToString() + ".");
 
             bool skipStateMachine = iterationBatchSize > 1 && (iterationNumber % iterationBatchSize) != 0;
-            if (skipStateMachine)
-            {
-                StartCoroutine(EndTaskCoroutine(skipStateMachine));
-            }
-            else
-            {
-                StartCoroutine(EndTaskCoroutine(skipStateMachine));
-            }
+            StartCoroutine(EndTaskCoroutine(skipStateMachine));
             
         }
         return taskComplete;
@@ -1411,11 +1358,8 @@ public class OnlineControlCRT2023 : GameMaster
         // Signal the subject that the task is done
         HudManager.DisplayText("Hold on for a while!!");
         HudManager.colour = HUDManager.HUDColour.Green;
-        
-       
+
         yield return new WaitForSecondsRealtime(holdingTime);
-
-
 
         if (skipStateMachine)
         {
@@ -1427,13 +1371,14 @@ public class OnlineControlCRT2023 : GameMaster
             PrepareForStart();
             HudManager.DisplayText("Next Pose!");
             HudManager.colour = HUDManager.HUDColour.Blue;
-            //
-            yield return new WaitForSecondsRealtime(1.0f);
-            
+
             taskComplete = false;
         }
         else
+        {
             taskComplete = true;
+        }
+           
     }
 
     /// <summary>
@@ -1529,7 +1474,7 @@ public class OnlineControlCRT2023 : GameMaster
         if (crtManager.CurrentTaskType == ClothespinTaskManager.TaskType.AbleDataCollect)
             iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose;
         else
-            iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() ;
+            iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose;
 
         // Log results
         performanceDataLogger.AppendData(iterationResults);
@@ -1547,7 +1492,7 @@ public class OnlineControlCRT2023 : GameMaster
         if (crtManager.CurrentTaskType == ClothespinTaskManager.TaskType.AbleDataCollect)
             iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose;
         else
-            iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() ;
+            iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose;
 
         // Log results
         performanceDataLogger.AppendData(iterationResults);

@@ -169,7 +169,7 @@ public class ClothespinTaskManager : MonoBehaviour
 
                     }
                     // If the clothespin is confirmed to reach final target and in idle, record the previously recorded avatar hand pose.
-                    if (poseBufferGO.activeSelf && clothespinList[currentPinIndex].PinState == ClothespinManager.ClothespinState.Idle)
+                    if (poseBufferGO.activeSelf && clothespinList[currentPinIndex].PinState == ClothespinManager.ClothespinState.Idle && poseGOList.Count < attachGOList.Count)
                     {
                         GameObject temp = new GameObject("HandPose");
                         temp.transform.position = poseBufferGO.transform.position;
@@ -412,6 +412,8 @@ public class ClothespinTaskManager : MonoBehaviour
         SetClothespinFinalTransform(pinIndex, attachGOList[toIndex].transform.position, attachGOList[toIndex].transform.rotation);
         DisplayAttachPoint(attachGOList[toIndex]);
 
+        // Record current target pin location as targetpose
+        currentTargetPose = attachGOList[toIndex].name.ToString();
         return pinIndex;
     }
 

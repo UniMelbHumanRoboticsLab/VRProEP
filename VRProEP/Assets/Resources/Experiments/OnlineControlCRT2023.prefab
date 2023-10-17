@@ -401,8 +401,8 @@ MonoBehaviour:
   trainingPerSession: 
   taskDataFormat: 
   ablebodiedDataFormat: i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB
-  transhumeralDataFormat: i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,pEfe,pDotEfe,pWps,pDotWps,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB
-  performanceDataFormat: i, t_f, i_clothespin, target_pose
+  transhumeralDataFormat: i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,pEfeRef,pEfe,pDotEfe,pWpsRef,pWps,pDotWps,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB
+  performanceDataFormat: i, tF, iClothespin, targetPose
   startShoulderAngle: -90
   startElbowAngle: 90
   startTolerance: 15
@@ -423,6 +423,7 @@ MonoBehaviour:
   avatarCalibration: 0
   udpInputEnable: 0
   dummyControlEnable: 0
+  dummyStreamDataEnable: 0
   fullTrackerEnable: 0
   delsysEnable: 0
   zmqPushEnable: 0

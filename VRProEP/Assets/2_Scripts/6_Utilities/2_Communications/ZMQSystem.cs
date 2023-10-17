@@ -19,7 +19,10 @@ public static class ZMQSystem
     private static List<ZMQRequester> requesterList = new List<ZMQRequester>();
     private static List<int> requesterPortList = new List<int>();
 
-    
+    public static int PusherCount { get => pusherPortList.Count; }
+    public static int PullerCount { get => pullerPortList.Count; }
+    public static int RequesterCount { get => requesterPortList.Count; }
+
 
     public static void AddZMQSocket(int port, SocketType type)
     {

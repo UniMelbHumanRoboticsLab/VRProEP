@@ -22,6 +22,10 @@ namespace VRProEP.ProsthesisCore
         public float[] WristPronState { get; set; }
         public float[] WristFlexState { get; set; }
 
+        public float ElbowRef { get; set; }
+        public float WristPronRef { get; set; }
+        public float WristFlexRef { get; set; }
+
         private bool isConfigured = false;
         private bool isEnabled = false;
 
@@ -77,7 +81,7 @@ namespace VRProEP.ProsthesisCore
             // Ideal tracking version
             // Create ElbowManager with the given elbowJoint.
             //elbowManager = new IdealJointManager(elbowJoint);
-            elbowManager = new IdealJointManager(elbowJoint,2000.0f,200.0f);
+            elbowManager = new IdealJointManager(elbowJoint,1000.0f,100.0f);
             elbowManager.MaxAngVel = MAX_EFE_VEL;
 
 
@@ -95,7 +99,7 @@ namespace VRProEP.ProsthesisCore
             // Ideal tracking version
             // Create ElbowManager with the given elbowJoint.
             //wristPronManager = new IdealJointManager(wristPronJoint);
-            wristPronManager = new IdealJointManager(wristPronJoint,2000.0f,200.0f);
+            wristPronManager = new IdealJointManager(wristPronJoint,1000.0f,100.0f);
             wristPronManager.MaxAngVel = MAX_WPS_VEL;
 
             //
@@ -174,10 +178,15 @@ namespace VRProEP.ProsthesisCore
                 WristPronState = wristPronManager.GetJointStates();
                 WristFlexState = wristFlexManager.GetJointStates();
 
+                // Generate new reference
+                ElbowRef = inputManager.GenerateReference(0);
+                WristPronRef = inputManager.GenerateReference(1);
+                WristFlexRef = inputManager.GenerateReference(2);
+
                 // Update device state
-                elbowManager.UpdateState(0, inputManager.GenerateReference(0));
-                wristPronManager.UpdateState(0, inputManager.GenerateReference(1));
-                wristFlexManager.UpdateState(0, inputManager.GenerateReference(2));
+                elbowManager.UpdateState(0, ElbowRef);
+                wristPronManager.UpdateState(0, WristPronRef);
+                wristFlexManager.UpdateState(0, WristFlexRef);
 
                 isEnabled = inputManager.IsEnabled();
             }

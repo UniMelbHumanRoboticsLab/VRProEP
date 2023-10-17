@@ -601,15 +601,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0a1aebd651b1c04b9973a093da4cdba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  posTol: {x: 0.01, y: 0.01, z: 0.01}
+  angTol: 360
   idleColour: {r: 0.98589355, g: 0.98677635, b: 0.990566, a: 1}
   selectedColour: {r: 0.13519046, g: 0.1929775, b: 0.9245283, a: 0}
   correctColour: {r: 0.1253275, g: 0.9433962, b: 0.07564971, a: 0}
+  movingColour: {r: 0, g: 0, b: 0, a: 0}
   wrongColour: {r: 0, g: 0, b: 0, a: 0}
   animator: {fileID: 0}
   deltaLevel: 0.02
   maxLevel: 1
   minLevel: 0
   initialLevel: 0.6
+  springCoeff: 4
+  maxI: 1000
+  reachedFinal: 0
 --- !u!54 &44508465338813852
 Rigidbody:
   m_ObjectHideFlags: 0

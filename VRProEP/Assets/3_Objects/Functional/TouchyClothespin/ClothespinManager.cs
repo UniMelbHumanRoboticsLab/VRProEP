@@ -187,6 +187,7 @@ public class ClothespinManager : MonoBehaviour
                 if (tempGrasped)
                 {
                     ChangeClothespinColor(correctColour);
+                    OpenClothespin();
                     pinState = ClothespinState.InHand;
                 }
                 else
@@ -198,16 +199,11 @@ public class ClothespinManager : MonoBehaviour
                 }
                 break;
             case ClothespinState.InHand:
-                if (tempGrasped)
-                {
-                    OpenClothespin();
-                    FollowHand(true);
-                    if (!CheckAtTargetTransform(initPosition,initRotation, posTol, angTol))
-                    {
-                        pinState = ClothespinState.LeaveInit;
-                    }
-                }
-                else if (iNotGrasped >= 60)
+
+                FollowHand(true);
+                pinState = ClothespinState.LeaveInit;
+
+                if(iNotGrasped >= 90)
                 {
                     ChangeClothespinColor(selectedColour);
                     CloseClothespin();
@@ -219,45 +215,28 @@ public class ClothespinManager : MonoBehaviour
                 }
                 break;
             case ClothespinState.LeaveInit:
-                if (iNotGrasped <= 90)
-                {
+                if (tempGrasped)
                     OpenClothespin();
-                    // Leaving the initial position & rotation
-                    if (!CheckAtTargetTransform(initPosition, initRotation, posTol, angTol))
-                    {
-                        ChangeClothespinColor(movingColour);
-                    }
-                    // Reaching the final position & rotation
-                    if (CheckAtTargetTransform(finalPosition, finalRotation, posTol, angTol) && !touchRod)
-                    {
-                        ChangeClothespinColor(correctColour);
-                        pinState = ClothespinState.ReachTarget;
-                    }
 
-                }
-                else 
+                // Leaving the initial position & rotation
+                if (!CheckAtTargetTransform(initPosition, initRotation, posTol, angTol))
                 {
-                    ChangeClothespinColor(selectedColour);
-                    CloseClothespin();
-                    FollowHand(false);
-                    SetTransform(initPosition, initRotation);
-                    pinState = ClothespinState.Selected;
+                    ChangeClothespinColor(movingColour);
+                }
 
-                    Debug.Log("Lost grasp");
+                // Reaching the final position & rotation
+                if (CheckAtTargetTransform(finalPosition, finalRotation, posTol, angTol) && !touchRod)
+                {
+                    ChangeClothespinColor(correctColour);
+                    pinState = ClothespinState.ReachTarget;
                 }
                 
                 break;
             case ClothespinState.ReachTarget:
-                if (tempGrasped)
+                if (CheckAtTargetTransform(finalPosition, finalRotation, posTol, angTol))
                 {
-                    if (CheckAtTargetTransform(finalPosition, finalRotation, posTol, angTol))
-                        ChangeClothespinColor(correctColour);
-                    else
-                        pinState = ClothespinState.LeaveInit;
-                }
-                else
-                {
-                    if (CheckAtTargetTransform(finalPosition, finalRotation, posTol, angTol))
+                    ChangeClothespinColor(correctColour);
+                    if (iNotGrasped >= 30)
                     {
                         FollowHand(false);
                         CloseClothespin();
@@ -266,9 +245,10 @@ public class ClothespinManager : MonoBehaviour
                         reachedFinal = true;
                         pinState = ClothespinState.Idle;
                     }
-                    else
-                        pinState = ClothespinState.LeaveInit;
                 }
+                else
+                    pinState = ClothespinState.LeaveInit;
+
                 break;
             case ClothespinState.Wrong:
                 if (tempGrasped)

@@ -356,7 +356,7 @@ MonoBehaviour:
   deltaLevel: 0.03
   maxLevel: 1
   minLevel: 0
-  initialLevel: 0.45
+  initialLevel: 0.5
   springCoeff: 1.5
   maxI: 200
   reachedFinal: 0
