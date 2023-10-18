@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VRProEP.ProsthesisCore;
 
 public class ClothespinManager : MonoBehaviour
 {
@@ -34,6 +35,7 @@ public class ClothespinManager : MonoBehaviour
     private float errorAng;
     public float ErrorAng { get => errorAng; }
 
+    private ACESHandAnimation handManager;
 
     //
     // Color and display
@@ -101,6 +103,7 @@ public class ClothespinManager : MonoBehaviour
         openLevel = initialLevel;
         animator.SetFloat("InputAxis1", openLevel);
         pinRenderer = GetComponentsInChildren<Renderer>();
+        handManager = GameObject.FindGameObjectWithTag("Hand").GetComponentInChildren<ACESHandAnimation>(); 
     }
 
     // Collider
@@ -173,6 +176,7 @@ public class ClothespinManager : MonoBehaviour
                 if (tempGrasped)
                 {
                     ChangeClothespinColor(wrongColour);
+                    OpenClothespin();
                     pinState = ClothespinState.Wrong;
                 }
                 else
@@ -201,9 +205,10 @@ public class ClothespinManager : MonoBehaviour
             case ClothespinState.InHand:
 
                 FollowHand(true);
-                pinState = ClothespinState.LeaveInit;
+                OpenClothespin();
 
-                if(iNotGrasped >= 90)
+                
+                if (!tempGrasped)
                 {
                     ChangeClothespinColor(selectedColour);
                     CloseClothespin();
@@ -211,32 +216,60 @@ public class ClothespinManager : MonoBehaviour
                     SetTransform(initPosition, initRotation);
                     pinState = ClothespinState.Selected;
                     Debug.Log("Lost grasp");
-                    
+                    break;
                 }
-                break;
-            case ClothespinState.LeaveInit:
-                if (tempGrasped)
-                    OpenClothespin();
 
-                // Leaving the initial position & rotation
-                if (!CheckAtTargetTransform(initPosition, initRotation, posTol, angTol))
+                if (openLevel == maxLevel) // Fully opened or not touching the rod, go to next state
                 {
                     ChangeClothespinColor(movingColour);
+                    pinState = ClothespinState.LeaveInit;
+                    break;
                 }
+                    
+                break;
+            case ClothespinState.LeaveInit:
+
+                OpenClothespin();
+
+                // Leaving the initial position & rotation
+                //if (!CheckAtTargetTransform(initPosition, initRotation, posTol, angTol))
+                //{
+                    //ChangeClothespinColor(movingColour);
+                //}
+
+                if (!indexFingerTouched && !thumbFingerTouched && handManager.State == ACESHandAnimation.HandStates.Open)
+                {
+                    CloseClothespin();
+                    if (openLevel == minLevel)
+                    {
+                        ChangeClothespinColor(selectedColour);
+                        FollowHand(false);
+                        SetTransform(initPosition, initRotation);
+                        pinState = ClothespinState.Selected;
+                        Debug.Log("Lost grasp");
+                        break;
+                    }
+                }
+                    
 
                 // Reaching the final position & rotation
                 if (CheckAtTargetTransform(finalPosition, finalRotation, posTol, angTol) && !touchRod)
                 {
-                    ChangeClothespinColor(correctColour);
                     pinState = ClothespinState.ReachTarget;
                 }
                 
                 break;
             case ClothespinState.ReachTarget:
+                if (!indexFingerTouched && !thumbFingerTouched && handManager.State == ACESHandAnimation.HandStates.Open)
+                {
+                    CloseClothespin();
+                }
+                    
+                    
                 if (CheckAtTargetTransform(finalPosition, finalRotation, posTol, angTol))
                 {
                     ChangeClothespinColor(correctColour);
-                    if (iNotGrasped >= 30)
+                    if (openLevel == initialLevel)
                     {
                         FollowHand(false);
                         CloseClothespin();
@@ -244,11 +277,17 @@ public class ClothespinManager : MonoBehaviour
                         this.initRotation = GetRotation();
                         reachedFinal = true;
                         pinState = ClothespinState.Idle;
+                        Debug.Log("Complte back to normal");
+                        break;
                     }
                 }
                 else
+                {
                     pinState = ClothespinState.LeaveInit;
-
+                    ChangeClothespinColor(movingColour);
+                    break;
+                }
+ 
                 break;
             case ClothespinState.Wrong:
                 if (tempGrasped)
@@ -260,6 +299,7 @@ public class ClothespinManager : MonoBehaviour
                     pinState = ClothespinState.Idle;
                     ChangeClothespinColor(idleColour);
                     CloseClothespin();
+                    break;
                 }
                 break;
         }
@@ -387,13 +427,13 @@ public class ClothespinManager : MonoBehaviour
         if (openLevel > maxLevel)
         {
             openLevel = maxLevel;
-            return;
+            
         }
 
         else if (openLevel < minLevel)
         {
             openLevel = minLevel;
-            return;
+            
         }
             
         animator.SetFloat("InputAxis1", openLevel);
@@ -402,17 +442,17 @@ public class ClothespinManager : MonoBehaviour
     private void CloseClothespin()
     {
 
-        openLevel -= springCoeff * (1.0f * iNotGrasped/ (1.0f * maxI));
+        openLevel -= springCoeff * (1.0f * iNotGrasped/ (1.0f * maxI)); // soringcoeff to control bounce back
 
         if (openLevel > maxLevel)
         {
             openLevel = maxLevel;
-            return;
+            
         }
         else if (openLevel < minLevel)
         {
             openLevel = minLevel;
-            return;
+            
         }  
         animator.SetFloat("InputAxis1", openLevel);
     }
