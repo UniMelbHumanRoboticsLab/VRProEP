@@ -31,17 +31,6 @@ namespace VRProEP.ProsthesisCore
                 throw new System.ArgumentNullException("The provided HingeJoint object is empty.");
 
             this.joint = elbowJoint;
-
-            // Configure spring
-            /*
-            jointSpring = this.joint.spring;
-            jointSpring.spring = 2000.0f;
-            jointSpring.damper = 60.0f;
-            this.joint.useSpring = true;
-            this.joint.spring = jointSpring;
-            */
-
-
             
             //Configure motor
             jointMotor = this.joint.motor;

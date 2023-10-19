@@ -81,7 +81,7 @@ namespace VRProEP.ProsthesisCore
             // Ideal tracking version
             // Create ElbowManager with the given elbowJoint.
             //elbowManager = new IdealJointManager(elbowJoint);
-            elbowManager = new IdealJointManager(elbowJoint,1000.0f,100.0f);
+            elbowManager = new IdealJointManager(elbowJoint, 3000.0f, 120.0f);
             elbowManager.MaxAngVel = MAX_EFE_VEL;
 
 
@@ -99,7 +99,7 @@ namespace VRProEP.ProsthesisCore
             // Ideal tracking version
             // Create ElbowManager with the given elbowJoint.
             //wristPronManager = new IdealJointManager(wristPronJoint);
-            wristPronManager = new IdealJointManager(wristPronJoint,1000.0f,100.0f);
+            wristPronManager = new IdealJointManager(wristPronJoint,2000.0f,80.0f);
             wristPronManager.MaxAngVel = MAX_WPS_VEL;
 
             //
@@ -115,7 +115,7 @@ namespace VRProEP.ProsthesisCore
             VirtualEncoderManager virtualWristFlexEncoder = new VirtualEncoderManager(wristFlexJoint);
             // Ideal tracking version
             // Create ElbowManager with the given elbowJoint.
-            wristFlexManager = new IdealJointManager(wristFlexJoint);
+            wristFlexManager = new IdealJointManager(wristFlexJoint, 2000.0f, 80.0f);
             wristFlexManager.MaxAngVel = MAX_WFE_VEL;
            
             //
