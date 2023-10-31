@@ -53,7 +53,12 @@ public class ACESHandAnimation : MonoBehaviour
 
         if (ZMQSystem.PullerCount >0 )
         {
-            externalInput = ZMQSystem.GetLatestPulledData(MLKinematicSynergy.ZMQ_PULL_PORT)[ZMQ_REF_CHN] == 1.0f;
+            float[] temp = ZMQSystem.GetLatestPulledData(MLKinematicSynergy.ZMQ_PULL_PORT);
+            if (temp == null)
+                externalInput = false;
+            else
+                externalInput = temp[ZMQ_REF_CHN] == 1.0f;
+
         }
         else if (UDPInputSystem.UDPPinCount > 0)
         {

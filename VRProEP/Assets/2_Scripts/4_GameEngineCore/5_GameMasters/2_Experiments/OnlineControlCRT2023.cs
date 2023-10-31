@@ -52,7 +52,7 @@ public class OnlineControlCRT2023 : GameMaster
     private float startTolerance = 15.0f;
 
    
-    [Header("Tasks")]
+    [Header("Tasks: ")]
     [SerializeField]
     private ClothespinTaskManager crtManager;
     [SerializeField]
@@ -66,7 +66,10 @@ public class OnlineControlCRT2023 : GameMaster
     // Max time to reach
     private float maxTaskTime;
 
-    [Header("Media")]
+    [SerializeField]
+    private int[] controlTypeOrder;
+
+    [Header("Media: ")]
     [SerializeField]
     private GameObject startPosPhoto;
     [SerializeField]
@@ -82,7 +85,7 @@ public class OnlineControlCRT2023 : GameMaster
     [SerializeField]
     private AudioClip testAudioClip;
 
-    [Header("Avatar option")]
+    [Header("Avatar option: ")]
     [SerializeField]
     private bool amputeeAvatar;
     [SerializeField]
@@ -90,13 +93,13 @@ public class OnlineControlCRT2023 : GameMaster
     [SerializeField]
     private bool avatarCalibration;
 
-    [Header("Additional Flow Control")]
+    [Header("Additional Flow Control: ")]
     [SerializeField]
     private bool skipWelcomeText;
     [SerializeField]
     private bool skipInstructionText;
 
-    [Header("Flags")]
+    [Header("Flags: ")]
     // Allow inputs from udp devices
     [SerializeField]
     private bool udpInputEnable;
@@ -139,7 +142,7 @@ public class OnlineControlCRT2023 : GameMaster
     [SerializeField]
     private bool checkStartPosition;
 
-
+    [Header("UDP External Input: ")]
     [SerializeField]
     string udpIPAddress = "192.168.137.19";
     [SerializeField]
@@ -182,8 +185,11 @@ public class OnlineControlCRT2023 : GameMaster
     private float leftySign = 1.0f;
 
     // Communication constants
-    public const float PUSH_ENABLE = -1.0f;
-    public const float ITE_RESET = -2.0f;
+    public const float ZMQ_DATA = 1.0f;
+    public const float ZMQ_STOP = 0.0f;
+    public const float ZMQ_PUSH_ENABLE = -1.0f;
+    public const float ZMQ_ITE_RESET = -2.0f;
+    public const float ZMQ_SET_CONTROL_TYPE = -3.0f;
 
     protected SteamVR_Action_Boolean padAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("InterfaceEnableButton");
 
@@ -222,6 +228,7 @@ public class OnlineControlCRT2023 : GameMaster
     {
         public Vector3 residualFollowerPosOffset;
         public Vector3 residualFollowerAngOffset;
+        public int[] controlTypeOrder;
     }
     private CustomisedConfigurator customConfigurator;
 
@@ -684,7 +691,7 @@ public class OnlineControlCRT2023 : GameMaster
         if (zmqPullEnable)
         {
             ZMQSystem.AddZMQSocket(zmqPullPort, ZMQSystem.SocketType.Puller);
-            ZMQSystem.AddPushData(zmqPushPort, new float[] { PUSH_ENABLE }); // Tell the pusher the puller is ready
+            ZMQSystem.AddPushData(zmqPushPort, new float[] { ZMQ_PUSH_ENABLE }); // Tell the pusher the puller is ready
         }
             
 
@@ -721,13 +728,14 @@ public class OnlineControlCRT2023 : GameMaster
             string json = File.ReadAllText(fileName);
             customConfigurator = JsonUtility.FromJson<CustomisedConfigurator>(json);
 
-            // If prosthesis avatar, we also need to set the prosthesis offset
+            // If prosthesis avatar, we also need to set the prosthesis offset and get the controller type order
             if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
             {
                 GameObject tempResidualGO = GameObject.FindGameObjectWithTag("ResidualLimbAvatar");
                 LimbFollower follower = tempResidualGO.GetComponent<LimbFollower>();
                 follower.offset = customConfigurator.residualFollowerPosOffset;
                 follower.angularOffset = customConfigurator.residualFollowerAngOffset;
+                controlTypeOrder = customConfigurator.controlTypeOrder;
                 Debug.Log("Load customised experiment settings");
             }
             
@@ -844,7 +852,7 @@ public class OnlineControlCRT2023 : GameMaster
                 LimbFollower follower = tempResidualGO.GetComponent<LimbFollower>();
                 customConfigurator.residualFollowerPosOffset = follower.offset;
                 customConfigurator.residualFollowerAngOffset = follower.angularOffset;
-
+                customConfigurator.controlTypeOrder = controlTypeOrder;
                 // Covert the setting class to json
                 string json = JsonUtility.ToJson(customConfigurator);
                 string fileName = SaveSystem.ActiveSaveFolder + "/" + ExperimentSystem.ActiveExperimentID + "/customised_settings.json";
@@ -881,6 +889,12 @@ public class OnlineControlCRT2023 : GameMaster
 
         #region Iteration settings
         iterationsPerSession[sessionNumber - 1] = crtManager.PathNumber * crtManager.TotalPathSegment * iterationsPerTarget[sessionNumber - 1];
+        if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+        {
+            float[] zmqData = { ZMQ_SET_CONTROL_TYPE, controlTypeOrder[sessionNumber - 1]};
+            ZMQSystem.AddPushData(zmqPushPort,zmqData);
+        }
+            
         Debug.Log("Total trials in the Session " + sessionNumber + ": " + iterationsPerSession[sessionNumber - 1]);
         #endregion
     }
@@ -1221,7 +1235,7 @@ public class OnlineControlCRT2023 : GameMaster
         // Get kinematic postural features and push through zmq
         if (fullTrackerEnable)
         {
-            float[] zmqData = new float[] { 1, taskTime };
+            float[] zmqData = new float[] { ZMQ_DATA, taskTime };
 
             float[] pose = PosturalFeatureExtractor.ExtractTrunkPose(c7InitOrient, c7Tracker.GetTrackerTransform().rotation);
             var temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
@@ -1407,7 +1421,7 @@ public class OnlineControlCRT2023 : GameMaster
 
         // Update the pusher the next iteration happen;
         if(zmqPushEnable)
-            ZMQSystem.AddPushData(zmqPushPort, new float[] { ITE_RESET });
+            ZMQSystem.AddPushData(zmqPushPort, new float[] { ZMQ_ITE_RESET });
 
     }
 
@@ -1456,7 +1470,7 @@ public class OnlineControlCRT2023 : GameMaster
 
         // Update the pusher the next iteration happen;
         if (zmqPushEnable)
-            ZMQSystem.AddPushData(zmqPushPort, new float[] { ITE_RESET });
+            ZMQSystem.AddPushData(zmqPushPort, new float[] { ZMQ_ITE_RESET });
     }
 
 
@@ -1571,6 +1585,11 @@ public class OnlineControlCRT2023 : GameMaster
 
         InitCRTManager();
         iterationsPerSession[sessionNumber - 1] = crtManager.PathNumber *crtManager.TotalPathSegment *  iterationsPerTarget[sessionNumber - 1];
+        if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+        {
+            float[] zmqData = { ZMQ_SET_CONTROL_TYPE, controlTypeOrder[sessionNumber - 1] };
+            ZMQSystem.AddPushData(zmqPushPort, zmqData);
+        }
         Debug.Log("Total trials in the Session " + sessionNumber + ": "+ iterationsPerSession[sessionNumber - 1]);
 
         performanceDataLogger.AddNewLogFile(AvatarSystem.AvatarType.ToString(), sessionNumber, performanceDataFormat); // Add new performance data log file
@@ -1639,7 +1658,7 @@ public class OnlineControlCRT2023 : GameMaster
 
         if (zmqPushEnable)
         {
-            ZMQSystem.AddPushData(zmqPushPort, new float[] { 0.0f });
+            ZMQSystem.AddPushData(zmqPushPort, new float[] { ZMQ_STOP });
             ZMQSystem.CloseZMQSocket(zmqPushPort,ZMQSystem.SocketType.Pusher);
         }
 
