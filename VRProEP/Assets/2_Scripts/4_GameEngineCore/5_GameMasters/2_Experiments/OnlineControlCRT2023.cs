@@ -735,7 +735,10 @@ public class OnlineControlCRT2023 : GameMaster
                 LimbFollower follower = tempResidualGO.GetComponent<LimbFollower>();
                 follower.offset = customConfigurator.residualFollowerPosOffset;
                 follower.angularOffset = customConfigurator.residualFollowerAngOffset;
-                controlTypeOrder = customConfigurator.controlTypeOrder;
+                if (customConfigurator.controlTypeOrder.Length==0)
+                    controlTypeOrder = new int[] { 1, 2, 3 };
+                else
+                    controlTypeOrder = customConfigurator.controlTypeOrder;
                 Debug.Log("Load customised experiment settings");
             }
             
@@ -889,7 +892,7 @@ public class OnlineControlCRT2023 : GameMaster
 
         #region Iteration settings
         iterationsPerSession[sessionNumber - 1] = crtManager.PathNumber * crtManager.TotalPathSegment * iterationsPerTarget[sessionNumber - 1];
-        if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+        if (AvatarSystem.AvatarType == AvatarType.Transhumeral && zmqPushEnable)
         {
             float[] zmqData = { ZMQ_SET_CONTROL_TYPE, controlTypeOrder[sessionNumber - 1]};
             ZMQSystem.AddPushData(zmqPushPort,zmqData);
@@ -1585,7 +1588,7 @@ public class OnlineControlCRT2023 : GameMaster
 
         InitCRTManager();
         iterationsPerSession[sessionNumber - 1] = crtManager.PathNumber *crtManager.TotalPathSegment *  iterationsPerTarget[sessionNumber - 1];
-        if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
+        if (AvatarSystem.AvatarType == AvatarType.Transhumeral && zmqPushEnable)
         {
             float[] zmqData = { ZMQ_SET_CONTROL_TYPE, controlTypeOrder[sessionNumber - 1] };
             ZMQSystem.AddPushData(zmqPushPort, zmqData);
