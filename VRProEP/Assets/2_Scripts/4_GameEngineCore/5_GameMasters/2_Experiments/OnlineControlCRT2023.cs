@@ -58,7 +58,7 @@ public class OnlineControlCRT2023 : GameMaster
     [SerializeField]
     private int[] iterationsPerTarget;
     [SerializeField]
-    private int iterationBatchSize;
+    private int[] iterationBatchSize;
     [SerializeField]
     // Time to hold the final pose
     private float holdingTime;
@@ -213,7 +213,7 @@ public class OnlineControlCRT2023 : GameMaster
     private class OnlineCRTConfigurator
     {
         public int[] iterationsPerTarget = {2};
-        public int iterationBatchSize = 3;
+        public int[] iterationBatchSize = {2};
         public int initIteration = 1;
         public float holdingTime = 0.5f;
         public float maxTaskTime = 100.0f;
@@ -565,10 +565,10 @@ public class OnlineControlCRT2023 : GameMaster
         // Make sure flow control is initialised
         sessionNumber = 1;
         
-        if(configurator.initIteration % configurator.iterationBatchSize == 0)
-            iterationNumber = configurator.initIteration - configurator.iterationBatchSize - 1;
+        if(configurator.initIteration % configurator.iterationBatchSize[sessionNumber-1] == 0)
+            iterationNumber = configurator.initIteration - configurator.iterationBatchSize[sessionNumber - 1] - 1;
         else
-            iterationNumber = configurator.initIteration - (configurator.initIteration % configurator.iterationBatchSize - 1);
+            iterationNumber = configurator.initIteration - (configurator.initIteration % configurator.iterationBatchSize[sessionNumber - 1] - 1);
         
 
         //
@@ -912,8 +912,9 @@ public class OnlineControlCRT2023 : GameMaster
         // First flag that we are in the instructions routine
         instructionsDone = false;
         inInstructions = true;
-
-        if(!skipInstructionText)
+        InstructionManager.DisplayText("Following are some instructions." + "\n\n (Press the trigger)");
+        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+        if (!skipInstructionText)
         {
             //Instructions
             if (AvatarSystem.AvatarType == AvatarType.AbleBodied) // Able-bodied session
@@ -1010,7 +1011,7 @@ public class OnlineControlCRT2023 : GameMaster
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("You will be asked to sequentially match the position and orientation of multiple bottle targets before returning to relax." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("The group size in this experiment is: " + iterationBatchSize + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("The group size in this experiment is: " + iterationBatchSize[sessionNumber - 1] + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("Finally, when the target bottle turns green, hold on for a while, until you hear 'Return' or 'Next' and HUD says 'Well Done'." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -1353,7 +1354,7 @@ public class OnlineControlCRT2023 : GameMaster
             iterationDoneTime = taskTime;
             Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + iterationDoneTime.ToString() + ".");
 
-            bool skipStateMachine = iterationBatchSize > 1 && (iterationNumber % iterationBatchSize) != 0;
+            bool skipStateMachine = iterationBatchSize[sessionNumber - 1] > 1 && (iterationNumber % iterationBatchSize[sessionNumber - 1]) != 0;
             StartCoroutine(EndTaskCoroutine(skipStateMachine));
             
         }

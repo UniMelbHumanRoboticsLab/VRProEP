@@ -260,7 +260,7 @@ public class ClothespinManager : MonoBehaviour
                 
                 break;
             case ClothespinState.ReachTarget:
-                if (!indexFingerTouched && !thumbFingerTouched && handManager.State == ACESHandAnimation.HandStates.Open)
+                if ((!indexFingerTouched || !thumbFingerTouched) && handManager.State == ACESHandAnimation.HandStates.Open)
                 {
                     CloseClothespin();
                 }
