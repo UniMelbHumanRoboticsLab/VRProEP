@@ -27,11 +27,11 @@ public class OnlineControlCRT2023 : GameMaster
     #region Unity objects
     
     //private string ablebodiedDataFormat = "loc,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
-    private string ablebodiedDataFormat = "i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
+    private string ablebodiedDataFormat = "i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,PegState,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
     
-    private string transhumeralDataFormat = "i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,pEfeRef,pEfe,pDotEfe,pWpsRef,pWps,pDotWps,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
+    private string transhumeralDataFormat = "i,t,Tfe,Tabd,Tr,Scde,Scpr,Sfe,Sabd,Sr,Efe,Wps,HandState,PegState,pEfeRef,pEfe,pDotEfe,pWpsRef,pWps,pDotWps,xErr,yErr,zErr,angErr,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB";
     
-    private string performanceDataFormat = "i, tF, iClothespin, targetPose";
+    private string performanceDataFormat = "i, tF, iClothespin, targetPose, initPose";
 
 
 
@@ -1279,6 +1279,10 @@ public class OnlineControlCRT2023 : GameMaster
         // Log hand pinch/open state
         logData += "," + handAnimationManager.State.ToString();
 
+        // Log Clothespin state
+        logData += "," + crtManager.CurrentPinState;
+
+
         // If in transhumeral prosthesis mode add prosthetic elbow and wrist states
         if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
         {
@@ -1489,10 +1493,8 @@ public class OnlineControlCRT2023 : GameMaster
         //Debug.Log("Try feedback");
 
         string iterationResults = "";
-        if (crtManager.CurrentTaskType == ClothespinTaskManager.TaskType.AbleDataCollect)
-            iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose;
-        else
-            iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose;
+        iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose + "," + crtManager.CurrentInitPose;
+        
 
         // Log results
         performanceDataLogger.AppendData(iterationResults);

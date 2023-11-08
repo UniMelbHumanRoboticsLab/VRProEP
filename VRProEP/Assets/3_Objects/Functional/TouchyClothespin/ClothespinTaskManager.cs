@@ -90,6 +90,14 @@ public class ClothespinTaskManager : MonoBehaviour
     private string currentTargetPose;
     public string CurrentTargetPose { get => currentTargetPose; }
 
+    [SerializeField]
+    private string currentInitPose;
+    public string CurrentInitPose { get => currentInitPose; }
+
+    [SerializeField]
+    private string currentPinState;
+    public string CurrentPinState { get => clothespinList[currentPinIndex].PinState.ToString(); }
+
     public int PathNumber { get => TASK_PATH.GetLength(0); }
 
     private int totalPathSegment = 1;
@@ -342,15 +350,19 @@ public class ClothespinTaskManager : MonoBehaviour
         {
             case REACH_INIT:
                 currentTargetPose = attachGOList[TASK_PATH[trialInCycle, GET_INIT_INDEX]].name.ToString();
+                currentInitPose = "Rest";
                 break;
             case PINCH:
                 currentTargetPose = "Pinch";
+                currentInitPose = "Rest";
                 break;
             case REACH_FINAL:
                 currentTargetPose = attachGOList[TASK_PATH[trialInCycle, GET_FINAL_INDEX]].name.ToString();
+                currentInitPose = "Rest";
                 break;
             case OPEN_HAND:
                 currentTargetPose = "Open";
+                currentInitPose = "Rest";
                 break;
             default:
                 break;
@@ -414,6 +426,8 @@ public class ClothespinTaskManager : MonoBehaviour
 
         // Record current target pin location as targetpose
         currentTargetPose = attachGOList[toIndex].name.ToString();
+        currentInitPose = attachGOList[fromIndex].name.ToString();
+
         return pinIndex;
     }
 

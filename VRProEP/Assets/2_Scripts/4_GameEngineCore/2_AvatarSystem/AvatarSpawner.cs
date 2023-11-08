@@ -741,9 +741,9 @@ namespace VRProEP.GameEngineCore
             // Configure
             SteamVR_TrackedObject motionTrackerConfig = motionTrackerGO.GetComponent<SteamVR_TrackedObject>();
             if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
-                motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 + 0); // Set hardware device index to follow, -1 if headset is conneted through wires not wifi.
+                motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 + 1); // Set hardware device index to follow, -1 if headset is conneted through wires not wifi, + n for n extra base station
             else
-                motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 + 0); // Set hardware device index to follow
+                motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 + 1); // Set hardware device index to follow, same as previous
             motionTrackerConfig.origin = playerGO.transform; 
             if(newTracker)
                 motionTrackerNumber++; 
