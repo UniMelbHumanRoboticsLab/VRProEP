@@ -1509,10 +1509,7 @@ public class OnlineControlCRT2023 : GameMaster
     private void AltHandleResultAnalysis()
     {
         string iterationResults = "";
-        if (crtManager.CurrentTaskType == ClothespinTaskManager.TaskType.AbleDataCollect)
-            iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose;
-        else
-            iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose;
+        iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose + "," + crtManager.CurrentInitPose;
 
         // Log results
         performanceDataLogger.AppendData(iterationResults);

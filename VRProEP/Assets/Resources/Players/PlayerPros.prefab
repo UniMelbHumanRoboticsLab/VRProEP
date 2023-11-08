@@ -914,7 +914,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d37c2cf88f7c59f4c8cf5d3812568143, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  index: 4
+  index: 5
   origin: {fileID: 0}
 --- !u!1 &1451517636235344
 GameObject:
@@ -2088,6 +2088,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1314936021241574996, guid: 60320c51595e48544be1782ce619897c,
         type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1314936021241574996, guid: 60320c51595e48544be1782ce619897c,
+        type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.035
       objectReference: {fileID: 0}
@@ -2103,6 +2108,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1314936021241574996, guid: 60320c51595e48544be1782ce619897c,
         type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1314936021241574996, guid: 60320c51595e48544be1782ce619897c,
+        type: 3}
       propertyPath: m_LocalRotation.x
       value: 0.5
       objectReference: {fileID: 0}
@@ -2115,16 +2125,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalRotation.z
       value: -0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1314936021241574996, guid: 60320c51595e48544be1782ce619897c,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1314936021241574996, guid: 60320c51595e48544be1782ce619897c,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1314936021241574996, guid: 60320c51595e48544be1782ce619897c,
         type: 3}
@@ -2145,6 +2145,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Mesh
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5626367309089556161, guid: 60320c51595e48544be1782ce619897c,
+        type: 3}
+      propertyPath: m_textAlignment
+      value: 65535
+      objectReference: {fileID: 0}
+    - target: {fileID: 5626367309089556161, guid: 60320c51595e48544be1782ce619897c,
+        type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 5626367309089556161, guid: 60320c51595e48544be1782ce619897c,
+        type: 3}
+      propertyPath: m_VerticalAlignment
+      value: 512
       objectReference: {fileID: 0}
     - target: {fileID: 5626367309089556161, guid: 60320c51595e48544be1782ce619897c,
         type: 3}

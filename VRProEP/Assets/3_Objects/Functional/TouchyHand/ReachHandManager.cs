@@ -159,8 +159,8 @@ public class ReachHandManager : MonoBehaviour
         reached = positionReached & orientationReached;
 
         // Debug Log
-        Debug.Log(errorPos.ToString("F3"));
-        Debug.Log(errorAng.ToString("F3"));
+        //Debug.Log(errorPos.ToString("F3"));
+        //Debug.Log(errorAng.ToString("F3"));
 
         if (reachedPrev && reached)
             holdTime += Time.fixedDeltaTime;
