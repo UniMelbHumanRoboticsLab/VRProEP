@@ -309,13 +309,21 @@ public class OnlineControlCRT2023 : GameMaster
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
         {
             if (sessionNumber == 1)
+            {
                 crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AblePoseRecord;
+                dummyControlEnable = false;
+            }
             else if (sessionNumber == 2)
-                crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AbleDataCollect;
+            {
+                crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AbleDataCollectDummy;
+                dummyControlEnable = true;
+            }
+                
         }
         else if (AvatarSystem.AvatarType == AvatarType.Transhumeral)
         {
             crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.ProstEvaluat;
+            dummyControlEnable = false;
         }
 
         crtManager.Initialise();
@@ -919,7 +927,7 @@ public class OnlineControlCRT2023 : GameMaster
             //Instructions
             if (AvatarSystem.AvatarType == AvatarType.AbleBodied) // Able-bodied session
             {
-                InstructionManager.DisplayText("In the 1st session, you will need to match the position and oriention of the bottles in front of you with the bottle in your hand." + "\n\n (Press the trigger)");
+                InstructionManager.DisplayText("In the 1st session, you will need to relocate the blue clothespin to the locations marked in blue." + "\n\n (Press the trigger)");
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
                 InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -929,7 +937,7 @@ public class OnlineControlCRT2023 : GameMaster
             {
                 InstructionManager.DisplayText("Well done. Let's start the prosthesis session" + "\n\n (Press the trigger)");
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-                InstructionManager.DisplayText("Now, you need to complete the same task, but the virtual forearm will not follow yours but controlled by some algorithm ." + "\n\n (Press the trigger)");
+                InstructionManager.DisplayText("Now, you need to complete the same task, but the forearm will not follow yours but controlled by some algorithm ." + "\n\n (Press the trigger)");
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
                 InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -987,9 +995,7 @@ public class OnlineControlCRT2023 : GameMaster
             HudManager.DisplayText("I'm blue!");
             HudManager.colour = HUDManager.HUDColour.Blue;
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You need to hold on you final position for a while until you hear return or next and HUD says 'Well Done'." + "\n\n (Press the trigger)");
-            HudManager.colour = HUDManager.HUDColour.Red;
-            HudManager.DisplayText("Well Done");
+            InstructionManager.DisplayText("You need to hold on you final position for a while until you hear return or next." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
             HudManager.ClearText();
@@ -1009,9 +1015,7 @@ public class OnlineControlCRT2023 : GameMaster
             // Explain routine
             InstructionManager.DisplayText("Thanks for the attention, let's explain the task routine." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You will be asked to sequentially match the position and orientation of multiple bottle targets before returning to relax." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("The group size in this experiment is: " + iterationBatchSize[sessionNumber - 1] + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("You will be asked to relocate the clothespins from horizontal rod to vertical rod and the opposite way." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("Finally, when the target bottle turns green, hold on for a while, until you hear 'Return' or 'Next' and HUD says 'Well Done'." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -1034,12 +1038,12 @@ public class OnlineControlCRT2023 : GameMaster
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
 
-            InstructionManager.DisplayText("Important: Please not return until HUD says 'Well Done' and you hear 'Return', like !!! " + "\n\n (Press the trigger to play)");
+            InstructionManager.DisplayText("Important: or you hear 'Return', like !!! " + "\n\n (Press the trigger to play)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             audio.clip = returnAudioClip;
             audio.Play(0);
             HudManager.DisplayText("Well done!");
-            InstructionManager.DisplayText("Important: Please not return until HUD says 'Well Done' and you hear 'Return', like !!! " + "\n\n (Press the trigger to continue)");
+            InstructionManager.DisplayText("Important: or you hear 'Return', like !!! " + "\n\n (Press the trigger to continue)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
 
@@ -1052,14 +1056,14 @@ public class OnlineControlCRT2023 : GameMaster
 
             //
             // Start position
-            InstructionManager.DisplayText("Before starting, your upper arm and elbow should point downards and relax." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("Before starting, relax your upper arm and elbow downards." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
 
             //Start practice
-            InstructionManager.DisplayText("The bottle that you need to reach will turn blue. Don't reach now." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("The clothespin that you need to reach will turn blue. Don't reach now." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You'll have to wait for a countdown. Look at the sphere and get ready!" + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("You'll have to wait for a countdown." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
             while (loopTraining)

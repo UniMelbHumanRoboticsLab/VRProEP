@@ -12,7 +12,7 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     // Task type of CRT
     //
-    public enum TaskType { AblePoseRecord, AbleDataCollect, ProstEvaluat }
+    public enum TaskType { AblePoseRecord, AbleDataCollect, ProstEvaluat, AbleDataCollectDummy }
     private TaskType currentTaskType;
     public TaskType CurrentTaskType { get => currentTaskType; set { currentTaskType = value; } }
 
@@ -191,6 +191,8 @@ public class ClothespinTaskManager : MonoBehaviour
                     // Do nothing
                     break;
                 case TaskType.ProstEvaluat:
+                // Do nothing
+                case TaskType.AbleDataCollectDummy:
                     // Do nothing
                     break;
 
@@ -466,6 +468,9 @@ public class ClothespinTaskManager : MonoBehaviour
                     break;
             }
         }
+        else if (currentTaskType == TaskType.AbleDataCollectDummy)
+            reached = false;
+            // Do nothing
 
         // Record the task error
         if (reached)
