@@ -22,10 +22,10 @@ public class ClothespinManager : MonoBehaviour
     private Vector3 finalPosition;
     private Quaternion finalRotation;
     [SerializeField]
-    private Vector3 posTol = new Vector3(0.01f, 0.01f, 0.01f);
+    private Vector3 posTol;
     public Vector3 PosTol { get => posTol; set { posTol = value; } }
     [SerializeField]
-    private float angTol = 360.0f;
+    private float angTol;
     public float AngTol { get => angTol; set { angTol = value; } }
 
     // Error of task execution
@@ -403,11 +403,13 @@ public class ClothespinManager : MonoBehaviour
         if (errorAng > 180.0f)
             errorAng = 360.0f - errorAng;
         bool angReached = Mathf.Abs(errorAng) <= angTol;
-        angReached = true;
+        
 
         this.errorPos = new Vector3 (errorPos.x, errorPos.y, errorPos.z);
         this.errorAng = errorAng;
 
+        //Debug.Log("Peg angular error:" + angTol);
+        //angReached = true;
         return posReached & angReached;
     }
 

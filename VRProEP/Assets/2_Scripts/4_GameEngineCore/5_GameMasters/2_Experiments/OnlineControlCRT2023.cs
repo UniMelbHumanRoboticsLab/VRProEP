@@ -304,7 +304,7 @@ public class OnlineControlCRT2023 : GameMaster
         // Setup crt task position
         //crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
         crtManager.Height = SaveSystem.ActiveUser.height2SA * 0.55f;
-        crtManager.Distance = 0.0f; // -SaveSystem.ActiveUser.handLength * 0.5f;
+        crtManager.Distance = -SaveSystem.ActiveUser.handLength * 0.5f;
 
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
         {
@@ -329,6 +329,29 @@ public class OnlineControlCRT2023 : GameMaster
         crtManager.Initialise();
 
     }
+
+    private float[] PrepareZMQPosturalData()
+    {
+        float[] zmqData = new float[] { ZMQ_DATA, taskTime };
+
+        float[] pose = PosturalFeatureExtractor.ExtractTrunkPose(c7InitOrient, c7Tracker.GetTrackerTransform().rotation);
+        var temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
+        pose = PosturalFeatureExtractor.ExtractScapularPose(c7InitOrient, shInitOrient, c7Tracker.GetTrackerTransform().rotation, shoulderTracker.GetTrackerTransform().rotation, SaveSystem.ActiveUser.shoulderBreadth);
+        temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
+        pose = PosturalFeatureExtractor.ExtractShoulderPose(c7Tracker.GetTrackerTransform().rotation, upperArmTracker.GetTrackerTransform().rotation);
+        temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
+
+        pose = PosturalFeatureExtractor.ExtractElbowPose(upperArmTracker.GetTrackerTransform().rotation, lowerArmTracker.GetTrackerTransform().rotation);
+        temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
+        pose = PosturalFeatureExtractor.ExtractWristPose(upperArmTracker.GetTrackerTransform().rotation, lowerArmTracker.GetTrackerTransform().rotation);
+        temp = zmqData.Concat(pose).ToArray(); zmqData = new float[temp.Length]; temp.CopyTo(zmqData, 0);
+
+        return zmqData;
+    }
     #endregion
 
     // Here are all the methods you need to write for your experiment.
@@ -341,12 +364,27 @@ public class OnlineControlCRT2023 : GameMaster
 
 
         // Choose if to try the training again
-        if (GetCurrentStateName() == State.STATE.TRAINING && finishPractice)
+        if (GetCurrentStateName() == State.STATE.TRAINING)
         {
-            if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any))
-                loopTraining = true;
-            else if (padAction.GetStateDown(SteamVR_Input_Sources.Any))
-                loopTraining = false;
+            if (fullTrackerEnable)
+            {
+                float[] zmqData = PrepareZMQPosturalData();
+                // Push data to other platform through ZMQ
+                if (zmqPushEnable && !dummyStreamDataEnable)
+                {
+                    ZMQSystem.AddPushData(zmqPushPort, zmqData);
+                    
+                }
+                //Debug.Log("ZMQ Data Prepare during training.");
+            }
+
+            if (finishPractice)
+            {
+                if (buttonAction.GetStateDown(SteamVR_Input_Sources.Any))
+                    loopTraining = true;
+                else if (padAction.GetStateDown(SteamVR_Input_Sources.Any))
+                    loopTraining = false;
+            } 
         }
         
         // Override fixed update to start the emg recording when the start performing the task
@@ -983,14 +1021,12 @@ public class OnlineControlCRT2023 : GameMaster
             // HUD Colours
             InstructionManager.DisplayText("First, let's tell you about the colour of the HUD. It will tell you what you need to do." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+
             InstructionManager.DisplayText("<Red>: return relax." + "\n\n (Press the trigger)");
             HudManager.DisplayText("I'm red!");
             HudManager.colour = HUDManager.HUDColour.Red;
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Orange>: wait for countdown." + "\n\n (Press the trigger)");
-            HudManager.DisplayText("I'm orange!");
-            HudManager.colour = HUDManager.HUDColour.Orange;
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+
             InstructionManager.DisplayText("<Blue>: reach!" + "\n\n (Press the trigger)");
             HudManager.DisplayText("I'm blue!");
             HudManager.colour = HUDManager.HUDColour.Blue;
@@ -1003,11 +1039,13 @@ public class OnlineControlCRT2023 : GameMaster
 
             //
             // Reaching practice
-            InstructionManager.DisplayText("The colour of the targets will tell you the status of the target." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("The colour of the clothespin will tell you the status of the target." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("<Blue>: the target is selected as the next target." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Green>: you have successfully reached the selected one." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("<Light Blue>: you have successfully grasped or reach target position." + "\n\n (Press the trigger)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            InstructionManager.DisplayText("<Orange>: you can move the clothespin." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
 
@@ -1015,9 +1053,11 @@ public class OnlineControlCRT2023 : GameMaster
             // Explain routine
             InstructionManager.DisplayText("Thanks for the attention, let's explain the task routine." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You will be asked to relocate the clothespins from horizontal rod to vertical rod and the opposite way." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("You will be asked to relocate the clothespins from horizontal rod to vertical rod and also the opposite way." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Finally, when the target bottle turns green, hold on for a while, until you hear 'Return' or 'Next' and HUD says 'Well Done'." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("There are four relocations in one trial. After one trial, the clothespin will return to current position." + "\n\n (Press the trigger)");
+            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            InstructionManager.DisplayText("When you complete one relocation, hold on for a while, until you hear 'Return' or 'Next' and HUD says 'Well Done'." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
             //
@@ -1049,7 +1089,7 @@ public class OnlineControlCRT2023 : GameMaster
 
             //
             // Have a try
-            InstructionManager.DisplayText("Thansk for the attention, let's try a task routine." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("Thansk for the attention, let's try a complete trial." + "\n\n (Press the trigger)");
             HudManager.ClearText();
             HudManager.colour = HUDManager.HUDColour.Red;
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -1068,27 +1108,31 @@ public class OnlineControlCRT2023 : GameMaster
 
             while (loopTraining)
             {
-                
-                PrepareForStart();
-                HudManager.colour = HUDManager.HUDColour.Orange;
-                HUDCountDown(1);
-                yield return new WaitUntil(() => CountdownDone); // And wait 
-                InstructionManager.DisplayText("Reach!");
-                HudManager.DisplayText("Reach!");
-                HudManager.colour = HUDManager.HUDColour.Blue;
-                yield return new WaitUntil(() => IsTaskDone());
-                // Signal the subject that the task is done
-                audio.clip = returnAudioClip;
-                audio.Play();
-                HudManager.colour = HUDManager.HUDColour.Red;
-                HudManager.DisplayText("Well done (you can return to start position)!");
 
+                for (int i = 1; i <= 2; i++)
+                {
+                    PrepareForStart();
+                    HudManager.colour = HUDManager.HUDColour.Red;
+                    HUDCountDown(1);
+                    yield return new WaitUntil(() => CountdownDone); // And wait 
+                    InstructionManager.DisplayText("Reach!");
+                    HudManager.DisplayText("Reach!");
+                    HudManager.colour = HUDManager.HUDColour.Blue;
+                    yield return new WaitUntil(() => IsTaskDone());
 
-                // Reset flags
-                hasReached = false;
-                taskComplete = false;
-                iterationNumber = 0;
-                HandleIterationInitialisation();
+                    // Signal the subject that the task is done
+                    audio.clip = returnAudioClip;
+                    audio.Play();
+                    HudManager.colour = HUDManager.HUDColour.Red;
+                    HudManager.DisplayText("Well done (you can return to start position)!");
+
+                    // Reset flags
+                    hasReached = false;
+                    taskComplete = false;
+
+                    HandleIterationInitialisation();
+                }
+               
 
                 // Do you want to retry?
                 finishPractice = true;
@@ -1096,7 +1140,15 @@ public class OnlineControlCRT2023 : GameMaster
                 yield return WaitForTrainingInstruction();
                 finishPractice = false;
             }
+
+            // Reset flags
+            hasReached = false;
+            taskComplete = false;
+            InitCRTManager();
+            iterationNumber = 0;
+            base.HandleIterationInitialisation();
             
+
 
             //
             // End
@@ -1122,31 +1174,35 @@ public class OnlineControlCRT2023 : GameMaster
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
             //Start practice         
-            InstructionManager.DisplayText("The virtual elbow and wrist are controlled by your upperarm. You can have a try." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("The virtual elbow and wrist are controlled by your upperarm. Let's have a try!" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             while (loopTraining)
             {
-                
-                PrepareForStart();
-                HudManager.colour = HUDManager.HUDColour.Orange;
-                HUDCountDown(1);
-                yield return new WaitUntil(() => CountdownDone); // And wait 
-                InstructionManager.DisplayText("Reach!");
-                HudManager.DisplayText("Reach!");
-                HudManager.colour = HUDManager.HUDColour.Blue;
-                yield return new WaitUntil(() => IsTaskDone());
-                // Signal the subject that the task is done
-                audio.clip = returnAudioClip;
-                audio.Play();
-                HudManager.colour = HUDManager.HUDColour.Red;
-                HudManager.DisplayText("Well done (you can return to start position)!");
 
+                for (int i = 1; i <= 2; i++)
+                {
+                    PrepareForStart();
+                    HudManager.colour = HUDManager.HUDColour.Red;
+                    HUDCountDown(1);
+                    yield return new WaitUntil(() => CountdownDone); // And wait 
+                    InstructionManager.DisplayText("Reach!");
+                    HudManager.DisplayText("Reach!");
+                    HudManager.colour = HUDManager.HUDColour.Blue;
+                    yield return new WaitUntil(() => IsTaskDone());
 
-                // Reset flags
-                hasReached = false;
-                taskComplete = false;
-                iterationNumber = 0;
-                HandleIterationInitialisation();
+                    // Signal the subject that the task is done
+                    audio.clip = returnAudioClip;
+                    audio.Play();
+                    HudManager.colour = HUDManager.HUDColour.Red;
+                    HudManager.DisplayText("Well done (you can return to start position)!");
+
+                    // Reset flags
+                    hasReached = false;
+                    taskComplete = false;
+
+                    HandleIterationInitialisation();
+                }
+
 
                 // Do you want to retry?
                 finishPractice = true;
@@ -1154,6 +1210,13 @@ public class OnlineControlCRT2023 : GameMaster
                 yield return WaitForTrainingInstruction();
                 finishPractice = false;
             }
+
+            // Reset flags
+            hasReached = false;
+            taskComplete = false;
+            InitCRTManager();
+            iterationNumber = 0;
+            base.HandleIterationInitialisation();
 
             //
             // End
@@ -1516,8 +1579,12 @@ public class OnlineControlCRT2023 : GameMaster
         iterationResults = iterationNumber + "," + iterationDoneTime.ToString() + "," + crtManager.CurrentPinIndex.ToString() + "," + crtManager.CurrentTargetPose + "," + crtManager.CurrentInitPose;
 
         // Log results
-        performanceDataLogger.AppendData(iterationResults);
-        performanceDataLogger.SaveLog();
+        if (GetCurrentStateName() != State.STATE.TRAINING)
+        {
+            performanceDataLogger.AppendData(iterationResults);
+            performanceDataLogger.SaveLog();
+        }
+        
     }
 
     /// <summary>
