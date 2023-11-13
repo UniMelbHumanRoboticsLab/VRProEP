@@ -217,6 +217,7 @@ public class OnlineControlCRT2023 : GameMaster
         public int initIteration = 1;
         public float holdingTime = 0.5f;
         public float maxTaskTime = 100.0f;
+        public int initSession = 1;
     }
     private OnlineCRTConfigurator configurator;
 
@@ -304,7 +305,7 @@ public class OnlineControlCRT2023 : GameMaster
         // Setup crt task position
         //crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
         crtManager.Height = SaveSystem.ActiveUser.height2SA * 0.55f;
-        crtManager.Distance = -SaveSystem.ActiveUser.handLength * 0.5f;
+        crtManager.Distance = 0.0f; // -SaveSystem.ActiveUser.handLength * 0.5f;
 
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
         {
@@ -564,6 +565,7 @@ public class OnlineControlCRT2023 : GameMaster
         maxTaskTime = configurator.maxTaskTime;
         iterationsPerTarget = configurator.iterationsPerTarget;
         iterationBatchSize = configurator.iterationBatchSize;
+       
         // Load from config file
         for (int i = 0; i <= iterationsPerTarget.Length - 1; i++)
         {
@@ -609,7 +611,7 @@ public class OnlineControlCRT2023 : GameMaster
             ExperimentSystem.SetActiveExperimentID(this.gameObject.name + "_Debug");
 
         // Make sure flow control is initialised
-        sessionNumber = 1;
+        sessionNumber = configurator.initSession;
         
         if(configurator.initIteration % configurator.iterationBatchSize[sessionNumber-1] == 0)
             iterationNumber = configurator.initIteration - configurator.iterationBatchSize[sessionNumber - 1] - 1;
@@ -818,7 +820,7 @@ public class OnlineControlCRT2023 : GameMaster
         welcomeDone = false;
         inWelcome = true;
 
-        if (!skipWelcomeText)
+        if (!skipWelcomeText && AvatarSystem.AvatarType == AvatarType.AbleBodied)
         {
             HudManager.DisplayText("Look to the top right. Instructions will be displayed there.");
             InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
@@ -851,9 +853,9 @@ public class OnlineControlCRT2023 : GameMaster
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("Today, the experiment will require you to move the clothespin to the target position" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You will do 3 sessions which would take about 1 hour " + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("You will do 4 sessions which would take about 1 hour " + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("A" + this.RestTime + "sec rest occurs every" + this.RestIterations + "iterations" + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("A rest occurs every session" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
         }
 
@@ -963,7 +965,7 @@ public class OnlineControlCRT2023 : GameMaster
         if (!skipInstructionText)
         {
             //Instructions
-            if (AvatarSystem.AvatarType == AvatarType.AbleBodied) // Able-bodied session
+            if (AvatarSystem.AvatarType == AvatarType.AbleBodied && sessionNumber == 1) // Able-bodied session
             {
                 InstructionManager.DisplayText("In the 1st session, you will need to relocate the blue clothespin to the locations marked in blue." + "\n\n (Press the trigger)");
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -1010,7 +1012,7 @@ public class OnlineControlCRT2023 : GameMaster
 
         //trainingDone = true;
 
-        if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
+        if (AvatarSystem.AvatarType == AvatarType.AbleBodied && sessionNumber == 1)
         {
 
             InstructionManager.DisplayText("Let's start training then!" + "\n\n (Press the trigger)");
@@ -1105,7 +1107,7 @@ public class OnlineControlCRT2023 : GameMaster
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("You'll have to wait for a countdown." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
+            loopTraining = true;
             while (loopTraining)
             {
 
@@ -1130,7 +1132,10 @@ public class OnlineControlCRT2023 : GameMaster
                     hasReached = false;
                     taskComplete = false;
 
-                    HandleIterationInitialisation();
+                    iterationNumber++;
+                    taskTime = 0.0f;
+                    crtManager.NextTrial();
+             
                 }
                
 
@@ -1176,6 +1181,7 @@ public class OnlineControlCRT2023 : GameMaster
             //Start practice         
             InstructionManager.DisplayText("The virtual elbow and wrist are controlled by your upperarm. Let's have a try!" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            loopTraining = true;
             while (loopTraining)
             {
 
@@ -1200,7 +1206,10 @@ public class OnlineControlCRT2023 : GameMaster
                     hasReached = false;
                     taskComplete = false;
 
-                    HandleIterationInitialisation();
+                    iterationNumber++;
+                    taskTime = 0.0f;
+                    crtManager.NextTrial();
+
                 }
 
 
