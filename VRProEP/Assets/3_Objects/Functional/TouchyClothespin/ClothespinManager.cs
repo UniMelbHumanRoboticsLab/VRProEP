@@ -219,7 +219,7 @@ public class ClothespinManager : MonoBehaviour
                     break;
                 }
 
-                if (openLevel == maxLevel) // Fully opened or not touching the rod, go to next state
+                if (openLevel == maxLevel && !CheckAtTargetTransform(initPosition, initRotation, posTol * 4, 360)) // Fully opened or not touching the rod, go to next state
                 {
                     ChangeClothespinColor(movingColour);
                     pinState = ClothespinState.LeaveInit;

@@ -1047,7 +1047,7 @@ public class OnlineControlCRT2023 : GameMaster
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("<Light Blue>: you have successfully grasped or reach target position." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Orange>: you can move the clothespin." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("<Orange>: the clothespin is in transit." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
 
