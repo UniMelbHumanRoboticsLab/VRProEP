@@ -87,6 +87,8 @@ public class OnlineControlCRT2023 : GameMaster
 
     [Header("Avatar option: ")]
     [SerializeField]
+    private string userFolder;
+    [SerializeField]
     private bool amputeeAvatar;
     [SerializeField]
     private bool controlllerHand;
@@ -316,8 +318,8 @@ public class OnlineControlCRT2023 : GameMaster
             }
             else if (sessionNumber == 2)
             {
-                crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AbleDataCollectDummy;
-                dummyControlEnable = true;
+                crtManager.CurrentTaskType = ClothespinTaskManager.TaskType.AblePoseRecord;
+                dummyControlEnable = false;
             }
                 
         }
@@ -464,8 +466,9 @@ public class OnlineControlCRT2023 : GameMaster
             //
             // Debug using the test bot
             //
-
-            SaveSystem.LoadUserData("AM198317600"); // Load the test/demo user (Mr Demo)
+            SaveSystem.LoadUserData(userFolder);
+            Debug.Log("Load User: " + userFolder);
+            //SaveSystem.LoadUserData("AM198317600"); // Load the test/demo user (Mr Demo)
             //SaveSystem.LoadUserData("HL1996178");
             //SaveSystem.LoadUserData("RW1995169");
             //SaveSystem.LoadUserData("XG1995174");

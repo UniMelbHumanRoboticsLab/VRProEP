@@ -5804,13 +5804,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1210544919}
-  m_LocalRotation: {x: 0.12059042, y: -0.37940952, z: 0.049950182, w: 0.9159757}
+  m_LocalRotation: {x: 0.12607859, y: -0.2566048, z: 0.03378265, w: 0.9576622}
   m_LocalPosition: {x: 0.953, y: 1.835, z: -1.149}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1378520184}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 15, y: -45.000004, z: 0}
+  m_LocalEulerAnglesHint: {x: 15, y: -30, z: 0}
 --- !u!1001 &1221940206
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5850,18 +5850,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
+      propertyPath: userFolder
+      value: TB1995175
+      objectReference: {fileID: 0}
+    - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
+        type: 3}
       propertyPath: skipWelcome
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: delsysEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: skipTraining
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
@@ -5876,12 +5881,12 @@ PrefabInstance:
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: zmqPullEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: zmqPushEnable
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
@@ -5891,17 +5896,17 @@ PrefabInstance:
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: skipWelcomeText
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: skipInstructions
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: avatarCalibration
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
@@ -5916,7 +5921,7 @@ PrefabInstance:
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}
       propertyPath: skipInstructionText
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3085352980210769943, guid: 29ee5a209f49dc844933a70c4b54035e,
         type: 3}

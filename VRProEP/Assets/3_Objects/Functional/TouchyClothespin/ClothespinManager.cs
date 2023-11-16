@@ -208,7 +208,7 @@ public class ClothespinManager : MonoBehaviour
                 OpenClothespin();
 
                 
-                if (!tempGrasped)
+                if (!tempGrasped && handManager.State == ACESHandAnimation.HandStates.Open)
                 {
                     ChangeClothespinColor(selectedColour);
                     CloseClothespin();
@@ -269,7 +269,7 @@ public class ClothespinManager : MonoBehaviour
                 if (CheckAtTargetTransform(finalPosition, finalRotation, posTol, angTol))
                 {
                     ChangeClothespinColor(correctColour);
-                    if (openLevel == initialLevel)
+                    if (handManager.State == ACESHandAnimation.HandStates.Open || openLevel == initialLevel)
                     {
                         FollowHand(false);
                         CloseClothespin();
