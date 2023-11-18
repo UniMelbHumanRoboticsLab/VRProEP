@@ -306,7 +306,7 @@ public class OnlineControlCRT2023 : GameMaster
     {
         // Setup crt task position
         //crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
-        crtManager.Height = SaveSystem.ActiveUser.height2SA * 0.55f;
+        crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
         crtManager.Distance = SaveSystem.ActiveUser.handLength * 0.5f;
 
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
@@ -852,8 +852,8 @@ public class OnlineControlCRT2023 : GameMaster
 
             //
             // Experiment overall intro
-            InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me explain what we are doing today." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            //InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me explain what we are doing today." + "\n\n (Press the trigger)");
+            //yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("Today, the experiment will require you to move the clothespin to the target position" + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("You will do 4 sessions which would take about 1 hour " + "\n\n (Press the trigger)");
@@ -972,8 +972,8 @@ public class OnlineControlCRT2023 : GameMaster
             {
                 InstructionManager.DisplayText("In the 1st session, you will need to relocate the blue clothespin to the locations marked in blue." + "\n\n (Press the trigger)");
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-                InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
-                yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+                //InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
+                //yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
             }
             else if (AvatarSystem.AvatarType == AvatarType.Transhumeral) // second session
@@ -1032,8 +1032,8 @@ public class OnlineControlCRT2023 : GameMaster
             HudManager.DisplayText("I'm blue!");
             HudManager.colour = HUDManager.HUDColour.Blue;
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You need to hold on you final position for a while until you hear return or next." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            //InstructionManager.DisplayText("You need to hold on you final position for a while until you hear return or next." + "\n\n (Press the trigger)");
+            //yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
             HudManager.ClearText();
             HudManager.colour = HUDManager.HUDColour.Red;
@@ -1047,7 +1047,7 @@ public class OnlineControlCRT2023 : GameMaster
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("You will be asked to relocate the clothespins from horizontal rod to vertical rod and also the opposite way." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("There are four relocations in one trial. After one trial, the clothespin will return to current position." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("There are four relocations in one trial. After one trial, the clothespin should return to current position." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("When you complete one relocation, hold on for a while, until you hear 'Return' or 'Next' and HUD says 'Well Done'." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -1090,22 +1090,18 @@ public class OnlineControlCRT2023 : GameMaster
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
 
+
             //
-            // Have a try
-            InstructionManager.DisplayText("Thansk for the attention, let's try a complete trial." + "\n\n (Press the trigger)");
+            // Start position
+            InstructionManager.DisplayText("Thanks. Before start a trial, relax your upper arm and elbow downards." + "\n\n (Press the trigger)");
             HudManager.ClearText();
             HudManager.colour = HUDManager.HUDColour.Red;
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
-            //
-            // Start position
-            InstructionManager.DisplayText("Before starting, relax your upper arm and elbow downards." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
 
             //Start practice
-            InstructionManager.DisplayText("The clothespin that you need to reach will turn blue. Don't reach now." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            //InstructionManager.DisplayText("The clothespin that you need to reach will turn blue. Don't reach now." + "\n\n (Press the trigger)");
+            //yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("You'll have to wait for a countdown." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             loopTraining = true;
@@ -1172,9 +1168,9 @@ public class OnlineControlCRT2023 : GameMaster
 
             //
             // Reaching practice
-            InstructionManager.DisplayText("This time the forearm will not track yours but controlled by signals from your upperarm" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("The virtual elbow and wrist are controlled by your upperarm. Let's have a try!" + "\n\n (Press the trigger)");
+            //InstructionManager.DisplayText("This time the forearm will not track yours." + "\n\n (Press the trigger)");
+            //yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+            InstructionManager.DisplayText("The virtual elbow and wrist are controlled by your upperarm movement and muslces. Let's have a try!" + "\n\n (Press the trigger)");
             HudManager.ClearText();
             HudManager.colour = HUDManager.HUDColour.Red;
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
