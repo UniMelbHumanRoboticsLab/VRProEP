@@ -34,24 +34,53 @@ public class OnlineControlCRT2023 : GameMaster
     private string performanceDataFormat = "i, tF, iClothespin, targetPose, initPose";
 
 
-
-    [Header("Experiment configuration: Start position")]
-    [SerializeField]
-    [Tooltip("The subject's shoulder start angle in degrees.")]
-    [Range(-180.0f, 180.0f)]
+    
+    //[Header("Experiment configuration: Start position")]
+    //[SerializeField]
+    //[Tooltip("The subject's shoulder start angle in degrees.")]
+    //[Range(-180.0f, 180.0f)]
     private float startShoulderAngle = -90.0f;
 
-    [SerializeField]
-    [Tooltip("The subject's elbow start angle in degrees.")]
-    [Range(-180.0f, 180.0f)]
+    //[SerializeField]
+    //[Tooltip("The subject's elbow start angle in degrees.")]
+    //[Range(-180.0f, 180.0f)]
     private float startElbowAngle = 90.0f;
 
-    [SerializeField]
-    [Tooltip("The start angle tolerance in degrees.")]
-    [Range(0.0f, 90.0f)]
+    //[SerializeField]
+    //[Tooltip("The start angle tolerance in degrees.")]
+    //[Range(0.0f, 90.0f)]
     private float startTolerance = 15.0f;
 
-   
+    [Header("User Profile ID: ")]
+    [SerializeField]
+    private string userFolder;
+
+    [Header("In experiment: ")]
+    [SerializeField]
+    private bool inExperiment;
+    [Header("Experiment Steps (Select one): ")]
+    [SerializeField]
+    private bool checkSignalMode;
+    [SerializeField]
+    private bool ableCalibrationMode;
+    [SerializeField]
+    private bool prostCalibrationMode;
+    [SerializeField]
+    private bool ableExperimentMode;
+    [SerializeField]
+    private bool prostExperimentMode;
+    [SerializeField]
+    private bool ableExperimentRetryMode;
+    [SerializeField]
+    private bool prostExperimentRetryMode;
+
+
+    [Header("Additional Flow Control: ")]
+    [SerializeField]
+    private bool skipWelcomeText;
+    [SerializeField]
+    private bool skipInstructionText;
+
     [Header("Tasks: ")]
     [SerializeField]
     private ClothespinTaskManager crtManager;
@@ -86,8 +115,7 @@ public class OnlineControlCRT2023 : GameMaster
     private AudioClip testAudioClip;
 
     [Header("Avatar option: ")]
-    [SerializeField]
-    private string userFolder;
+    
     [SerializeField]
     private bool amputeeAvatar;
     [SerializeField]
@@ -95,11 +123,7 @@ public class OnlineControlCRT2023 : GameMaster
     [SerializeField]
     private bool avatarCalibration;
 
-    [Header("Additional Flow Control: ")]
-    [SerializeField]
-    private bool skipWelcomeText;
-    [SerializeField]
-    private bool skipInstructionText;
+    
 
     [Header("Flags: ")]
     // Allow inputs from udp devices
@@ -306,7 +330,7 @@ public class OnlineControlCRT2023 : GameMaster
     {
         // Setup crt task position
         //crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
-        crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA;
+        crtManager.Height = SaveSystem.ActiveUser.height2SA - SaveSystem.ActiveUser.trunkLength2SA - 0.035f;
         crtManager.Distance = SaveSystem.ActiveUser.handLength * 0.5f;
 
         if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
@@ -455,6 +479,104 @@ public class OnlineControlCRT2023 : GameMaster
     // having to load it from the menus.
     private void Awake()
     {
+        // Setup flags according to experiment progress
+        if (inExperiment)
+        {
+            if (checkSignalMode)
+            {
+                fullTrackerEnable = true;
+                delsysEnable = true;
+                amputeeAvatar = false;
+                avatarCalibration = false;
+                zmqPullEnable = false;
+                zmqPushEnable = true;
+                skipWelcomeText = true;
+                skipInstructionText = true;
+                skipTraining = true;
+            }
+            
+            if (ableCalibrationMode)
+            {
+                fullTrackerEnable = true;
+                delsysEnable = false;
+                amputeeAvatar = false;
+                avatarCalibration = true;
+                zmqPullEnable = false;
+                zmqPushEnable = false;
+                skipWelcomeText = true;
+                skipInstructionText = true;
+                skipTraining = true;
+            }
+
+            if (prostCalibrationMode)
+            {
+                fullTrackerEnable = true;
+                delsysEnable = false;
+                amputeeAvatar = true;
+                avatarCalibration = true;
+                zmqPullEnable = false;
+                zmqPushEnable = false;
+                skipWelcomeText = true;
+                skipInstructionText = true;
+                skipTraining = true;
+            }
+
+            if (ableExperimentMode)
+            {
+                fullTrackerEnable = true;
+                delsysEnable = true;
+                amputeeAvatar = false;
+                avatarCalibration = false;
+                zmqPullEnable = false;
+                zmqPushEnable = false;
+                skipWelcomeText = false;
+                skipInstructionText = false;
+                skipTraining = false;
+
+            }
+
+            if (prostExperimentMode)
+            {
+                fullTrackerEnable = true;
+                delsysEnable = true;
+                amputeeAvatar = true;
+                avatarCalibration = false;
+                zmqPullEnable = true;
+                zmqPushEnable = true;
+                skipWelcomeText = false;
+                skipInstructionText = false;
+                skipTraining = false;
+            }
+
+
+            if (ableExperimentRetryMode)
+            {
+                fullTrackerEnable = true;
+                delsysEnable = true;
+                amputeeAvatar = false;
+                avatarCalibration = false;
+                zmqPullEnable = false;
+                zmqPushEnable = false;
+                skipWelcomeText = true;
+                skipInstructionText = true;
+                skipTraining = true;
+            }
+
+            if (prostExperimentRetryMode)
+            {
+                fullTrackerEnable = true;
+                delsysEnable = true;
+                amputeeAvatar = true;
+                avatarCalibration = false;
+                zmqPullEnable = true;
+                zmqPushEnable = true;
+                skipWelcomeText = true;
+                skipInstructionText = true;
+            }
+
+
+        }
+
         if (udpInputEnable)
         {
             udpClopin = new UDPClothespinManager(udpIPAddress, udpPort);
@@ -972,17 +1094,11 @@ public class OnlineControlCRT2023 : GameMaster
             {
                 InstructionManager.DisplayText("In the 1st session, you will need to relocate the blue clothespin to the locations marked in blue." + "\n\n (Press the trigger)");
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-                //InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
-                //yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
 
             }
             else if (AvatarSystem.AvatarType == AvatarType.Transhumeral) // second session
             {
-                InstructionManager.DisplayText("Well done. Let's start the prosthesis session" + "\n\n (Press the trigger)");
-                yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
                 InstructionManager.DisplayText("Now, you need to complete the same task, but the forearm will not follow yours. It will be controlled by some algorithm ." + "\n\n (Press the trigger)");
-                yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-                InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
                 yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             }
         }
@@ -1045,7 +1161,7 @@ public class OnlineControlCRT2023 : GameMaster
             // Explain routine
             InstructionManager.DisplayText("Thanks for the attention, let's explain the task routine." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You will be asked to relocate the clothespins from horizontal rod to vertical rod and also the opposite way." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("You need to relocate the clothespins from horizontal rod to vertical rod and the opposite way." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("There are four relocations in one trial. After one trial, the clothespin should return to current position." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -1054,11 +1170,11 @@ public class OnlineControlCRT2023 : GameMaster
 
             //
             // Reaching practice
-            InstructionManager.DisplayText("The colour of the clothespin will tell you the status of the peg." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("The colour of the clothespin will tell you its status." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Blue>: the peg needs to be relocated." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("<Blue>: the clothespin needs to be relocated." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Light Blue>: you have successfully grasped or reach target peg position." + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("<Light Blue>: you have successfully grasped or clothespin reach target position." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
             InstructionManager.DisplayText("<Orange>: the clothespin is in transit." + "\n\n (Press the trigger)");
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
@@ -1170,10 +1286,12 @@ public class OnlineControlCRT2023 : GameMaster
             // Reaching practice
             //InstructionManager.DisplayText("This time the forearm will not track yours." + "\n\n (Press the trigger)");
             //yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("The virtual elbow and wrist are controlled by your upperarm movement and muslces. Let's have a try!" + "\n\n (Press the trigger)");
+            InstructionManager.DisplayText("Now the elbow and wrist are controlled by your upperarm muslces and joint movement. Let's have a try!" + "\n\n (Press the trigger)");
             HudManager.ClearText();
             HudManager.colour = HUDManager.HUDColour.Red;
             yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
+
+            InstructionManager.DisplayText("Wait for countdown!");
 
             //Start practice         
             loopTraining = true;
@@ -1186,8 +1304,8 @@ public class OnlineControlCRT2023 : GameMaster
                     HudManager.colour = HUDManager.HUDColour.Red;
                     HUDCountDown(1);
                     yield return new WaitUntil(() => CountdownDone); // And wait 
-                    InstructionManager.DisplayText("Reach!");
-                    HudManager.DisplayText("Reach!");
+                    InstructionManager.DisplayText("Go!");
+                    HudManager.DisplayText("Go!");
                     HudManager.colour = HUDManager.HUDColour.Blue;
                     yield return new WaitUntil(() => IsTaskDone());
 
@@ -1195,7 +1313,7 @@ public class OnlineControlCRT2023 : GameMaster
                     audio.clip = returnAudioClip;
                     audio.Play();
                     HudManager.colour = HUDManager.HUDColour.Red;
-                    HudManager.DisplayText("Well done (you can return to start position)!");
+                    HudManager.DisplayText("Well done (you can return to relax position)!");
 
                     // Reset flags
                     hasReached = false;

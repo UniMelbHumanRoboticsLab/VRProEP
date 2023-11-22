@@ -139,7 +139,7 @@ namespace VRProEP.ProsthesisCore
             // Reference generators
             //
             // Add a Linear Kinematic Synergy to the prosthesis
-            float[] theta = { -synValue, synValue, -synValue };
+            float[] theta = { -synValue, -synValue, -synValue };
             float[] thetaMin = { -3.5f, -3.5f, -3.5f };
             float[] thetaMax = { -0.1f, -0.1f, -0.1f };
             LinearKinematicSynergy linSyn = new LinearKinematicSynergy(xBar, xMin, xMax, theta, thetaMin, thetaMax);

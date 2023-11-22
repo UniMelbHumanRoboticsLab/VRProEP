@@ -398,7 +398,7 @@ public class ClothespinTaskManager : MonoBehaviour
     //
     private void SetupRackPosition()
     {
-        Vector3 temp = new Vector3(0, height, distance);
+        Vector3 temp = new Vector3(distance, height, 0);
         this.transform.position = temp;
     }
 

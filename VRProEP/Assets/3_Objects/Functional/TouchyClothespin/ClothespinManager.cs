@@ -215,7 +215,7 @@ public class ClothespinManager : MonoBehaviour
                     FollowHand(false);
                     SetTransform(initPosition, initRotation);
                     pinState = ClothespinState.Selected;
-                    Debug.Log("Lost grasp");
+                    //Debug.Log("Lost grasp");
                     break;
                 }
 
