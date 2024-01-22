@@ -21,7 +21,7 @@ using VRProEP.GameEngineCore;
 using VRProEP.ProsthesisCore;
 using VRProEP.Utilities;
 
-public class OnlineControlCRT2023 : GameMaster
+public class OnlineControlCRTPM2024 : GameMaster
 {
     // Here you can place all your Unity (GameObjects or similar)
     #region Unity objects

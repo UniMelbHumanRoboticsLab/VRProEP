@@ -1,0 +1,1 @@
+{"iterationsPerTarget": [10], "iterationBatchSize": [2], "initIteration": 1, "initSession": 1,"holdingTime": 1.0, "maxTaskTime": 10000.0}
