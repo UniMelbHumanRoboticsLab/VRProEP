@@ -1309,11 +1309,19 @@ public class OnlineControlCRTPM2024 : GameMaster
                     HudManager.colour = HUDManager.HUDColour.Blue;
                     yield return new WaitUntil(() => IsTaskDone());
 
+                    
+
                     // Signal the subject that the task is done
                     audio.clip = returnAudioClip;
                     audio.Play();
+
+                    // Push new iteration notification
+                    if (zmqPushEnable)
+                        ZMQSystem.AddPushData(zmqPushPort, new float[] { ZMQ_ITE_RESET });
+
                     HudManager.colour = HUDManager.HUDColour.Red;
                     HudManager.DisplayText("Well done (you can return to relax position)!");
+
 
                     // Reset flags
                     hasReached = false;
