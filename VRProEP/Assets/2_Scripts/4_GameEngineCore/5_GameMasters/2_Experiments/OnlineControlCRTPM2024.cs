@@ -518,7 +518,7 @@ public class OnlineControlCRTPM2024 : GameMaster
                 zmqPushEnable = false;
                 skipWelcomeText = true;
                 skipInstructionText = true;
-                skipTraining = true;
+                skipTraining = false;
             }
 
             if (ableExperimentMode)

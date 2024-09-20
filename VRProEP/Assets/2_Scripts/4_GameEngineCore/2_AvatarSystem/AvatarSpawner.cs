@@ -743,7 +743,7 @@ namespace VRProEP.GameEngineCore
             if (AvatarSystem.AvatarType == AvatarType.AbleBodied)
                 motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 + 0); // Set hardware device index to follow, -1 if headset is conneted through wires not wifi, + n for n extra base station
             else
-                motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 + 0); // Set hardware device index to follow, same as previous, remember to change device index in PlayerPros prefab
+                motionTrackerConfig.SetDeviceIndex(motionTrackerNumber + 4 - 1 +0); // Set hardware device index to follow, same as previous, remember to change device index in PlayerPros prefab
             motionTrackerConfig.origin = playerGO.transform; 
             if(newTracker)
                 motionTrackerNumber++; 

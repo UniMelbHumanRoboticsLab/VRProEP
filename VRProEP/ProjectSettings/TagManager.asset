@@ -44,6 +44,8 @@ TagManager:
   - Fire
   - ThumbFingerCollider
   - ClothespinRackRod
+  - projectile
+  - NonDomiShoulderTracker
   layers:
   - Default
   - TransparentFX
