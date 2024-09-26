@@ -160,7 +160,7 @@ namespace VRProEP.GameEngineCore
             // Get the folder for the given user ID
             string userPath = dataFolder + "/UserData/" + userID;
             string loadFilePath = userPath + "/userInfo.json";
-
+            Debug.Log(loadFilePath);
             if (File.Exists(loadFilePath))
             {
                 // Load data

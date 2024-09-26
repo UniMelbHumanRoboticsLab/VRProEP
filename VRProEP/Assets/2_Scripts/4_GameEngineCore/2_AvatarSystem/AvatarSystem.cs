@@ -246,7 +246,7 @@ namespace VRProEP.GameEngineCore
                 Object.DestroyImmediate(playerGO);
                 isPlayerAvailable = false;
             }
-
+            
             switch (userType)
             {
                 case UserType.Ablebodied:

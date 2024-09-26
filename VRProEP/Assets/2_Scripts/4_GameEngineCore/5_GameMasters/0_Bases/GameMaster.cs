@@ -312,6 +312,7 @@ public abstract class GameMaster : MonoBehaviour
         // Restart UDP threads
         foreach (ISensor sensor in AvatarSystem.GetActiveSensors())
         {
+            Debug.Log("sensors available");
             if (sensor is UDPSensorManager udpSensor )
             {
                 //Debug.Log(wifiSensor.RunThread);
@@ -723,7 +724,13 @@ public abstract class GameMaster : MonoBehaviour
         yield return new WaitUntil(() => buttonAction.GetStateDown(SteamVR_Input_Sources.Any));
         yield return new WaitForSeconds(0.5f);
     }
-    
+
+    protected IEnumerator WaitKeyBoardAck()
+    {
+        yield return new WaitUntil(() => Input.GetKey(KeyCode.Space));
+        yield return new WaitForSeconds(0.5f);
+    }
+
     /// <summary>
     /// Sets the waitFlag after X seconds .
     /// </summary>
