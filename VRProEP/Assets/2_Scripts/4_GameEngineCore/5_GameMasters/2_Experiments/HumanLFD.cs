@@ -26,12 +26,6 @@ public class HumanLFD : GameMaster
     #region Unity objects
     [Header("Sensor settings")]
     [SerializeField]
-    private bool delsysEMGEnable = false;
-    [SerializeField]
-    private bool fourTrackerEnable = false;
-    [SerializeField]
-    private bool fiveTrackerEnable = false;
-    [SerializeField]
     private bool xrSkip = false;
 
     [Header("Data format")]
@@ -44,29 +38,12 @@ public class HumanLFD : GameMaster
 
 
     [Header("Grid manager")]
-    [SerializeField]
-    private TextMeshPro taskPoseText;
 
     [SerializeField]
     private ADLPoseListManager poseListManager;
 
    
     [Header("Experiment configuration: Start position")]
-    [SerializeField]
-    [Tooltip("The subject's shoulder start angle in degrees.")]
-    [Range(-180.0f, 180.0f)]
-    private float startShoulderAngle = -90.0f;
-
-    [SerializeField]
-    [Tooltip("The subject's elbow start angle in degrees.")]
-    [Range(-180.0f, 180.0f)]
-    private float startElbowAngle = 90.0f;
-
-    [SerializeField]
-    [Tooltip("The start angle tolerance in degrees.")]
-    [Range(0.0f, 90.0f)]
-    private float startTolerance = 15.0f;
-
     [Header("Experiment configuration: Reps and Sets")]
     [SerializeField]
     [Tooltip("The number of iterations per target.")]
@@ -77,26 +54,6 @@ public class HumanLFD : GameMaster
     [SerializeField]
     private bool checkStartPosition;
 
-    [SerializeField]
-    private GameObject startPosPhoto;
-
-    [SerializeField]
-    private AudioClip startAudioClip;
-
-    [SerializeField]
-    private AudioClip holdAudioClip;
-
-    [SerializeField]
-    private AudioClip returnAudioClip;
-
-    [SerializeField]
-    private AudioClip testAudioClip;
-
-    [SerializeField]
-    private AudioClip nextAudioClip;
-
-
-
     #endregion
 
     protected SteamVR_Action_Boolean padAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("InterfaceEnableButton");
@@ -105,9 +62,6 @@ public class HumanLFD : GameMaster
     private DataStreamLogger performanceDataLogger;
     private float doneTime;
     private int subStep;
-
-    // Delsys EMG background data collection
-    private DelsysEMG delsysEMG = new DelsysEMG();
 
 
     // Target management variables
@@ -125,13 +79,9 @@ public class HumanLFD : GameMaster
     // Flow control
     private bool hasReached = false;
     private bool taskComplete = false;
-    private bool emgIsRecording = false;
 
     // Lefty subject sign
     private float leftySign = 1.0f;
-
-
-
 
     private class VariationTestConfigurator
     {
@@ -139,9 +89,6 @@ public class HumanLFD : GameMaster
         public int sessionNumber = 2;
     }
     private VariationTestConfigurator configurator;
-
-    //Audio
-    AudioSource audio;
 
    
     #region Private methods
@@ -154,73 +101,8 @@ public class HumanLFD : GameMaster
 
     private IEnumerator DisplayTaskText(int index)
     {
-        poseListManager.SelectPose(index);
-        taskPoseText.text = poseListManager.SelectedPose(index) + " "+ iterationNumber.ToString();
-        // Play the audio
-        audio.clip = nextAudioClip;
-        audio.Play(0);
-        yield return new WaitForSecondsRealtime(1.0f);
-        audio.clip = poseListManager.GetPoseAudio(index);
-        audio.Play(0);
-
-        Debug.Log("Ite:" + iterationNumber + ". Next pose:" + poseListManager.SelectedPose(index) + ".");
-    }
-
-
-    private bool IsAtRightPosition(float qShoudlerRef, float qElbowRef, float tolerance)
-    {
-  
-
-        // Check that upper and lower arms are within the tolerated start position.
-        float qShoulder = leftySign * Mathf.Rad2Deg * (uaTracker.GetProcessedData(5) + Mathf.PI); // Offsetting to horizontal position being 0.
-        float qElbow = 0;
-
-        HudManager.colour = HUDManager.HUDColour.Orange;
-        qElbow = Mathf.Rad2Deg * (wristTracker.GetProcessedData(5)) - qShoulder; // Offsetting to horizontal position being 0.
-                                                                                    // The difference to the start position
-        float qSDiff = qShoulder - qShoudlerRef;
-        float qEDiff = qElbow - qElbowRef;
-
-
-        //
-        // Update information displayed for debugging purposes
-        //
-
-
-        //InstructionManager.DisplayText(qShoulder.ToString() + "\n" + qElbow.ToString() + "\n");
-
-        if (Mathf.Abs(qSDiff) < tolerance && Mathf.Abs(qEDiff) < tolerance)
-        {
-            HudManager.colour = HUDManager.HUDColour.Orange;
-            return true;
-        }
-        // Provide instructions when not there yet
-        else
-        {
-
-            string helpText = "";
-            if (qSDiff < 0 && Mathf.Abs(qSDiff) > tolerance)
-                helpText += "SH: up (" + qShoulder.ToString("F0") + "/" + qShoudlerRef.ToString("F0") + ").\n";
-            else if (qSDiff > 0 && Mathf.Abs(qSDiff) > tolerance)
-                helpText += "SH: down (" + qShoulder.ToString("F0") + "/" + qShoudlerRef.ToString("F0") + ").\n";
-            else
-                helpText += "SH: ok (" + qShoulder.ToString("F0") + "/" + qShoudlerRef.ToString("F0") + ").\n";
-
-
-            if (qEDiff < 0 && Mathf.Abs(qEDiff) > tolerance)
-                helpText += "EB: up (" + qElbow.ToString("F0") + "/" + qElbowRef.ToString("F0") + ").\n";
-            else if (qEDiff > 0 && Mathf.Abs(qEDiff) > tolerance)
-                helpText += "EB: down (" + qElbow.ToString("F0") + "/" + qElbowRef.ToString("F0") + ").\n"; 
-            else
-                helpText += "EB: ok (" + qElbow.ToString("F0") + "/" + qElbowRef.ToString("F0") + ").\n"; 
-            HudManager.DisplayText(helpText);
-            HudManager.colour = HUDManager.HUDColour.Red;
-
-
-            return false;
-        }
-
-        
+        yield return 0;//new WaitForSecondsRealtime(0.0f);
+        Debug.Log("Ite:" + iterationNumber + ". Next pose:" + index + ".");
     }
 
     #endregion
@@ -247,16 +129,10 @@ public class HumanLFD : GameMaster
     {
        
         // Override fixed update to start the emg recording when the start performing the task
-        if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK && !emgIsRecording)
+        if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK)
         {
            
             Debug.Log("Ite:" + iterationNumber + ". Start task");
-            audio.clip = startAudioClip;
-            audio.Play(0);
-            // Comment out when sEMG is connected
-            if(delsysEMGEnable)
-                delsysEMG.StartRecording(ConfigEMGFilePath());
-            emgIsRecording = true;
         }
 
         base.FixedUpdate();
@@ -424,7 +300,6 @@ public class HumanLFD : GameMaster
         ExperimentSystem.AddSensor(handTracker);
 
         #endregion
-        Debug.Log("End Here?");
 
     }
 
@@ -440,51 +315,18 @@ public class HumanLFD : GameMaster
         welcomeDone = false;
         inWelcome = true;
         
+        //welcomeDone = true;
+
+        //HudManager.DisplayText("Look In Front. Instructions will be displayed there.");
+        //InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press space to continue...)");
+        //yield return WaitKeyBoardAck(); // And wait for the subject to cycle through them.
+
+        InstructionManager.DisplayText("Today we will be collecting your motion data \n\n (Press the trigger button to continue...)");
+        yield return WaitKeyBoardAck(); // And wait for the subject to cycle through them.
+
+        //// Now that you are done, set the flag to indicate we are done.
+
         welcomeDone = true;
-
-        HudManager.DisplayText("Look to the top right. Instructions will be displayed there.");
-        InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press the trigger button to continue...)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-        InstructionManager.DisplayText("Make sure you are standing on top of the green circle. \n\n (Press the trigger button to continue...)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-        InstructionManager.DisplayText("Test audio. \n\n (If you can hear the audio, press the trigger button to continue...)");
-        audio.loop = true;
-        audio.volume = 0.4f;
-        audio.Play();
-        
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        audio.loop = false;
-        audio.Stop();
-        audio.volume = 1.0f;
-        //
-        // Hud intro
-        InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me introduce you to your assistant, the Heads Up Display (HUD)." + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("Look at the HUD around your left eye. It's saying hi!");
-        HudManager.DisplayText("Hi! I'm HUD!" + "\n (Press trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        HudManager.DisplayText("I'm here to help!" + "\n (Press trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        HudManager.DisplayText("Look at the screen.", 3);
-
-
-        //
-        // Experiment overall intro
-        InstructionManager.DisplayText("Alright " + SaveSystem.ActiveUser.name + ", let me explain what we are doing today." + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("Today, the experiment will require you to reach to the targets in front of you." + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("You will do 2 sessions, 1st 90 iterations and 2nd 270 iterations " + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        InstructionManager.DisplayText("A 60 sec rest occurs every 35 iterations" + "\n\n (Press the trigger)");
-        yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-        // Now that you are done, set the flag to indicate we are done.
-        
-        welcomeDone = true;
-
     }
 
     /// <summary>
@@ -493,17 +335,11 @@ public class HumanLFD : GameMaster
     public override void InitialiseExperiment()
     {
         Debug.Log("InitialiseExperiment");
-        #region Spawn grid
-        // Spawn the grid
-        //gridManager.CurrentTargetType = TargetGridManager.TargetType.Ball; // Type is the ball
-        poseListManager.ResetPoseSelection();
-        Debug.Log("Spawn the list!");
-        #endregion
 
         #region Iteration settings
         // Set iterations variables for flow control.
-        targetNumber = poseListManager.TargetNumber;
-        iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget;
+        targetNumber = 1;// poseListManager.TargetNumber;
+        iterationsPerSession[sessionNumber - 1] = targetNumber * iterationsPerTarget;
 
         // Create the list of target indexes and shuffle it.
         for (int i = 0; i < targetNumber; i++)
@@ -513,7 +349,7 @@ public class HumanLFD : GameMaster
                 targetOrder.Add(i);
                 Debug.Log(targetOrder[targetOrder.Count - 1]);
             }
-                
+
         }
         targetOrder.Shuffle();
 
@@ -534,30 +370,8 @@ public class HumanLFD : GameMaster
         instructionsDone = false;
         inInstructions = true;
 
-        //Instructions
-        if (sessionNumber == 1) // first session
-        {
-            InstructionManager.DisplayText("Alright, the sphere targets should have spawned for you." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("In the 1st session, you will need to reach to the spheres using your index finger." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-        }
-        else if (sessionNumber == 2) // second session
-        {
-            InstructionManager.DisplayText("You've finished the 1st session, well done. Let's start the second session" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("The sphere targets have been replaced by bottle targets and a bottle has been placed in your hand." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("In the 2nd session, you will need to match bothe the target locations and orientations ." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("If you are ready, let's start training!" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        }
-
-
+        InstructionManager.DisplayText("Instruction Loop, Press space to continue");
+        yield return WaitKeyBoardAck(); // And wait for the subject to cycle through them.
 
         // Now that you are done, set the flag to indicate we are done.
         instructionsDone = true;
@@ -577,178 +391,8 @@ public class HumanLFD : GameMaster
         trainingDone = false;
         inTraining = true;
 
-
-        if (sessionNumber == 1)
-        {
-
-            InstructionManager.DisplayText("Let's start training then!" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-
-            //
-            // HUD Colours
-            InstructionManager.DisplayText("First, let's tell you about the colour of the HUD. It will tell you what you need to do." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Red>: for returning back and adjusting your start position." + "\n\n (Press the trigger)");
-            HudManager.DisplayText("I'm red!");
-            HudManager.colour = HUDManager.HUDColour.Red;
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Orange>: for waiting for the countdown." + "\n\n (Press the trigger)");
-            HudManager.DisplayText("I'm orange!");
-            HudManager.colour = HUDManager.HUDColour.Orange;
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Blue>: for reaching for the target.!" + "\n\n (Press the trigger)");
-            HudManager.DisplayText("I'm blue!");
-            HudManager.colour = HUDManager.HUDColour.Blue;
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You need to hold on you reaching position for a while until the HUD says 'Well Done', like" + "\n\n (Press the trigger)");
-            HudManager.colour = HUDManager.HUDColour.Red;
-            HudManager.DisplayText("Well Done");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-            HudManager.ClearText();
-            HudManager.colour = HUDManager.HUDColour.Red;
-
-            //
-            // Reaching practice
-            InstructionManager.DisplayText("Next, the colour of the targets will tell you the status of the target." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Blue>: the target is selected as the next target." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("<Green>: you have successfully reached the selected one." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-
-            //
-            // Explain routine
-            InstructionManager.DisplayText("Alright, let's explain the task routine." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("The task routine is: first keep your start position for 3 seconds, and HUD will tell you when to go." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Then reach to the target in <blue> using your index finger." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Finally, when you reach, hold on for a while, until you hear 'Return' and HUD says 'Well done'." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-            //
-            // Important messages
-            InstructionManager.DisplayText("Important!: Keep your final reaching position when you hear 'Hold', like !!! " + "\n\n (Press the trigger to play)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            audio.clip = holdAudioClip;
-            audio.Play(0);
-            HudManager.DisplayText("Hold on for a while!!");
-            InstructionManager.DisplayText("Important!: Keep your final reaching position when you hear 'Hold', like !!! " + "\n\n (Press the trigger to continue)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-            InstructionManager.DisplayText("Important!: Do not return until HUD says 'Well Done' and you hear 'Return', like !!! " + "\n\n (Press the trigger to play)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            audio.clip = returnAudioClip;
-            audio.Play(0);
-            HudManager.DisplayText("Well done!!");
-            InstructionManager.DisplayText("Important!: Do not return until HUD says 'Well Done' and you hear 'Return', like !!! " + "\n\n (Press the trigger to continue)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-            //
-            // Have a try
-            InstructionManager.DisplayText("Ok, let's have a try of a routine." + "\n\n (Press the trigger)");
-            HudManager.ClearText();
-            HudManager.colour = HUDManager.HUDColour.Red;
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-
-            //
-            // Start position
-            InstructionManager.DisplayText("First, let's show you the start position." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-            //
-            // Start position
-            InstructionManager.DisplayText("Your upper arm and elbow should point downards." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Try it. The HUD displays: (current upper and fore arm angle/the desired one)");
-            //startPosPhoto.SetActive(true);
-            //startPosPhoto.transform.Rotate(new Vector3(0.0f, 90.0f, 0.0f), Space.World);
-            yield return new WaitUntil(() => IsReadyToStart());
-            //startPosPhoto.SetActive(false);
-            HudManager.ClearText();
-
-            //Start practice
-            poseListManager.SelectPose(0);
-            InstructionManager.DisplayText("The sphere that you need to reach will turn blue. Don't reach now." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You'll have to wait for a three second countdown. Look at the sphere and get ready!" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            HudManager.colour = HUDManager.HUDColour.Orange;
-            HUDCountDown(1);
-            yield return new WaitUntil(() => CountdownDone); // And wait 
-            InstructionManager.DisplayText("Reach for it by index finger!!");
-            HudManager.DisplayText("Reach for it by index finger!!");
-            HudManager.colour = HUDManager.HUDColour.Blue;
-            yield return new WaitUntil(() => IsTaskDone());
-            // Signal the subject that the task is done
-            HudManager.DisplayText("Hold on your current position!");
-            yield return new WaitForSecondsRealtime(1.0f);
-            audio.clip = returnAudioClip;
-            audio.Play();
-            HudManager.colour = HUDManager.HUDColour.Red;
-            HudManager.DisplayText("Well done (you can return to start position)!");
-            // Reset flags
-            hasReached = false;
-            taskComplete = false;
-            HudManager.DisplayText("You can relax now. Look to the top right.", 3);
-
-            //
-            // End
-            InstructionManager.DisplayText("Important: Do not return until you hear 'Return' and HUD says 'Well Done' !!! " + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Otherwise, you look ready to go! Good luck!" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-        }
-        if (sessionNumber == 2)
-        {
-            InstructionManager.DisplayText("Let's start training then!" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-            //
-            // Reaching practice
-            InstructionManager.DisplayText("Everthing is the same except you need to match the orientations." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Ok, let's have a try." + "\n\n (Press the trigger)");
-            HudManager.ClearText();
-            HudManager.colour = HUDManager.HUDColour.Red;
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-            //Start practice         
-            poseListManager.SelectPose(2);
-            InstructionManager.DisplayText("The sphere that you need to reach will turn blue. Do not reach now." + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("You'll have to wait for a three second countdown. Look at the sphere and get ready!" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            HudManager.colour = HUDManager.HUDColour.Orange;
-            HUDCountDown(3);
-            yield return new WaitUntil(() => CountdownDone); // And wait 
-            InstructionManager.DisplayText("Reach for it!!");
-            HudManager.DisplayText("Reach for it!!");
-            HudManager.colour = HUDManager.HUDColour.Blue;
-            yield return new WaitUntil(() => IsTaskDone());
-            // Signal the subject that the task is done
-            HudManager.DisplayText("Hold on!");
-            yield return new WaitForSecondsRealtime(1.0f);
-            HudManager.colour = HUDManager.HUDColour.Red;
-            HudManager.DisplayText("Well done (you can return to start position)!");
-            // Reset flags
-            hasReached = false;
-            taskComplete = false;
-            HudManager.DisplayText("You can relax now. Look to the top right.", 3);
-
-            //
-            // End
-            InstructionManager.DisplayText("Important: Hold your final reaching position until you hear 'Return' and HUD says 'Well Done' !!! " + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-            InstructionManager.DisplayText("Otherwise, you look ready to go! Good luck!" + "\n\n (Press the trigger)");
-            yield return WaitForSubjectAcknowledgement(); // And wait for the subject to cycle through them.
-
-        }
+        InstructionManager.DisplayText("Training Loop, Press space to continue");
+        yield return WaitKeyBoardAck(); // And wait for the subject to cycle through them.
 
         // Now that you are done, set the flag to indicate we are done.
         trainingDone = true; 
@@ -761,16 +405,18 @@ public class HumanLFD : GameMaster
     /// <returns>True if ready to start.</returns>
     public override bool IsReadyToStart()
     {
+        Debug.Log("IsReadyToStart");
         if (checkStartPosition)
         {
             //return Input.GetKey(KeyCode.UpArrow);
-            return (Input.GetKey(KeyCode.UpArrow) || buttonAction.GetState(SteamVR_Input_Sources.Any));
+            Debug.Log("checkStartPosition");
+            return (Input.GetKey(KeyCode.Space) || buttonAction.GetState(SteamVR_Input_Sources.Any));
         }
-
         else
+            Debug.Log("!!");
             return true;
+        
 
-    
     }
 
     /// <summary>
@@ -780,9 +426,9 @@ public class HumanLFD : GameMaster
     public override void PrepareForStart()
     {
         // Here you can do stuff like preparing objects/assets, like setting a different colour to the object
-
+        Debug.Log("PrepareForStart");
         // Select target
-        
+
     }
 
     /// <summary>
@@ -793,7 +439,7 @@ public class HumanLFD : GameMaster
     {
         // If our subject fails, do some resetting. 
         // Clear bottle selection
-        poseListManager.ResetPoseSelection();
+        Debug.Log("StartFailureReset");
 
     }
 
@@ -805,6 +451,7 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void HandleTaskDataLogging()
     {
+        Debug.Log("HandleTaskDataLogging");
         if (padAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyUp(KeyCode.RightArrow))
         {
             subStep += 1;
@@ -866,6 +513,7 @@ public class HumanLFD : GameMaster
     /// <returns></returns>
     public override void HandleInTaskBehaviour()
     {
+        Debug.Log("HandleInTaskBehaviour");
         HudManager.colour = HUDManager.HUDColour.Blue;
     }
 
@@ -875,14 +523,12 @@ public class HumanLFD : GameMaster
     /// <returns>True if the task has been successfully completed.</returns>
     public override bool IsTaskDone()
     {
+        Debug.Log("IsTaskDone");
         // You can implement whatever condition you want, maybe touching an object in the virtual world or being in a certain posture.
 
-        //gridManager.SelectedTouched && !hasReached
-        if ( (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyDown(KeyCode.UpArrow))  && !hasReached) //Input.GetKey(KeyCode.DownArrow)
+        if ( (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyDown(KeyCode.UpArrow)) ) //Input.GetKey(KeyCode.DownArrow)
         {
             doneTime = taskTime;
-            //audio.clip = holdAudioClip;
-            //audio.Play();
             StartCoroutine(EndTaskCoroutine());
             Debug.Log("Ite:" + iterationNumber + ". Task done. t=" + doneTime.ToString() + ".");
         }
@@ -898,6 +544,7 @@ public class HumanLFD : GameMaster
     /// <returns></returns>
     private IEnumerator EndTaskCoroutine()
     {
+        Debug.Log("EndTaskCoroutine");
         hasReached = true;
         // Signal the subject that the task is done
         //HudManager.DisplayText("Hold on for a while!!");
@@ -914,12 +561,7 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void HandleTaskCompletion()
     {
-
-
-        // Stop EMG reading and save data
-        delsysEMG.StopRecording();
-        emgIsRecording = false;
-
+        Debug.Log("HandleTaskCompletion");
         base.HandleTaskCompletion();
 
         
@@ -928,9 +570,6 @@ public class HumanLFD : GameMaster
         hasReached = false;
         taskComplete = false;
 
-        // Play return audio
-        audio.clip = returnAudioClip;
-        audio.Play();
     }
 
     /// <summary>
@@ -938,13 +577,14 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void HandleResultAnalysis()
     {
+        Debug.Log("HandleResultAnalysis");
         // Do some analysis
         //Debug.Log("J = " + J);
-        string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + poseListManager.GetPoseName(targetOrder[iterationNumber - 1]) +"," + doneTime.ToString();
+        //string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + poseListManager.GetPoseName(targetOrder[iterationNumber - 1]) +"," + doneTime.ToString();
 
-        // Log results
-        performanceDataLogger.AppendData(iterationResults);
-        performanceDataLogger.SaveLog();
+        //// Log results
+        //performanceDataLogger.AppendData(iterationResults);
+        //performanceDataLogger.SaveLog();
     }
 
     /// <summary>
@@ -954,7 +594,7 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void HandleIterationInitialisation()
     {
-
+        Debug.Log("HandleIterationInitialisation");
         subStep = 0;
         base.HandleIterationInitialisation();
         StartCoroutine(DisplayTaskText(targetOrder[iterationNumber - 1]));
@@ -968,6 +608,7 @@ public class HumanLFD : GameMaster
     /// <returns>True if the condition for changing sessions has been reached.</returns>
     public override bool IsEndOfSession()
     {
+        Debug.Log("IsEndOfSession");
         // You can do your own implementation of this
         return base.IsEndOfSession();
        
@@ -981,7 +622,7 @@ public class HumanLFD : GameMaster
     public override void HandleSessionInitialisation()
     {
 
-
+        Debug.Log("HandleSessionInitialisation");
         base.HandleSessionInitialisation();
 
         #region Iteration settings
@@ -999,8 +640,6 @@ public class HumanLFD : GameMaster
                 targetOrder.Add(i);
                 Debug.Log(targetOrder[targetOrder.Count-1]);
             }
-                
-
         }
 
         targetOrder.Shuffle();
@@ -1032,6 +671,7 @@ public class HumanLFD : GameMaster
     /// <returns>True if the condition for ending the experiment has been reached.</returns>
     public override bool IsEndOfExperiment()
     {
+        Debug.Log("IsEndOfExperiment");
         // You can do your own implementation of this
         return base.IsEndOfExperiment();
     }
@@ -1043,9 +683,8 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void EndExperiment()
     {
+        Debug.Log("EndExperiment");
         base.EndExperiment();
-        delsysEMG.StopAcquisition();
-        delsysEMG.Close();
         
         // You can do your own end of experiment stuff here
     }
@@ -1056,6 +695,7 @@ public class HumanLFD : GameMaster
     /// <returns>True if the rest condition has been reached.</returns>
     public override bool IsRestTime()
     {
+        Debug.Log("IsRestTime");
         // For example, give rest time after the fifth iteration.
         return iterationNumber % RestIterations == 0;
     }

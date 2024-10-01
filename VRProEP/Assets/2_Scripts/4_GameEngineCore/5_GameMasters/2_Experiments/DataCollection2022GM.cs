@@ -791,6 +791,7 @@ public class DataCollection2022GM : GameMaster
     {
         if (checkStartPosition)
         {
+            Debug.Log("??");
             //return Input.GetKey(KeyCode.UpArrow);
             return (Input.GetKey(KeyCode.UpArrow) || buttonAction.GetState(SteamVR_Input_Sources.Any));
         }

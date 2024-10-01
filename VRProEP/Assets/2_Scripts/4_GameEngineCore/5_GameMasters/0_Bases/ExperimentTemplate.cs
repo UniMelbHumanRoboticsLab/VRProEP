@@ -188,6 +188,7 @@ public class ExperimentTemplate : GameMaster
 
         // Now that you are done, set the flag to indicate we are done.
         welcomeDone = true;
+        Debug.Log("Welcome");
     }
 
 
