@@ -21,7 +21,7 @@ EditorBuildSettings:
     path: Assets/0_Scenes/Deprecated/Experiments/EMGShoulderData.unity
     guid: 528d0eeccef45c74398d2eaf085fae7a
   - enabled: 1
-    path: Assets/0_Scenes/Training/ProsthesisTraining.unity
+    path: Assets/0_Scenes/Worlds/HumanLFD.unity
     guid: 6ae0257ec68a4b34f99ee9de1a2a1609
   - enabled: 1
     path: Assets/0_Scenes/Worlds/ForestWorld.unity

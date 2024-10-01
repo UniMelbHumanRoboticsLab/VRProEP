@@ -20,7 +20,7 @@ using VRProEP.GameEngineCore;
 using VRProEP.ProsthesisCore;
 using VRProEP.Utilities;
 
-public class DataCollection2022GM : GameMaster
+public class HumanLFD : GameMaster
 {
     // Here you can place all your Unity (GameObjects or similar)
     #region Unity objects
@@ -115,11 +115,11 @@ public class DataCollection2022GM : GameMaster
     private List<int> targetOrder = new List<int>(); // A list of target indexes ordered for selection over iterations in a session.
 
     // Motion tracking for experiment management and adaptation (check for start position)
-    private VIVETrackerManager upperArmTracker;
-    private VIVETrackerManager lowerArmTracker;
+    private VIVETrackerManager uaTracker;
+    private VIVETrackerManager wristTracker;
     private VIVETrackerManager shoulderTracker;
-    private VIVETrackerManager c7Tracker;
-    private VIVETrackerManager nshoulderTracker;
+    private VIVETrackerManager tp1Tracker;
+    private VIVETrackerManager tp2Tracker;
     private VirtualPositionTracker handTracker;
 
     // Flow control
@@ -172,11 +172,11 @@ public class DataCollection2022GM : GameMaster
   
 
         // Check that upper and lower arms are within the tolerated start position.
-        float qShoulder = leftySign * Mathf.Rad2Deg * (upperArmTracker.GetProcessedData(5) + Mathf.PI); // Offsetting to horizontal position being 0.
+        float qShoulder = leftySign * Mathf.Rad2Deg * (uaTracker.GetProcessedData(5) + Mathf.PI); // Offsetting to horizontal position being 0.
         float qElbow = 0;
 
         HudManager.colour = HUDManager.HUDColour.Orange;
-        qElbow = Mathf.Rad2Deg * (lowerArmTracker.GetProcessedData(5)) - qShoulder; // Offsetting to horizontal position being 0.
+        qElbow = Mathf.Rad2Deg * (wristTracker.GetProcessedData(5)) - qShoulder; // Offsetting to horizontal position being 0.
                                                                                     // The difference to the start position
         float qSDiff = qShoulder - qShoudlerRef;
         float qEDiff = qElbow - qElbowRef;
@@ -268,16 +268,14 @@ public class DataCollection2022GM : GameMaster
     {
         if (debug)
         {
+            Debug.Log("1. System Wake");
+            SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo) into the SaveSystem.ActiveUser
 
-            SaveSystem.LoadUserData("TB1995175"); // Load the test/demo user (Mr Demo)
-            //
-            // Debug using able-bodied configuration
-            //
-            Debug.Log("Load Avatar to Debug.");
+            // Create Player
             AvatarSystem.LoadPlayer(SaveSystem.ActiveUser.type, AvatarType.AbleBodied);
+            // Create Avatar
             AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.AbleBodied);
         }
-
     }
 
     /// <summary>
@@ -313,6 +311,7 @@ public class DataCollection2022GM : GameMaster
     /// </summary>
     public override void ConfigureExperiment()
     {
+        Debug.Log("2. ConfigureExperiment");
         // First call the base method to load the file
         base.ConfigureExperiment();
 
@@ -321,14 +320,14 @@ public class DataCollection2022GM : GameMaster
         // Convert configuration file to configuration class.
         configurator = JsonUtility.FromJson<VariationTestConfigurator>(configAsset.text);
 
-        // Load from config file
+        // Initialize number of iterations per session
         iterationsPerTarget = configurator.iterationsPerTarget;
+        Debug.Log("Session Number:" + configurator.sessionNumber);
+        Debug.Log("Iterations:" + iterationsPerTarget);
         for (int i = 0; i < configurator.sessionNumber-1; i++)
         {
             iterationsPerSession.Add(0);
         }
-        
-
     }
 
     /// <summary>
@@ -339,20 +338,12 @@ public class DataCollection2022GM : GameMaster
     /// </summary>
     public override void InitialiseExperimentSystems()
     {
+        Debug.Log("3: InitialiseExperimentSystems");
 
-        // Set data format
-        if (!xrSkip) // If not using the XR to read sensor data
-            taskDataFormat = ablebodiedDataFormat;
-        else
-            taskDataFormat = positionDataFormat;
+        taskDataFormat = positionDataFormat;
         // Lefty sign
-        /*
         if (SaveSystem.ActiveUser.lefty)
             leftySign = -1.0f;
-            */
-        // Audio 
-        audio = GetComponent<AudioSource>();
-        audio.clip = testAudioClip;
 
         #region Modify base
         // Then run the base initialisation which is needed, with a small modification
@@ -383,58 +374,47 @@ public class DataCollection2022GM : GameMaster
         // Send the player to the experiment centre position
         TeleportToStartPosition();
         #endregion
-
-        #region Initialize EMG sensors
-        //Initialise Delsys EMG sensor
-        if (delsysEMGEnable)
-        {
-            delsysEMG.Init();
-            delsysEMG.Connect();
-        }
        
-       
-
-        #endregion
 
 
         #region  Initialize motion sensors
         //
         // Add arm motion trackers for able-bodied case.
         //
+
         // Lower limb motion tracker
-        GameObject llMotionTrackerGO = GameObject.FindGameObjectWithTag("ForearmTracker");
-        lowerArmTracker = new VIVETrackerManager(llMotionTrackerGO.transform);
-        ExperimentSystem.AddSensor(lowerArmTracker);
+        //GameObject wristGO = GameObject.FindGameObjectWithTag("wristTracker");
+        //wristTracker = new VIVETrackerManager(wristGO.transform);
+        //ExperimentSystem.AddSensor(wristTracker);
 
-        // Upper limb motion tracker
-        GameObject ulMotionTrackerGO = AvatarSystem.AddMotionTracker();
-        ulMotionTrackerGO.tag = "UpperarmTracker";
-        upperArmTracker = new VIVETrackerManager(ulMotionTrackerGO.transform);
-        ExperimentSystem.AddSensor(upperArmTracker);
+        // wrist motion tracker
+        GameObject wristGO = AvatarSystem.AddMotionTracker();
+        wristGO.tag = "wristTracker";
+        wristTracker = new VIVETrackerManager(wristGO.transform);
+        ExperimentSystem.AddSensor(wristTracker);
 
-        if (fourTrackerEnable)
-        {
-            // Shoulder acromium head tracker
-            GameObject motionTrackerGO1 = AvatarSystem.AddMotionTracker();
-            shoulderTracker = new VIVETrackerManager(motionTrackerGO1.transform);
-            motionTrackerGO1.tag = "SATracker";
-            ExperimentSystem.AddSensor(shoulderTracker);
-            // C7 tracker
-            GameObject motionTrackerGO2 = AvatarSystem.AddMotionTracker();
-            c7Tracker = new VIVETrackerManager(motionTrackerGO2.transform);
-            motionTrackerGO2.tag = "C7Tracker";
-            ExperimentSystem.AddSensor(c7Tracker);
-            if (fiveTrackerEnable)
-            {
-                GameObject motionTrackerGO3 = AvatarSystem.AddMotionTracker();
-                nshoulderTracker = new VIVETrackerManager(motionTrackerGO3.transform);
-                motionTrackerGO3.tag = "NonDomiShoulderTracker";
-                ExperimentSystem.AddSensor(nshoulderTracker);
-            }
+        // Upper arm motion tracker
+        GameObject uaGO = AvatarSystem.AddMotionTracker();
+        uaGO.tag = "uaTracker";
+        uaTracker = new VIVETrackerManager(uaGO.transform);
+        ExperimentSystem.AddSensor(uaTracker);
 
-        }
+        // Shoulder tracker
+        GameObject shoulderGO = AvatarSystem.AddMotionTracker();
+        shoulderGO.tag = "shoulderTracker";
+        shoulderTracker = new VIVETrackerManager(shoulderGO.transform);
+        ExperimentSystem.AddSensor(shoulderTracker);
 
-        
+        // Task Points tracker
+        GameObject tp1GO = AvatarSystem.AddMotionTracker();
+        tp1Tracker = new VIVETrackerManager(tp1GO.transform);
+        tp1GO.tag = "tp1Tracker";
+        ExperimentSystem.AddSensor(tp1Tracker);
+
+        GameObject tp2GO = AvatarSystem.AddMotionTracker();
+        tp2Tracker = new VIVETrackerManager(tp2GO.transform);
+        tp2GO.tag = "tp2Tracker";
+        ExperimentSystem.AddSensor(tp2Tracker);
 
         //
         // Hand tracking sensor
@@ -444,19 +424,7 @@ public class DataCollection2022GM : GameMaster
         ExperimentSystem.AddSensor(handTracker);
 
         #endregion
-
-        //
-        // Target ADL poses
-        //
-        poseListManager.AddPose("Iteration:", nextAudioClip);
-
-
-
-        // Start EMG readings
-        if(delsysEMGEnable)
-            delsysEMG.StartAcquisition();
-
-
+        Debug.Log("End Here?");
 
     }
 
@@ -467,6 +435,7 @@ public class DataCollection2022GM : GameMaster
     /// <returns>Yield instruction</returns>
     public override IEnumerator WelcomeLoop()
     {
+        Debug.Log("WelcomeLoop");
         // First flag that we are in the welcome routine
         welcomeDone = false;
         inWelcome = true;
@@ -523,6 +492,7 @@ public class DataCollection2022GM : GameMaster
     /// </summary>
     public override void InitialiseExperiment()
     {
+        Debug.Log("InitialiseExperiment");
         #region Spawn grid
         // Spawn the grid
         //gridManager.CurrentTargetType = TargetGridManager.TargetType.Ball; // Type is the ball
@@ -559,6 +529,7 @@ public class DataCollection2022GM : GameMaster
     /// <returns>Yield instruction</returns>
     public override IEnumerator InstructionsLoop()
     {
+        Debug.Log("InstructionsLoop");
         // First flag that we are in the instructions routine
         instructionsDone = false;
         inInstructions = true;
@@ -601,6 +572,7 @@ public class DataCollection2022GM : GameMaster
     /// <returns>Yield instruction</returns>
     public override IEnumerator TrainingLoop()
     {
+        Debug.Log("TrainingLoop");
         // First flag that we are in the training routine
         trainingDone = false;
         inTraining = true;
@@ -854,23 +826,23 @@ public class DataCollection2022GM : GameMaster
         {
             logData += taskTime.ToString();
             logData += "," + subStep.ToString();
-            GameObject got = GameObject.FindGameObjectWithTag("ForearmTracker");
+            GameObject got = GameObject.FindGameObjectWithTag("wristTracker");
             logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
             logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
 
-            got = GameObject.FindGameObjectWithTag("UpperarmTracker");
+            got = GameObject.FindGameObjectWithTag("uaTracker");
             logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
             logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
 
-            got = GameObject.FindGameObjectWithTag("SATracker");
+            got = GameObject.FindGameObjectWithTag("shoulderTracker");
             logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
             logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
 
-            got = GameObject.FindGameObjectWithTag("C7Tracker");
+            got = GameObject.FindGameObjectWithTag("tp1Tracker");
             logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
             logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
 
-            got = GameObject.FindGameObjectWithTag("NonDomiShoulderTracker");
+            got = GameObject.FindGameObjectWithTag("tp2Tracker");
             logData += "," + got.transform.position.x.ToString() + "," + got.transform.position.y.ToString() + "," + got.transform.position.z.ToString();
             logData += "," + got.transform.rotation.w.ToString() + "," + got.transform.rotation.x.ToString() + "," + got.transform.rotation.y.ToString() + "," + got.transform.rotation.z.ToString();
             //

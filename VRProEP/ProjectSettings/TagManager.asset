@@ -46,6 +46,11 @@ TagManager:
   - ClothespinRackRod
   - projectile
   - NonDomiShoulderTracker
+  - wristTracker
+  - uaTracker
+  - shoulderTracker
+  - tp1Tracker
+  - tp2Tracker
   layers:
   - Default
   - TransparentFX

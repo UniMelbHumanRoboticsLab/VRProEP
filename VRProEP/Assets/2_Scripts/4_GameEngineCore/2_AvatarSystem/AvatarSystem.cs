@@ -295,7 +295,6 @@ namespace VRProEP.GameEngineCore
                     {
                         case AvatarType.Transhumeral:
                             // Load prefab and check validity
-                            //GameObject playerTHPrefab = Resources.Load<GameObject>("Players/PlayerTH");
                             GameObject playerTHPrefab = Resources.Load<GameObject>("Players/PlayerPros");
                             if (playerTHPrefab == null)
                                 throw new System.Exception("The requested player prefab was not found.");

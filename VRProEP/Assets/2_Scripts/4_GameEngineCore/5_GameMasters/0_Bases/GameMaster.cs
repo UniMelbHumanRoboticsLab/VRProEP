@@ -278,6 +278,7 @@ public abstract class GameMaster : MonoBehaviour
     /// </summary>
     public virtual void ConfigureExperiment()
     {
+        Debug.Log(this.gameObject.name);
         if (debug)
             configAsset = Resources.Load<TextAsset>("Experiments/" + this.gameObject.name);
         else
@@ -802,6 +803,7 @@ public abstract class GameMaster : MonoBehaviour
     {
         // Get player object
         GameObject playerGO = GameObject.FindGameObjectWithTag("Player");
+
         if (playerGO == null)
             throw new System.NullReferenceException("Player GameObject not found.");
 
