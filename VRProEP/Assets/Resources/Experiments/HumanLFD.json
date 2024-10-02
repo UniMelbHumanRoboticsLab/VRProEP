@@ -1,1 +1,4 @@
-{"iterationsPerTarget": 200, "sessionNumber": 10}
+{
+  "iterationsTotal": 5,
+  "sessionsTotal": 3
+}

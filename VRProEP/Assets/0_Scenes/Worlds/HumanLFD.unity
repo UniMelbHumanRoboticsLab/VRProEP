@@ -1612,7 +1612,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startEnable: 0
   demoMode: 0
-  skipInstructions: 1
+  skipInstructions: 0
   skipTraining: 1
   debug: 1
   debugText: {fileID: 0}
@@ -1624,24 +1624,11 @@ MonoBehaviour:
   iterationsPerSession: 
   trainingPerSession: 
   taskDataFormat: 
-  delsysEMGEnable: 0
-  fourTrackerEnable: 0
-  fiveTrackerEnable: 0
   xrSkip: 1
   ablebodiedDataFormat: pose,t,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand
   positionDataFormat: iteration,t,step,x1,y1,z1,w1,qx1,qy1,qz1, x2,y2,z2,w2,qx2,qy2,qz2,
     x3,y3,z3,w3,qx3,qy3,qz3, x4,y4,z4,w4,qx4,qy4,qz4, x5,y5,z5,w5,qx5,qy5,qz5
   performanceDataFormat: i,pose,name,t_f
-  taskPoseText: {fileID: 0}
   poseListManager: {fileID: 0}
-  startShoulderAngle: -90
-  startElbowAngle: 90
-  startTolerance: 15
-  iterationsPerTarget: 10
+  iterationsTotal: 10
   checkStartPosition: 1
-  startPosPhoto: {fileID: 0}
-  startAudioClip: {fileID: 0}
-  holdAudioClip: {fileID: 0}
-  returnAudioClip: {fileID: 0}
-  testAudioClip: {fileID: 0}
-  nextAudioClip: {fileID: 0}

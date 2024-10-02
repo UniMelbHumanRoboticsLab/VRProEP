@@ -32,15 +32,9 @@ public class HumanLFD : GameMaster
     [SerializeField]
     private string ablebodiedDataFormat = "pose,t,aDotE,bDotE,gDotE,aE,bE,gE,xE,yE,zE,aDotUA,bDotUA,gDotUA,aUA,bUA,gUA,xUA,yUA,zUA,aDotSH,bDotSH,gDotSH,aSH,bSH,gSH,xSH,ySH,zSH,aDotUB,bDotUB,gDotUB,aUB,bUB,gUB,xUB,yUB,zUB,xHand,yHand,zHand,aHand,bHand,gHand";
     [SerializeField]
-    private string positionDataFormat = "iteration,t,step,x1,y1,z1,w1,qx1,qy1,qz1, x2,y2,z2,w2,qx2,qy2,qz2, x3,y3,z3,w3,qx3,qy3,qz3, x4,y4,z4,w4,qx4,qy4,qz4, x5,y5,z5,w5,qx5,qy5,qz5";
+    private string positionDataFormat = "iteration,t,step,x1,y1,z1,w1,qx1,qy1,qz1,x2,y2,z2,w2,qx2,qy2,qz2,x3,y3,z3,w3,qx3,qy3,qz3,x4,y4,z4,w4,qx4,qy4,qz4,x5,y5,z5,w5,qx5,qy5,qz5";
     [SerializeField]
     private string performanceDataFormat = "i,pose,name,t_f";
-
-
-    [Header("Grid manager")]
-
-    [SerializeField]
-    private ADLPoseListManager poseListManager;
 
    
     [Header("Experiment configuration: Start position")]
@@ -48,7 +42,7 @@ public class HumanLFD : GameMaster
     [SerializeField]
     [Tooltip("The number of iterations per target.")]
     [Range(1, 100)]
-    private int iterationsPerTarget = 10;
+    private int iterationsTotal = 10;
 
 
     [SerializeField]
@@ -85,8 +79,8 @@ public class HumanLFD : GameMaster
 
     private class VariationTestConfigurator
     {
-        public int iterationsPerTarget = 10;
-        public int sessionNumber = 2;
+        public int iterationsTotal = 10;
+        public int sessionsTotal = 2;
     }
     private VariationTestConfigurator configurator;
 
@@ -124,15 +118,34 @@ public class HumanLFD : GameMaster
 
     // Here are all the methods you need to write for your experiment.
     #region GameMaster Inherited Methods
+    protected override void Update()
+    {
 
+        // Override update for stable substep increment
+        //if (padAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyDown(KeyCode.UpArrow))
+        //{
+        //    StartCoroutine(subStep_count());
+        //}
+        if (GetCurrentStateName() == State.STATE.PERFORMING_TASK && Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            subStep += 1;
+            Debug.Log("Session Number: " + sessionNumber + ", Iteration Number: " + iterationNumber + ", Substeps: " + subStep);
+            InstructionManager.DisplayText(GetDisplayInfoText());
+        }
+
+
+        base.Update();
+
+    }
     protected override void FixedUpdate()
     {
        
         // Override fixed update to start the emg recording when the start performing the task
         if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK)
         {
-           
-            Debug.Log("Ite:" + iterationNumber + ". Start task");
+
+            Debug.Log("Session Number: " + sessionNumber + ", Iteration Number: " + iterationNumber + ", Status: PERFORMING_TASK");
+
         }
 
         base.FixedUpdate();
@@ -163,7 +176,7 @@ public class HumanLFD : GameMaster
     {
         // You can choose to use the base initialisation or get rid of it completely.
         string text = base.GetDisplayInfoText();
-
+        text += "Substep: " + subStep + ".\n";
         return text;
     }
 
@@ -197,10 +210,10 @@ public class HumanLFD : GameMaster
         configurator = JsonUtility.FromJson<VariationTestConfigurator>(configAsset.text);
 
         // Initialize number of iterations per session
-        iterationsPerTarget = configurator.iterationsPerTarget;
-        Debug.Log("Session Number:" + configurator.sessionNumber);
-        Debug.Log("Iterations:" + iterationsPerTarget);
-        for (int i = 0; i < configurator.sessionNumber-1; i++)
+        iterationsTotal = configurator.iterationsTotal;
+        Debug.Log("Total Number of Sessions:" + configurator.sessionsTotal);
+        Debug.Log("Total Iterations per Session:" + iterationsTotal);
+        for (int i = 0; i < configurator.sessionsTotal; i++)
         {
             iterationsPerSession.Add(0);
         }
@@ -310,7 +323,7 @@ public class HumanLFD : GameMaster
     /// <returns>Yield instruction</returns>
     public override IEnumerator WelcomeLoop()
     {
-        Debug.Log("WelcomeLoop");
+        Debug.Log("4. WelcomeLoop");
         // First flag that we are in the welcome routine
         welcomeDone = false;
         inWelcome = true;
@@ -321,7 +334,7 @@ public class HumanLFD : GameMaster
         //InstructionManager.DisplayText("Hi " + SaveSystem.ActiveUser.name + "! Welcome to the virtual world. \n\n (Press space to continue...)");
         //yield return WaitKeyBoardAck(); // And wait for the subject to cycle through them.
 
-        InstructionManager.DisplayText("Today we will be collecting your motion data \n\n (Press the trigger button to continue...)");
+        InstructionManager.DisplayText("Today we will collect your motion data for different tasks \n\n (Press the space button to continue...)");
         yield return WaitKeyBoardAck(); // And wait for the subject to cycle through them.
 
         //// Now that you are done, set the flag to indicate we are done.
@@ -334,28 +347,12 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void InitialiseExperiment()
     {
-        Debug.Log("InitialiseExperiment");
+        Debug.Log("5. InitialiseExperiment");
 
         #region Iteration settings
         // Set iterations variables for flow control.
-        targetNumber = 1;// poseListManager.TargetNumber;
-        iterationsPerSession[sessionNumber - 1] = targetNumber * iterationsPerTarget;
-
-        // Create the list of target indexes and shuffle it.
-        for (int i = 0; i < targetNumber; i++)
-        {
-            for (int j = 0; j < iterationsPerTarget; j++)
-            {
-                targetOrder.Add(i);
-                Debug.Log(targetOrder[targetOrder.Count - 1]);
-            }
-
-        }
-        targetOrder.Shuffle();
-
-        #endregion
-        StartCoroutine(DisplayTaskText(targetOrder[0]));
-        
+        iterationsPerSession[sessionNumber - 1] = iterationsTotal;
+        #endregion        
     }
 
     /// <summary>
@@ -363,17 +360,91 @@ public class HumanLFD : GameMaster
     /// Implement your instructions loop here.
     /// </summary>
     /// <returns>Yield instruction</returns>
+    /// 
+    private string changeInstruction(string status,int substep,bool end)
+    {
+        string text;
+        text = "Status: " + status + ".\n";
+        text += "Time: " + System.DateTime.Now.ToString("H:mm tt") + ".\n";
+        text += "Experiment Progress: " + sessionNumber + "/" + iterationsPerSession.Count + ".\n";
+        text += "Session Progress: " + iterationNumber + "/" + iterationsPerSession[sessionNumber - 1] + ".\n";
+        text += "Substep: " + substep + ".\n";
+
+        if (end)
+        {
+            text += "When you returned to Home and is ready to stop, say |STOP|";
+        }
+        return text;
+    }
     public override IEnumerator InstructionsLoop()
     {
         Debug.Log("InstructionsLoop");
         // First flag that we are in the instructions routine
         instructionsDone = false;
         inInstructions = true;
+        
+        InstructionManager.DisplayText("You will perform 4 different tasks \n\nEach task has 5 differernt task configs \n\nEach task configs needs 3 demos\n");
+        yield return WaitKeyBoardAck();
 
-        InstructionManager.DisplayText("Instruction Loop, Press space to continue");
-        yield return WaitKeyBoardAck(); // And wait for the subject to cycle through them.
+        while (!instructionsDone)
+        {
+            InstructionManager.DisplayText("You are required to move from Home => Point 1 => Point 2 => Home\n");
+            yield return WaitKeyBoardAck();
+            InstructionManager.DisplayText("When  Status changes from |Waiting_For_Task| to |Performing_Task| \n\nSay |READY| when you are ready to move.\n\nLet's Try it out");
+            yield return WaitKeyBoardAck(); // And wait for the subject to cycle through them.
+
+            subStep = 0;
+
+            InstructionManager.DisplayText(changeInstruction("Waiting_For_Task", subStep, false));
+            yield return WaitKeyBoardAck();
+
+            InstructionManager.DisplayText(changeInstruction("Performing_Task", subStep, false));
+
+            yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
+            subStep += 1;
+            InstructionManager.DisplayText(changeInstruction("Performing_Task", subStep, false));
+            yield return new WaitForSeconds(0.5f);
+
+
+            yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
+            subStep += 1;
+            InstructionManager.DisplayText(changeInstruction("Performing_Task", subStep, false));
+            yield return new WaitForSeconds(0.5f);
+
+            yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
+            subStep += 1;
+            InstructionManager.DisplayText(changeInstruction("Performing_Task", subStep, true));
+            yield return new WaitForSeconds(0.5f);
+
+            yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.UpArrow));
+            subStep += 1;
+            InstructionManager.DisplayText(changeInstruction("Performing_Task", subStep, true));
+            yield return new WaitForSeconds(0.5f);
+
+            yield return WaitKeyBoardAck();
+            InstructionManager.DisplayText(changeInstruction("Initializing Next Iteration", subStep, false));
+
+            yield return WaitKeyBoardAck();
+            InstructionManager.DisplayText("Good Job. Are you ready to Start?");
+            yield return new WaitUntil(() => Input.anyKeyDown);
+
+
+            if (Input.GetKeyDown(KeyCode.Y))
+            {
+                instructionsDone = true;
+            }
+
+            if (Input.GetKeyDown(KeyCode.N))
+            {
+                instructionsDone = false;
+            }
+        }
+
 
         // Now that you are done, set the flag to indicate we are done.
+        subStep = 0;
+        // prevent instructions from coming up twice
+        skipInstructions = true;
         instructionsDone = true;
 
     }
@@ -405,18 +476,15 @@ public class HumanLFD : GameMaster
     /// <returns>True if ready to start.</returns>
     public override bool IsReadyToStart()
     {
-        Debug.Log("IsReadyToStart");
         if (checkStartPosition)
         {
             //return Input.GetKey(KeyCode.UpArrow);
-            Debug.Log("checkStartPosition");
+            Debug.Log("Session Number: " + sessionNumber + ", Iteration Number: " + iterationNumber + ", Status: checkStartPosition");
             return (Input.GetKey(KeyCode.Space) || buttonAction.GetState(SteamVR_Input_Sources.Any));
         }
         else
             Debug.Log("!!");
             return true;
-        
-
     }
 
     /// <summary>
@@ -426,9 +494,7 @@ public class HumanLFD : GameMaster
     public override void PrepareForStart()
     {
         // Here you can do stuff like preparing objects/assets, like setting a different colour to the object
-        Debug.Log("PrepareForStart");
-        // Select target
-
+        Debug.Log("Session Number: " + sessionNumber + ", Iteration Number: " + iterationNumber + ", Status: PrepareForStart");
     }
 
     /// <summary>
@@ -439,8 +505,8 @@ public class HumanLFD : GameMaster
     {
         // If our subject fails, do some resetting. 
         // Clear bottle selection
-        Debug.Log("StartFailureReset");
-
+        Debug.Log("Session Number: " + sessionNumber + ", Iteration Number: " + iterationNumber + ", Status: StartFailureReset");
+        subStep = 0;
     }
 
     /// <summary>
@@ -451,18 +517,13 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void HandleTaskDataLogging()
     {
-        Debug.Log("HandleTaskDataLogging");
-        if (padAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyUp(KeyCode.RightArrow))
-        {
-            subStep += 1;
-            Debug.Log("Substeps: " + subStep);
-        }
-            
+
+
 
         //
         // Add your custom data logging here
         //
-        logData += targetOrder[iterationNumber - 1] + ",";  // Make sure you always end your custom data with a comma! Using CSV for data logging.
+        logData += iterationNumber-1 + ",";  // Make sure you always end your custom data with a comma! Using CSV for data logging.
 
         //
         // Continue with data logging.
@@ -513,7 +574,6 @@ public class HumanLFD : GameMaster
     /// <returns></returns>
     public override void HandleInTaskBehaviour()
     {
-        Debug.Log("HandleInTaskBehaviour");
         HudManager.colour = HUDManager.HUDColour.Blue;
     }
 
@@ -523,10 +583,9 @@ public class HumanLFD : GameMaster
     /// <returns>True if the task has been successfully completed.</returns>
     public override bool IsTaskDone()
     {
-        Debug.Log("IsTaskDone");
         // You can implement whatever condition you want, maybe touching an object in the virtual world or being in a certain posture.
 
-        if ( (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyDown(KeyCode.UpArrow)) ) //Input.GetKey(KeyCode.DownArrow)
+        if ( (buttonAction.GetStateDown(SteamVR_Input_Sources.Any) || Input.GetKeyDown(KeyCode.Space)) ) //Input.GetKey(KeyCode.DownArrow)
         {
             doneTime = taskTime;
             StartCoroutine(EndTaskCoroutine());
@@ -544,7 +603,7 @@ public class HumanLFD : GameMaster
     /// <returns></returns>
     private IEnumerator EndTaskCoroutine()
     {
-        Debug.Log("EndTaskCoroutine");
+        Debug.Log("Session Number: " + sessionNumber + ", Iteration Number: " + iterationNumber + ", Status: EndTaskCoroutine");
         hasReached = true;
         // Signal the subject that the task is done
         //HudManager.DisplayText("Hold on for a while!!");
@@ -561,15 +620,11 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void HandleTaskCompletion()
     {
-        Debug.Log("HandleTaskCompletion");
         base.HandleTaskCompletion();
-
-        
 
         // Reset flags
         hasReached = false;
         taskComplete = false;
-
     }
 
     /// <summary>
@@ -577,14 +632,6 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void HandleResultAnalysis()
     {
-        Debug.Log("HandleResultAnalysis");
-        // Do some analysis
-        //Debug.Log("J = " + J);
-        //string iterationResults = iterationNumber + "," + targetOrder[iterationNumber - 1] + "," + poseListManager.GetPoseName(targetOrder[iterationNumber - 1]) +"," + doneTime.ToString();
-
-        //// Log results
-        //performanceDataLogger.AppendData(iterationResults);
-        //performanceDataLogger.SaveLog();
     }
 
     /// <summary>
@@ -594,12 +641,8 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void HandleIterationInitialisation()
     {
-        Debug.Log("HandleIterationInitialisation");
         subStep = 0;
         base.HandleIterationInitialisation();
-        StartCoroutine(DisplayTaskText(targetOrder[iterationNumber - 1]));
-        
-
     }
 
     /// <summary>
@@ -608,10 +651,8 @@ public class HumanLFD : GameMaster
     /// <returns>True if the condition for changing sessions has been reached.</returns>
     public override bool IsEndOfSession()
     {
-        Debug.Log("IsEndOfSession");
         // You can do your own implementation of this
         return base.IsEndOfSession();
-       
     }
 
     /// <summary>
@@ -621,43 +662,20 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void HandleSessionInitialisation()
     {
-
-        Debug.Log("HandleSessionInitialisation");
         base.HandleSessionInitialisation();
 
         #region Iteration settings
         // Set iterations variables for flow control.
-        targetNumber = poseListManager.TargetNumber;
-        iterationsPerSession[sessionNumber-1] = targetNumber * iterationsPerTarget;
-
-
-        // Create the list of target indexes and shuffle it.
-        targetOrder.Clear(); //clear the target order
-        for (int i = 0; i < targetNumber; i++)
-        {
-            for (int j = 0; j < iterationsPerTarget; j++)
-            {
-                targetOrder.Add(i);
-                Debug.Log(targetOrder[targetOrder.Count-1]);
-            }
-        }
-
-        targetOrder.Shuffle();
+        iterationsPerSession[sessionNumber - 1] = iterationsTotal;
+        subStep = 0;
 
         // New file for the performance data logger
         performanceDataLogger.CloseLog();
         performanceDataLogger.AddNewLogFile(AvatarSystem.AvatarType.ToString(), sessionNumber, performanceDataFormat); // Add file
 
-        // Display task text
-        StartCoroutine(DisplayTaskText(targetOrder[0]));
-        
-
         if (debug)
         {
-            foreach (int target in targetOrder)
-            {
-                Debug.Log("Pose:" + target);
-            }
+
         }
         #endregion
 
@@ -671,7 +689,6 @@ public class HumanLFD : GameMaster
     /// <returns>True if the condition for ending the experiment has been reached.</returns>
     public override bool IsEndOfExperiment()
     {
-        Debug.Log("IsEndOfExperiment");
         // You can do your own implementation of this
         return base.IsEndOfExperiment();
     }
@@ -683,7 +700,6 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void EndExperiment()
     {
-        Debug.Log("EndExperiment");
         base.EndExperiment();
         
         // You can do your own end of experiment stuff here
@@ -695,9 +711,8 @@ public class HumanLFD : GameMaster
     /// <returns>True if the rest condition has been reached.</returns>
     public override bool IsRestTime()
     {
-        Debug.Log("IsRestTime");
         // For example, give rest time after the fifth iteration.
-        return iterationNumber % RestIterations == 0;
+        return iterationNumber % iterationsTotal == 0;
     }
 
     /// <summary>
