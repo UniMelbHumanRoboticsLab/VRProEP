@@ -243,9 +243,9 @@ public abstract class GameMaster : MonoBehaviour
     {
         string text;
         text = "Status: " + currentState.StateName.ToString() + ".\n";
-        text += "Time: " + System.DateTime.Now.ToString("H:mm tt") + ".\n";
-        text += "Experiment Progress: " + sessionNumber + "/" + iterationsPerSession.Count + ".\n";
-        text += "Session Progress: " + iterationNumber + "/" + iterationsPerSession[sessionNumber - 1] + ".\n";
+        //text += "Time: " + System.DateTime.Now.ToString("H:mm tt") + ".\n";
+        text += "Task Progress: " + sessionNumber + "/" + iterationsPerSession.Count + ".\n";
+        //text += "Session Progress: " + iterationNumber + "/" + iterationsPerSession[sessionNumber - 1] + ".\n";
         return text;
     }
 

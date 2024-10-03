@@ -53,14 +53,12 @@ public class HumanLFD : GameMaster
     protected SteamVR_Action_Boolean padAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("InterfaceEnableButton");
 
     // Additional data logging
-    private DataStreamLogger performanceDataLogger;
     private float doneTime;
     private int subStep;
-
-
-    // Target management variables
-    private int targetNumber = 9; // The total number of targets
-    private List<int> targetOrder = new List<int>(); // A list of target indexes ordered for selection over iterations in a session.
+    private int curMovement = 0;
+    private int curDemo = 0;
+    private int demoNumber = 2; // number of demos needed for a task configuration
+    private string hand = "r";
 
     // Motion tracking for experiment management and adaptation (check for start position)
     private VIVETrackerManager uaTracker;
@@ -163,7 +161,7 @@ public class HumanLFD : GameMaster
             // Create Player
             AvatarSystem.LoadPlayer(SaveSystem.ActiveUser.type, AvatarType.AbleBodied);
             // Create Avatar
-            AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.AbleBodied);
+            AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.AbleBodied,mocap:true);
         }
     }
 
@@ -176,7 +174,9 @@ public class HumanLFD : GameMaster
     {
         // You can choose to use the base initialisation or get rid of it completely.
         string text = base.GetDisplayInfoText();
-        text += "Substep: " + subStep + ".\n";
+        text += "Substeps: " + subStep + ".\n";
+        text += "Cur Task Config: " + (curMovement+1) + "/" + iterationsTotal/demoNumber+ ".\n";
+        text += "Cur Demo: " + (curDemo+1) +"/" + demoNumber + ".\n";
         return text;
     }
 
@@ -251,14 +251,9 @@ public class HumanLFD : GameMaster
         //
         taskDataLogger = new DataStreamLogger("TaskData/" + AvatarSystem.AvatarType.ToString());
         ExperimentSystem.AddExperimentLogger(taskDataLogger);
-        taskDataLogger.AddNewLogFile(sessionNumber, iterationNumber, taskDataFormat); // Add file
+        //taskDataLogger.AddNewLogFile(sessionNumber, iterationNumber, taskDataFormat); // Add file
+        taskDataLogger.AddNewMovementLogFile(sessionNumber, curMovement, curDemo, taskDataFormat, hand); // Add file
 
-        //
-        // Create the performance data loggers
-        //
-        performanceDataLogger = new DataStreamLogger("PerformanceData");
-        ExperimentSystem.AddExperimentLogger(performanceDataLogger);
-        performanceDataLogger.AddNewLogFile(AvatarSystem.AvatarType.ToString(), sessionNumber, performanceDataFormat); // Add file
 
         // Send the player to the experiment centre position
         TeleportToStartPosition();
@@ -642,7 +637,24 @@ public class HumanLFD : GameMaster
     public override void HandleIterationInitialisation()
     {
         subStep = 0;
-        base.HandleIterationInitialisation();
+        
+        //
+        // Update iteration number and flow control
+        //
+        iterationNumber++;
+        curDemo++; 
+        if (curDemo%demoNumber == 0)
+        {
+            curDemo = 0;
+            curMovement++;
+        }
+        taskTime = 0.0f;
+
+        // 
+        // Update log
+        //
+        //taskDataLogger.AddNewLogFile(sessionNumber, iterationNumber, taskDataFormat);
+        taskDataLogger.AddNewMovementLogFile(sessionNumber, curMovement, curDemo, taskDataFormat, hand); // Add file
     }
 
     /// <summary>
@@ -662,21 +674,25 @@ public class HumanLFD : GameMaster
     /// </summary>
     public override void HandleSessionInitialisation()
     {
-        base.HandleSessionInitialisation();
+        //
+        // Initialize new session variables and flow control
+        //
+        iterationNumber = 1;
+        sessionNumber++;
+        curMovement = 0;
+        curDemo = 0;
+        taskTime = 0.0f;
+
+        // 
+        // Update log
+        //
+        //taskDataLogger.AddNewLogFile(sessionNumber, iterationNumber, taskDataFormat);
+        taskDataLogger.AddNewMovementLogFile(sessionNumber, curMovement, curDemo, taskDataFormat, hand); // Add file
 
         #region Iteration settings
         // Set iterations variables for flow control.
         iterationsPerSession[sessionNumber - 1] = iterationsTotal;
         subStep = 0;
-
-        // New file for the performance data logger
-        performanceDataLogger.CloseLog();
-        performanceDataLogger.AddNewLogFile(AvatarSystem.AvatarType.ToString(), sessionNumber, performanceDataFormat); // Add file
-
-        if (debug)
-        {
-
-        }
         #endregion
 
 

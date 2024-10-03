@@ -87,12 +87,20 @@ namespace VRProEP.GameEngineCore
         /// </summary>
         /// <param name="userData"></param>
         /// <param name="avatarData"></param>
-        public static void SpawnAbleBodiedAvatar(UserData userData, AvatarData avatarData, bool isNew = true, bool useController = true)
+        public static void SpawnAbleBodiedAvatar(UserData userData, AvatarData avatarData, bool isNew = true, bool useController = true,bool mocap=false)
         {
             if (useController)
             {
-                LoadAbleHand(userData.lefty, userData.handLength);
-                LoadAbleForearm(userData.forearmLength, isNew, true);
+                if (!mocap)
+                {
+                    LoadAbleHand(userData.lefty, userData.handLength);
+                    LoadAbleForearm(userData.forearmLength, isNew, true);
+                }
+                else if (mocap)
+                {
+                    LoadAbleHand(userData.lefty, userData.handLength);
+                }
+
             }
             // If not using controller for hand tracking
             else
