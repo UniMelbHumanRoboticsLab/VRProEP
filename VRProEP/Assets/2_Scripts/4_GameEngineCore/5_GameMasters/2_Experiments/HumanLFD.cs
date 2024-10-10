@@ -177,9 +177,9 @@ public class HumanLFD : GameMaster
     {
         // You can choose to use the base initialisation or get rid of it completely.
         string text = base.GetDisplayInfoText();
-        text += "Substeps: " + subStep + ".\n";
         text += "Cur Task Config: " + (curMovement + 1) + "/" + iterationsTotal / demoNumber + ".\n";
         text += "Cur Demo: " + (curDemo + 1) + "/" + demoNumber + ".\n";
+        text += "Substeps: " + subStep + ".\n\n";
         return text;
     }
 
@@ -372,10 +372,11 @@ public class HumanLFD : GameMaster
     {
         string text;
         text = "Status: " + status + ".\n";
-        text += "Time: " + System.DateTime.Now.ToString("H:mm tt") + ".\n";
-        text += "Experiment Progress: " + sessionNumber + "/" + iterationsPerSession.Count + ".\n";
-        text += "Session Progress: " + iterationNumber + "/" + iterationsPerSession[sessionNumber - 1] + ".\n";
-        text += "Substep: " + substep + ".\n";
+        //text += "Time: " + System.DateTime.Now.ToString("H:mm tt") + ".\n";
+        text += "Task Progress: " + sessionNumber + "/" + iterationsPerSession.Count + ".\n";
+        text += "Cur Task Config: " + (curMovement + 1) + "/" + iterationsTotal / demoNumber + ".\n";
+        text += "Cur Demo: " + (curDemo + 1) + "/" + demoNumber + ".\n\n";
+        text += "Substeps: " + subStep + ".\n";
 
         if (end)
         {
@@ -393,13 +394,13 @@ public class HumanLFD : GameMaster
         InstructionManager.DisplayText("You will perform 4 different tasks \n\nEach task has 5 differernt task configs \n\nEach task configs needs 3 demos\n");
         yield return WaitKeyBoardAck();
 
+        InstructionManager.DisplayText("You are required to move from Home => Point 1 => Point 2 => Home\n");
+        yield return WaitKeyBoardAck();
+        InstructionManager.DisplayText("When  Status changes from |Waiting_For_Task| to |Performing_Task| \n\nStart moving when you see subStep changes to 1.\n\nLet's Try it out");
+        yield return WaitKeyBoardAck(); // And wait for the subject to cycle through them.
+
         while (!instructionsDone)
         {
-            InstructionManager.DisplayText("You are required to move from Home => Point 1 => Point 2 => Home\n");
-            yield return WaitKeyBoardAck();
-            InstructionManager.DisplayText("When  Status changes from |Waiting_For_Task| to |Performing_Task| \n\nStart moving when you see subStep changes to 1.\n\nLet's Try it out");
-            yield return WaitKeyBoardAck(); // And wait for the subject to cycle through them.
-
             subStep = 0;
 
             InstructionManager.DisplayText(changeInstruction("Waiting_For_Task", subStep, false));
@@ -659,14 +660,18 @@ public class HumanLFD : GameMaster
         {
             curDemo = 0;
             curMovement++;
+            InstructionManager.DisplayText("Changes Task Config\n");
         }
         taskTime = 0.0f;
+        
 
         // 
         // Update log
         //
         //taskDataLogger.AddNewLogFile(sessionNumber, iterationNumber, taskDataFormat);
         taskDataLogger.AddNewMovementLogFile(sessionNumber, curMovement, curDemo, taskDataFormat, hand); // Add file
+
+
     }
 
     /// <summary>
@@ -694,6 +699,7 @@ public class HumanLFD : GameMaster
         curMovement = 0;
         curDemo = 0;
         taskTime = 0.0f;
+        InstructionManager.DisplayText("Changes Task\n");
 
         // 
         // Update log
