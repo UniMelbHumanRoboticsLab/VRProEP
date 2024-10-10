@@ -1612,7 +1612,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startEnable: 0
   demoMode: 0
-  skipInstructions: 1
+  skipInstructions: 0
   skipTraining: 1
   debug: 1
   debugText: {fileID: 0}
@@ -1631,3 +1631,4 @@ MonoBehaviour:
   performanceDataFormat: i,pose,name,t_f
   iterationsTotal: 10
   checkStartPosition: 1
+  rightHand: 0

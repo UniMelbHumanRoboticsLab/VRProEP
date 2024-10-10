@@ -36,7 +36,7 @@ public class HumanLFD : GameMaster
     [SerializeField]
     private string performanceDataFormat = "i,pose,name,t_f";
 
-   
+
     [Header("Experiment configuration: Start position")]
     [Header("Experiment configuration: Reps and Sets")]
     [SerializeField]
@@ -47,6 +47,8 @@ public class HumanLFD : GameMaster
 
     [SerializeField]
     private bool checkStartPosition;
+    [SerializeField]
+    private bool rightHand = true;
 
     #endregion
 
@@ -57,8 +59,8 @@ public class HumanLFD : GameMaster
     private int subStep;
     private int curMovement = 0;
     private int curDemo = 0;
-    private int demoNumber = 2; // number of demos needed for a task configuration
-    private string hand = "r";
+    private int demoNumber = 3; // number of demos needed for a task configuration
+
 
     // Motion tracking for experiment management and adaptation (check for start position)
     private VIVETrackerManager uaTracker;
@@ -74,6 +76,7 @@ public class HumanLFD : GameMaster
 
     // Lefty subject sign
     private float leftySign = 1.0f;
+    private string hand = "r";
 
     private class VariationTestConfigurator
     {
@@ -82,7 +85,7 @@ public class HumanLFD : GameMaster
     }
     private VariationTestConfigurator configurator;
 
-   
+
     #region Private methods
     private string ConfigEMGFilePath()
     {
@@ -108,7 +111,7 @@ public class HumanLFD : GameMaster
     //
     private class Configurator
     {
-        
+
     }
     private Configurator config;
 
@@ -137,9 +140,9 @@ public class HumanLFD : GameMaster
     }
     protected override void FixedUpdate()
     {
-       
+
         // Override fixed update to start the emg recording when the start performing the task
-        if ( GetCurrentStateName() == State.STATE.PERFORMING_TASK)
+        if (GetCurrentStateName() == State.STATE.PERFORMING_TASK)
         {
 
             Debug.Log("Session Number: " + sessionNumber + ", Iteration Number: " + iterationNumber + ", Status: PERFORMING_TASK");
@@ -161,7 +164,7 @@ public class HumanLFD : GameMaster
             // Create Player
             AvatarSystem.LoadPlayer(SaveSystem.ActiveUser.type, AvatarType.AbleBodied);
             // Create Avatar
-            AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.AbleBodied,mocap:true);
+            AvatarSystem.LoadAvatar(SaveSystem.ActiveUser, AvatarType.AbleBodied, mocap: true);
         }
     }
 
@@ -175,8 +178,8 @@ public class HumanLFD : GameMaster
         // You can choose to use the base initialisation or get rid of it completely.
         string text = base.GetDisplayInfoText();
         text += "Substeps: " + subStep + ".\n";
-        text += "Cur Task Config: " + (curMovement+1) + "/" + iterationsTotal/demoNumber+ ".\n";
-        text += "Cur Demo: " + (curDemo+1) +"/" + demoNumber + ".\n";
+        text += "Cur Task Config: " + (curMovement + 1) + "/" + iterationsTotal / demoNumber + ".\n";
+        text += "Cur Demo: " + (curDemo + 1) + "/" + demoNumber + ".\n";
         return text;
     }
 
@@ -190,7 +193,7 @@ public class HumanLFD : GameMaster
     /// <param name="setActive">Sets the HUD colour as active (Blue).</param>
     public override void HandleHUDColour(bool setActive = false)
     {
-            base.HandleHUDColour();
+        base.HandleHUDColour();
     }
 
     /// <summary>
@@ -233,6 +236,15 @@ public class HumanLFD : GameMaster
         // Lefty sign
         if (SaveSystem.ActiveUser.lefty)
             leftySign = -1.0f;
+
+        if (rightHand)
+        {
+            hand = "r";
+        }
+        else
+        {
+            hand = "l";
+        }
 
         #region Modify base
         // Then run the base initialisation which is needed, with a small modification
@@ -385,7 +397,7 @@ public class HumanLFD : GameMaster
         {
             InstructionManager.DisplayText("You are required to move from Home => Point 1 => Point 2 => Home\n");
             yield return WaitKeyBoardAck();
-            InstructionManager.DisplayText("When  Status changes from |Waiting_For_Task| to |Performing_Task| \n\nSay |READY| when you are ready to move.\n\nLet's Try it out");
+            InstructionManager.DisplayText("When  Status changes from |Waiting_For_Task| to |Performing_Task| \n\nStart moving when you see subStep changes to 1.\n\nLet's Try it out");
             yield return WaitKeyBoardAck(); // And wait for the subject to cycle through them.
 
             subStep = 0;
