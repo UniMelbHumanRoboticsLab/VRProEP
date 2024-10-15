@@ -122,7 +122,7 @@ public abstract class GameMaster : MonoBehaviour
     //
     // Flow control
     //
-    private State currentState;
+    public State currentState;
     protected float taskTime = 0.0f;
     protected int sessionNumber = 1;
     protected int iterationNumber = 1;
@@ -242,7 +242,15 @@ public abstract class GameMaster : MonoBehaviour
     public virtual string GetDisplayInfoText()
     {
         string text;
-        text = "Status: " + currentState.StateName.ToString() + ".\n";
+        text = "Status: " + currentState.StateName.ToString();
+        if (currentState.StateName.ToString()  != "INITIALISING_NEXT_SESSION")
+        {
+            text += ".\n\n";
+        }
+        else
+        {
+            text += "Change Task bench.\n\n";
+        }
         //text += "Time: " + System.DateTime.Now.ToString("H:mm tt") + ".\n";
         text += "Task Progress: " + sessionNumber + "/" + iterationsPerSession.Count + ".\n";
         //text += "Session Progress: " + iterationNumber + "/" + iterationsPerSession[sessionNumber - 1] + ".\n";
