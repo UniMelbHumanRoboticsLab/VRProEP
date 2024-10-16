@@ -31,11 +31,18 @@ public abstract class GameMaster : MonoBehaviour
     protected bool skipInstructions = false;
     [SerializeField]
     protected bool skipTraining = false;
+    [SerializeField]
+    protected int sessionNumber = 1;
+    [SerializeField]
+    public int curMovement = 0;
+    [SerializeField]
+    protected bool rightHand = true;
     // Accessors
     public bool StartEnable { get => startEnable; set => startEnable = value; }
     public bool DemoMode { get => demoMode; }
     public bool SkipInstructions { get => skipInstructions; }
     public bool SkipTraining { get => skipTraining; }
+
 
     // UI Management
     private HUDManager hudManager;
@@ -121,10 +128,9 @@ public abstract class GameMaster : MonoBehaviour
 
     //
     // Flow control
-    //
+    //    
     public State currentState;
     protected float taskTime = 0.0f;
-    protected int sessionNumber = 1;
     protected int iterationNumber = 1;
     protected bool inWelcome = false;
     protected bool welcomeDone = false;

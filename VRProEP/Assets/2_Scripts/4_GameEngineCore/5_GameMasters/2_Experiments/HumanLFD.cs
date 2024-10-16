@@ -47,8 +47,6 @@ public class HumanLFD : GameMaster
 
     [SerializeField]
     private bool checkStartPosition;
-    [SerializeField]
-    private bool rightHand = true;
 
     #endregion
 
@@ -57,9 +55,10 @@ public class HumanLFD : GameMaster
     // Additional data logging
     private float doneTime;
     private int subStep;
-    private int curMovement = 0;
     private int curDemo = 0;
     private int demoNumber = 3; // number of demos needed for a task configuration
+
+
 
 
     // Motion tracking for experiment management and adaptation (check for start position)
@@ -262,9 +261,8 @@ public class HumanLFD : GameMaster
         if (debug)
             ExperimentSystem.SetActiveExperimentID(this.gameObject.name + "_Debug");
 
-        // Make sure flow control is initialised
-        sessionNumber = 1;
-        iterationNumber = 1;
+        // Make sure flow control is initialised to last movement (task config)
+        iterationNumber = curMovement*demoNumber+1;
 
         //
         // Create the default data loggers
@@ -496,7 +494,7 @@ public class HumanLFD : GameMaster
         {
             //return Input.GetKey(KeyCode.UpArrow);
             Debug.Log("Session Number: " + sessionNumber + ", Iteration Number: " + iterationNumber + ", Status: checkStartPosition");
-            return (Input.GetKey(KeyCode.Space) || buttonAction.GetState(SteamVR_Input_Sources.Any));
+            return (Input.GetKey(KeyCode.Space));
         }
         else
             Debug.Log("!!");
