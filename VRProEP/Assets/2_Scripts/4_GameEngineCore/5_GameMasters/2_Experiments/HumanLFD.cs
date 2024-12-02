@@ -57,6 +57,7 @@ public class HumanLFD : GameMaster
     private int subStep;
     private int curDemo = 0;
     private int demoNumber = 3; // number of demos needed for a task configuration
+    private string moving = "Stopped";
 
 
 
@@ -145,6 +146,46 @@ public class HumanLFD : GameMaster
         {
 
             Debug.Log("Session Number: " + sessionNumber + ", Iteration Number: " + iterationNumber + ", Status: PERFORMING_TASK");
+            Vector3 localVel;
+            wristTracker.GetTrackerVelocity(out localVel);
+            float thresh = 0.5f;
+            if (localVel.magnitude < thresh & moving.Equals("Stopped"))
+            {
+                moving = "Stopped";
+            }
+            else if (localVel.magnitude < thresh & moving.Equals("Moved"))
+            {
+                moving = "Stopping";
+            }
+            else if (localVel.magnitude > thresh & moving.Equals("Stopped"))
+            {
+                moving = "Moving";
+            }
+            else if (localVel.magnitude > thresh & moving.Equals("Moved"))
+            {
+                moving = "Moved";
+            }
+            else if (localVel.magnitude < thresh & moving.Equals("Moving"))
+            {
+                moving = "Stopping";
+            }
+            else if (localVel.magnitude < thresh & moving.Equals("Stopping"))
+            {
+                subStep += 1;
+                //Debug.Log("Session Number: " + sessionNumber + ", Iteration Number: " + iterationNumber + ", Substeps: " + subStep);
+                InstructionManager.DisplayText(GetDisplayInfoText());
+                moving = "Stopped";
+            }
+            else if (localVel.magnitude > thresh & moving.Equals("Moving"))
+            {
+                moving = "Moved";
+            }
+            else if (localVel.magnitude > thresh & moving.Equals("Stopping"))
+            {
+                moving = "Moving";
+            }
+            Debug.Log(localVel.magnitude + moving);
+
 
         }
 
@@ -589,6 +630,8 @@ public class HumanLFD : GameMaster
     public override void HandleInTaskBehaviour()
     {
         HudManager.colour = HUDManager.HUDColour.Blue;
+        //Debug.Log()
+
     }
 
     /// <summary>

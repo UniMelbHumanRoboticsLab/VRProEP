@@ -50,6 +50,9 @@ MonoBehaviour:
   demoMode: 0
   skipInstructions: 0
   skipTraining: 0
+  sessionNumber: 1
+  curMovement: 0
+  rightHand: 1
   debug: 1
   debugText: {fileID: 0}
   worldOrientation: 180

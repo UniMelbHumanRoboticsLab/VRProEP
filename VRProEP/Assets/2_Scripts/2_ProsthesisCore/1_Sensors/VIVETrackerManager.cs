@@ -87,6 +87,37 @@ namespace VRProEP.ProsthesisCore
         {
             return this.trackerTransform;
         }
+        public bool GetTrackerVelocity(out Vector3 localVel)
+        {
+            // Get VR tracking nodes states
+            InputTracking.GetNodeStates(xrNodes);
+            //
+            // Look for Hardware trackers
+            //
+            // Generate a list with tracker indexes
+            List<float> trackerIndexes = new List<float>(totalTrackerNumber);
+            for (int i = 1; i <= totalTrackerNumber; i++)
+                trackerIndexes.Add(i);
+            // Look for trackers
+            int currentTracker = 1;
+            foreach (XRNodeState ns in xrNodes)
+            {
+                // If a hardware tracker is found, and matches index.
+                //Debug.Log(ns.nodeType.ToString() + " " + currentTracker + " " + trackerIndexes[trackerNumber - 1]);
+                if (ns.nodeType == XRNode.HardwareTracker && currentTracker == (trackerIndexes[trackerNumber - 1]))
+                {
+                    //Debug.Log(currentTracker.ToString());
+                    if (ns.TryGetVelocity(out localVel))
+                        return true;
+                    else
+                        return false;
+                }
+                else if (ns.nodeType == XRNode.HardwareTracker)
+                    currentTracker++;
+            }
+            // If no tracker was found return error
+            throw new System.Exception("No VIVE Tracker was found");
+        }
 
         /// <summary>
         /// Uses Unity's XR API to extract angular velocity information from the tracker.
