@@ -51,11 +51,17 @@ Runs from Unity Editor. See Wiki for more information.
 ## Transaction on Neural Systems and Rehabilitation Engineering 2024 Paper Submission
 The following platform and Unity versions were used for the experiments included in the paper submitted to IEEE Transaction on Neural Systems and Rehabilitation Engineering in 2024, titled *"Discrete-Target Prosthesis Control Using Uncertainty-Aware Classification for Smooth and Efficient Gross Arm Movement"*.
 
-- VRProEP Version: 0.7.2.
+Paper DOI: https://doi.org/10.1109/TNSRE.2024.3450973 \
+Paper website: https://ieeexplore.ieee.org/abstract/document/10654345
+
+
+- VRProEP Version: 0.7.2. Tag Link: https://github.com/UniMelbHumanRoboticsLab/VRProEP/releases/tag/0.7.2
 - Unity Version: 2019.4.40f1
 - Add a new interactive task: clothespin relocation test, reference: https://doi.org/10.1177/0309364619843779
 - Add communication interfaces with prosthesis controllers developed in Python and Matlab through ZeroMQ.
 - Add Delsys EMG data acquisition system.
+
+
 Runs from Unity Editor.
 
 
